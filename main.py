@@ -42,6 +42,6 @@ outputs = model.generate(
 
 text = tokenizer.batch_decode(outputs)[0]
 
-print('START OUTPUT ---')
+print('-- START OUTPUT ---')
 print(text)
-print('END OUTPUT ---')
+print('--- END OUTPUT ---')

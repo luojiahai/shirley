@@ -5,11 +5,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria
 
 torch.set_default_device('cuda')
 
-print('BEGIN PRINT')
+print('BEGIN PRINT SPECIFICATION')
 print('Device name:', torch.cuda.get_device_properties('cuda').name)
 print('Flash Attention available:', torch.backends.cuda.flash_sdp_enabled())
 print('Torch version:', torch.version.__version__)
-print('END PRINT')
+print('END PRINT SPECIFICATION')
 
 model = AutoModelForCausalLM.from_pretrained(
     pretrained_model_name_or_path='./models/phi-2',
@@ -67,6 +67,7 @@ stop_sequence = '\nUser:'
 outputs = model.generate(
     **inputs,
     max_length=2048,
+    do_sample=True,
     pad_token_id=tokenizer.eos_token_id,
     stopping_criteria=MyStoppingCriteria(stop_sequence, prompt),
 )
@@ -74,6 +75,6 @@ outputs = model.generate(
 text = tokenizer.batch_decode(outputs)[0]
 text = text.replace(prompt, '').replace(stop_sequence, '')
 
-print('BEGIN PRINT')
+print('BEGIN PRINT OUTPUT')
 print(text)
-print('END PRINT')
+print('END PRINT OUTPUT')

@@ -12,4 +12,10 @@
 
 ## Install Models
 - Explore https://huggingface.co/ for models
-- Clone the repository in `.\models\<model_repository>`, alternatively download the zip and extract in `.\`
+- Clone the repository in `.\models\<model_repository>` via `git`
+    - Alternatively, download the repository zip and extract in `.\models\<model_repository>`
+
+## Usage
+- Update `.\main.py` for the model path
+- Update `prompt` if needed
+- Run `.\run.bat`

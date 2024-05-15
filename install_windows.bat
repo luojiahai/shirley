@@ -10,6 +10,16 @@ set ERROR_REPORTING=FALSE
 
 mkdir tmp 2>NUL
 
+if not exist %PYTHON% goto :install_python
+goto :launch_python
+
+:install_python
+powershell -Command "Invoke-WebRequest https://www.python.org/ftp/python/3.10.6/python-3.10.6-embed-amd64.zip -OutFile tmp\python.zip"
+powershell -Command "Expand-Archive -Path tmp\python.zip -DestinationPath %PYTHON%"
+powershell -Command "Invoke-WebRequest https://bootstrap.pypa.io/get-pip.py -OutFile %PYTHON%\get-pip.py"
+goto :launch_python
+
+:launch_python
 %PYTHON% -c "" >tmp/stdout.txt 2>tmp/stderr.txt
 if %ERRORLEVEL% == 0 goto :check_pip
 echo Couldn't launch python

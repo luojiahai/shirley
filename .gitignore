@@ -1,5 +1,7 @@
-models/*
+models/
 tmp/
+python/Lib/
+python/Scripts/
 
 !models/.gitkeep
 

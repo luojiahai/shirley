@@ -1,15 +1,6 @@
 @echo off
 
-set DIR=%~dp0
-
-set PATH=%DIR%\git\bin;%DIR%\python;%DIR%\python\Scripts;%PATH%
-set PY_LIBS=%DIR%\python\Scripts\Lib;%DIR%\python\Scripts\Lib\site-packages
-set PY_PIP=%DIR%\python\Scripts
-set SKIP_VENV=1
-set PIP_INSTALLER_LOCATION=%DIR%\python\get-pip.py
-
-set PYTHON=
-set VENV_DIR=
+call environment.bat
 
 if not defined PYTHON (set PYTHON=python)
 if not defined VENV_DIR (set "VENV_DIR=%~dp0%venv")

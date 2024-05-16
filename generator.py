@@ -3,7 +3,6 @@ import transformers
 
 class Generator(object):
     def __init__(self):
-        self._device = 'cpu'
         if torch.cuda.is_available():
             self._device = torch.device('cuda')
         elif torch.backends.mps.is_available():

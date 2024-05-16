@@ -46,14 +46,7 @@ tokenizer = transformers.AutoTokenizer.from_pretrained(
 query = 'What is potato?'
 
 prompt = f'''
-Human: You are a question answering Assistant. I will provide you with a user's
-question, your job is to answer the user's question.
-
-Here is the user's question:
-<question>
-{query}
-</question>
-
+User: {query}
 Assistant:
 '''
 

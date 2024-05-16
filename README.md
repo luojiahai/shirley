@@ -3,27 +3,31 @@
 This application generates text using [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model.
 
 ## Requirements
-- Git
-- CUDA if using NVIDIA graphics cards
+- [Git](https://git-scm.com/)
+- [CUDA](https://developer.nvidia.com/cuda-toolkit) if using NVIDIA graphics cards
+- [Python 3.10.6](https://www.python.org/downloads/release/python-3106/) and [pip](https://pypi.org/project/pip/) if on MacOS / Linux
 
 ## Installation
 
+Python is not required for this installation on Windows.
+
 ### Windows
-- Run `install.bat`. It does the following automatically:
-    - Install [Python 3.10.6](https://www.python.org/downloads/release/python-3106/) Windows embeddable package to `python` directory.
-    - Download [get-pip.py](https://bootstrap.pypa.io/get-pip.py) to `python` directory.
-    - Remove `*._pth` file from `python` directory.
-    - Install [pip](https://pypi.org/project/pip/) from `python/get-pip.py`.
-- Run `python\Scripts\pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121`.
-- Run `python\Scripts\pip3 install transformers`.
+- Run `install.bat`, which creates Python environment locally.
+- Install [PyTorch](https://pytorch.org/get-started/locally/).
+  - Run `python\Scripts\pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121`.
+- Install [Transformers](https://huggingface.co/docs/transformers/).
+  - Run `python\Scripts\pip3 install transformers`.
 - Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
 
-### MacOS
-- Install [Python 3.10.6](https://www.python.org/downloads/release/python-3106/).
-- Install [pip](https://pypi.org/project/pip/).
-- Run `pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cpu`.
-  - The Preview (Nightly) build of PyTorch will provide the latest mps support on your device. https://developer.apple.com/metal/pytorch/
-- Run `pip3 install transformers`.
+### MacOS (Apple Silicon)
+- Install [PyTorch](https://pytorch.org/get-started/locally/) Preview (Nightly).
+  - The Preview (Nightly) build of PyTorch will provide the latest mps support on your device. See https://developer.apple.com/metal/pytorch/.
+- Install [Transformers](https://huggingface.co/docs/transformers/).
+- Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
+
+### MacOS (Intel) / Linux
+- Install [PyTorch](https://pytorch.org/get-started/locally/).
+- Install [Transformers](https://huggingface.co/docs/transformers/).
 - Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
 
 ## Usage
@@ -33,5 +37,5 @@ Update `prompt` in `main.py`.
 ### Windows
 - Run `run.bat`.
 
-### MacOS
+### MacOS / Linux
 - Run `python3 main.py`.

@@ -1,13 +1,18 @@
-from app import App
+from generator import Generator
 
 def main():
     print("Hello, World!")
     print()
 
-    app = App(model_path='models/Mistral-7B-Instruct-v0.2')
-    decoded_sentences = app.generate(prompt='What is potato?')
-    text = decoded_sentences[0]
+    prompt = 'What is potato?'
+
+    generator = Generator()
+    text = generator.generate(prompt)
+
+    print("BEGIN PRINT GENERATED TEXT")
     print(text)
+    print("END PRINT GENERATED TEXT")
+    print()
 
 if __name__ == "__main__":
     main()

@@ -21,7 +21,7 @@ else:
     device = torch.device('cpu')
 print(f'Using {device} device')
 
-print('Torch version:', torch.version.__version__)
+print('Torch version:', torch.__version__)
 print('Transformers version:', transformers.__version__)
 
 print('END INITIALIZATION')
@@ -29,59 +29,42 @@ print()
 
 print('BEGIN GENERATION')
 
+model_path = 'models/phi-2'
+
 model = transformers.AutoModelForCausalLM.from_pretrained(
-    pretrained_model_name_or_path='models/phi-2',
+    pretrained_model_name_or_path=model_path,
     local_files_only=True,
     torch_dtype=torch.bfloat16,
-    trust_remote_code=True,
 )
-model.to(device=device)
+model = model.to(device=device)
 
 tokenizer = transformers.AutoTokenizer.from_pretrained(
-    pretrained_model_name_or_path='models/phi-2',
+    pretrained_model_name_or_path=model_path,
     local_files_only=True,
-    trust_remote_code=True,
 )
 
-query = 'What is potato?'
+prompt = 'What is potato?'
 
-prompt = f'''
-You are an AI Assistant that generates response to User's query.
+messages = [
+    {"role": "user", "content": prompt},
+]
 
-User: {query}
-Assistant:
-'''
-
-inputs = tokenizer(
-    text=prompt,
-    return_tensors='pt',
-    return_attention_mask=False,
+tokenized_chat = tokenizer.apply_chat_template(
+    messages,
+    tokenize=True,
+    add_generation_prompt=True,
+    return_tensors="pt"
 )
-inputs.to(device=device)
-
-stop_sequence = 'User:'
-
-def custom_stopping_criteria(input_ids, scores, **kwargs):
-    generated_text = tokenizer.decode(input_ids[0])
-    generated_text = generated_text.replace(prompt, '')
-    if stop_sequence in generated_text:
-        return True
-    return False
+tokenized_chat = tokenized_chat.to(device=device)
 
 outputs = model.generate(
-    **inputs,
+    tokenized_chat,
     max_length=256,
     do_sample=True,
     pad_token_id=tokenizer.eos_token_id,
-    stopping_criteria=transformers.StoppingCriteriaList([custom_stopping_criteria]),
 )
 
 text = tokenizer.batch_decode(outputs)[0]
-text = text \
-    .replace(prompt, '') \
-    .replace(stop_sequence, '') \
-    .replace('<|endoftext|>', '') \
-    .strip()
 
 print('END GENERATION')
 print()

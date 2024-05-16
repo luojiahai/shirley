@@ -3,8 +3,9 @@
 ## Installation
 - Run `install.bat`. It does automatically:
     - Install [Python 3.10.6](https://www.python.org/downloads/release/python-3106/) Windows embeddable package to `python` directory.
+    - Download [get-pip.py](https://bootstrap.pypa.io/get-pip.py) to `python` directory.
     - Remove `*._pth` file from `python` directory.
-    - Install [pip](https://pypi.org/project/pip/) from [get-pip.py](https://bootstrap.pypa.io/get-pip.py).
+    - Install [pip](https://pypi.org/project/pip/) from `python/get-pip.py`.
 - Run `python\Scripts\pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121`
 - Run `python\Scripts\pip3 install transformers`
 

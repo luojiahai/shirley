@@ -2,7 +2,7 @@ print('Hello, World!')
 print()
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria
+import transformers
 
 print('BEGIN INITIALIZATION')
 
@@ -22,13 +22,14 @@ else:
 print(f'Using {device} device')
 
 print('Torch version:', torch.version.__version__)
+print('Transformers version:', transformers.__version__)
 
 print('END INITIALIZATION')
 print()
 
 print('BEGIN GENERATION')
 
-model = AutoModelForCausalLM.from_pretrained(
+model = transformers.AutoModelForCausalLM.from_pretrained(
     pretrained_model_name_or_path='models/phi-2',
     local_files_only=True,
     torch_dtype=torch.bfloat16,
@@ -36,7 +37,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 model.to(device=device)
 
-tokenizer = AutoTokenizer.from_pretrained(
+tokenizer = transformers.AutoTokenizer.from_pretrained(
     pretrained_model_name_or_path='models/phi-2',
     local_files_only=True,
     trust_remote_code=True,
@@ -45,7 +46,7 @@ tokenizer = AutoTokenizer.from_pretrained(
 query = 'What is potato?'
 
 prompt = f'''
-Human: You are a question answering agent. I will provide you with a user's
+Human: You are a question answering Assistant. I will provide you with a user's
 question, your job is to answer the user's question.
 
 Here is the user's question:
@@ -63,7 +64,7 @@ inputs = tokenizer(
 )
 inputs.to(device=device)
 
-class MyStoppingCriteria(StoppingCriteria):
+class MyStoppingCriteria(transformers.StoppingCriteria):
     def __init__(self, target_sequence, prompt):
         self.target_sequence = target_sequence
         self.prompt=prompt
@@ -87,7 +88,6 @@ outputs = model.generate(
     **inputs,
     max_length=256,
     do_sample=True,
-    temperature=0.9,
     pad_token_id=tokenizer.eos_token_id,
     stopping_criteria=MyStoppingCriteria(stop_sequence, prompt),
 )
@@ -96,7 +96,8 @@ text = tokenizer.batch_decode(outputs)[0]
 text = text \
     .replace(prompt, '') \
     .replace(stop_sequence, '') \
-    .replace('<|endoftext|>', '')
+    .replace('<|endoftext|>', '') \
+    .strip()
 
 print('END GENERATION')
 print()

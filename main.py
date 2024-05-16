@@ -12,14 +12,14 @@ print('Torch version:', torch.version.__version__)
 print('END PRINT SPECIFICATION')
 
 model = AutoModelForCausalLM.from_pretrained(
-    pretrained_model_name_or_path='./models/phi-2',
+    pretrained_model_name_or_path='models/phi-2',
     local_files_only=True,
-    torch_dtype='auto',
+    torch_dtype=torch.bfloat16,
     trust_remote_code=True,
 )
 
 tokenizer = AutoTokenizer.from_pretrained(
-    pretrained_model_name_or_path='./models/phi-2',
+    pretrained_model_name_or_path='models/phi-2',
     local_files_only=True,
     trust_remote_code=True,
 )
@@ -62,7 +62,7 @@ class MyStoppingCriteria(StoppingCriteria):
     def __iter__(self):
         yield self
 
-stop_sequence = '\nUser:'
+stop_sequence = 'User:'
 
 outputs = model.generate(
     **inputs,
@@ -73,7 +73,10 @@ outputs = model.generate(
 )
 
 text = tokenizer.batch_decode(outputs)[0]
-text = text.replace(prompt, '').replace(stop_sequence, '')
+text = text \
+    .replace(prompt, '') \
+    .replace(stop_sequence, '') \
+    .replace('<|endoftext|>', '')
 
 print('BEGIN PRINT OUTPUT')
 print(text)

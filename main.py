@@ -46,7 +46,7 @@ tokenizer = transformers.AutoTokenizer.from_pretrained(
 query = 'What is potato?'
 
 prompt = f'''
-You are an AI assistant that generates response to User's query.
+You are an AI Assistant that generates response to User's query.
 
 User: {query}
 Assistant:

@@ -1,15 +1,32 @@
 print('Hello, World!')
+print()
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria
 
-torch.set_default_device('cuda')
+print('BEGIN INITIALIZATION')
 
-print('BEGIN PRINT SPECIFICATION')
-print('Device name:', torch.cuda.get_device_properties('cuda').name)
-print('Flash Attention available:', torch.backends.cuda.flash_sdp_enabled())
+device = 'cpu'
+use_cuda = torch.cuda.is_available()
+use_mps = torch.backends.mps.is_available()
+
+if use_cuda:
+    device = torch.device('cuda')
+    print('CUDA device name:', torch.cuda.get_device_properties('cuda').name)
+    print('Flash Attention available:', torch.backends.cuda.flash_sdp_enabled())
+elif use_mps:
+    # https://developer.apple.com/metal/pytorch/
+    device = torch.device('mps')
+else:
+    device = torch.device('cpu')
+print(f'Using {device} device')
+
 print('Torch version:', torch.version.__version__)
-print('END PRINT SPECIFICATION')
+
+print('END INITIALIZATION')
+print()
+
+print('BEGIN GENERATION')
 
 model = AutoModelForCausalLM.from_pretrained(
     pretrained_model_name_or_path='models/phi-2',
@@ -17,6 +34,7 @@ model = AutoModelForCausalLM.from_pretrained(
     torch_dtype=torch.bfloat16,
     trust_remote_code=True,
 )
+model.to(device=device)
 
 tokenizer = AutoTokenizer.from_pretrained(
     pretrained_model_name_or_path='models/phi-2',
@@ -43,6 +61,7 @@ inputs = tokenizer(
     return_tensors='pt',
     return_attention_mask=False,
 )
+inputs.to(device=device)
 
 class MyStoppingCriteria(StoppingCriteria):
     def __init__(self, target_sequence, prompt):
@@ -66,8 +85,9 @@ stop_sequence = 'User:'
 
 outputs = model.generate(
     **inputs,
-    max_length=2048,
+    max_length=256,
     do_sample=True,
+    temperature=0.9,
     pad_token_id=tokenizer.eos_token_id,
     stopping_criteria=MyStoppingCriteria(stop_sequence, prompt),
 )
@@ -78,6 +98,10 @@ text = text \
     .replace(stop_sequence, '') \
     .replace('<|endoftext|>', '')
 
+print('END GENERATION')
+print()
+
 print('BEGIN PRINT OUTPUT')
 print(text)
 print('END PRINT OUTPUT')
+print()

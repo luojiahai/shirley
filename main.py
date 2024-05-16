@@ -46,8 +46,10 @@ tokenizer = transformers.AutoTokenizer.from_pretrained(
 query = 'What is potato?'
 
 prompt = f'''
-User: {query}
-Assistant:
+You are an AI Assistant that helps answer questions.
+
+Question: {query}
+Answer:
 '''
 
 inputs = tokenizer(
@@ -57,38 +59,16 @@ inputs = tokenizer(
 )
 inputs.to(device=device)
 
-class MyStoppingCriteria(transformers.StoppingCriteria):
-    def __init__(self, target_sequence, prompt):
-        self.target_sequence = target_sequence
-        self.prompt=prompt
-
-    def __call__(self, input_ids, scores, **kwargs):
-        generated_text = tokenizer.decode(input_ids[0])
-        generated_text = generated_text.replace(self.prompt, '')
-        if self.target_sequence in generated_text:
-            return True
-        return False
-
-    def __len__(self):
-        return 1
-
-    def __iter__(self):
-        yield self
-
-stop_sequence = 'User:'
-
 outputs = model.generate(
     **inputs,
     max_length=256,
     do_sample=True,
     pad_token_id=tokenizer.eos_token_id,
-    stopping_criteria=MyStoppingCriteria(stop_sequence, prompt),
 )
 
 text = tokenizer.batch_decode(outputs)[0]
 text = text \
     .replace(prompt, '') \
-    .replace(stop_sequence, '') \
     .replace('<|endoftext|>', '') \
     .strip()
 

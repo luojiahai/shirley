@@ -11,11 +11,13 @@ def main():
     print('END PRINT PROMPT')
     print()
 
-    print('BEGIN GENERATION')
+    print('BEGIN INITIALIZATION')
     generator = Generator()
-    print('Pipeline device:', generator.pipeline.device)
-    print('Pipeline model:', generator.pipeline.model)
-    print('Pipeline tokenizer:', generator.pipeline.tokenizer)
+    print('Device:', generator.device)
+    print('END INITIALIZATION')
+    print()
+
+    print('BEGIN GENERATION')
     generated_text = generator.generate(prompt)
     print('END GENERATION')
     print()

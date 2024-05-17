@@ -1,8 +1,10 @@
+db/**/*
 models/**/*
 python/
 resources/**/*
 tmp/
 
+!db/.gitkeep
 !models/.gitkeep
 !resources/.gitkeep
 

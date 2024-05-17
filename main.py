@@ -1,5 +1,5 @@
+import sys, os
 from generator import Generator
-import langchain
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.embeddings.sentence_transformer import (
@@ -43,7 +43,9 @@ def test():
 
     embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
-    db = Chroma.from_documents(docs, embedding_function)
+    db = Chroma(embedding_function=embedding_function, persist_directory="db/chroma_db")
+
+    db.add_documents(docs)
 
     query = "What is Geoffrey's current job?"
     docs = db.similarity_search(query)
@@ -51,5 +53,9 @@ def test():
     print(docs[0].page_content)
 
 if __name__ == '__main__':
-    # main()
-    test()
+    path = os.path.realpath('.')
+    if path not in sys.path:
+        sys.path.append(path)
+
+    main()
+    # test()

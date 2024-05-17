@@ -18,6 +18,7 @@ class Generator(object):
         self._model = transformers.AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=self.pretrained_model_path,
             local_files_only=True,
+            torch_dtype=torch.bfloat16,
         )
 
         self._tokenizer = transformers.AutoTokenizer.from_pretrained(

@@ -2,7 +2,7 @@ import torch
 import transformers
 
 class Generator(object):
-    def __init__(self):
+    def __init__(self, pretrained_model_name_or_path, *args, **kwargs):
         if torch.cuda.is_available():
             self._device = torch.device('cuda')
         elif torch.backends.mps.is_available():
@@ -11,14 +11,15 @@ class Generator(object):
             self._device = torch.device('cpu')
 
         self._model = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path='models/Mistral-7B-Instruct-v0.2',
-            local_files_only=True,
-            torch_dtype=torch.bfloat16,
+            pretrained_model_name_or_path=pretrained_model_name_or_path,
+            *args,
+            **kwargs,
         )
 
         self._tokenizer = transformers.AutoTokenizer.from_pretrained(
-            pretrained_model_name_or_path='models/Mistral-7B-Instruct-v0.2',
-            local_files_only=True,
+            pretrained_model_name_or_path=pretrained_model_name_or_path,
+            *args,
+            **kwargs,
         )
 
         self._pipeline = transformers.pipeline(
@@ -29,28 +30,26 @@ class Generator(object):
         )
 
     @property
-    def device(self) -> torch.device:
+    def device(self):
         return self._device
-    
+
     @property
-    def model(self) -> transformers.PreTrainedModel:
+    def model(self):
         return self._model
-    
+
     @property
-    def tokenizer(self) -> transformers.PreTrainedTokenizer:
+    def tokenizer(self):
         return self._tokenizer
-    
+
     @property
-    def pipeline(self) -> transformers.Pipeline:
+    def pipeline(self):
         return self._pipeline
 
-    def generate(self, prompt: str) -> str:
-        text_inputs: list[dict[str, str]] = [{'role': 'user', 'content': prompt}]
-        text_outputs: list[dict[str, str]] = self.pipeline(
+    def generate(self, prompt: str, *args, **kwargs):
+        text_inputs = [{'role': 'user', 'content': prompt}]
+        text_outputs = self.pipeline(
             text_inputs=text_inputs,
-            return_full_text=False,
-            do_sample=True,
-            pad_token_id=self.tokenizer.eos_token_id,
-            max_new_tokens=256,
+            *args,
+            **kwargs,
         )
-        return text_outputs[0]['generated_text'].strip()
+        return text_outputs

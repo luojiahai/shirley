@@ -1,4 +1,4 @@
-# Shirley 🦈
+# Shirley🦈
 
 This tool generates text using [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model.
 

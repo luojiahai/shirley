@@ -13,26 +13,25 @@ Python is not required for this installation on Windows.
 
 ### Windows
 - Run `install.bat`, which creates Python environment locally.
-- Uncomment `#import site` in `python\<python_version>._pth` file. Otherwise, `pip` may not work expectedly.
 - Install [PyTorch](https://pytorch.org/get-started/locally/).
   ```
   python\Scripts\pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
   ```
-- Install [Transformers](https://huggingface.co/docs/transformers/).
+- Install all dependencies in `requirements.txt`.
     ```
-    python\Scripts\pip3 install transformers
+    python\Scripts\pip3 install -r requirements.txt
     ```
 - Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
 
 ### MacOS (Apple Silicon)
 - Install [PyTorch](https://pytorch.org/get-started/locally/) Preview (Nightly).
   - The Preview (Nightly) build of PyTorch will provide the latest mps support on your device. See https://developer.apple.com/metal/pytorch/.
-- Install [Transformers](https://huggingface.co/docs/transformers/).
+- Install all dependencies in `requirements.txt`.
 - Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
 
 ### MacOS (Intel) / Linux
 - Install [PyTorch](https://pytorch.org/get-started/locally/).
-- Install [Transformers](https://huggingface.co/docs/transformers/).
+- Install all dependencies in `requirements.txt`.
 - Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
 
 ## Usage

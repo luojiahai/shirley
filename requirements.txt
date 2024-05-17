@@ -1,0 +1,5 @@
+transformers
+langchain
+langchain-chroma
+pypdf
+sentence-transformers

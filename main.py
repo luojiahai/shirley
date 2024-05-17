@@ -1,19 +1,18 @@
-import sys, os
-path = os.path.realpath('.')
-if path not in sys.path:
-    sys.path.append(path)
-
-from generator import Generator
-from langchain_chroma import Chroma
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.embeddings.sentence_transformer import (
-    SentenceTransformerEmbeddings,
-)
-from langchain_text_splitters import CharacterTextSplitter
+import shirley
 
 def main():
     print('Hello, World!')
     print()
+
+    # vector_store = shirley.VectorStore()
+    # vector_store.index('resources/resume.pdf')
+
+    # print('BEGIN PROMPT AUGMENTATION')
+    # augmentor = shirley.Augmentor()
+    # query = 'Introduce Geoffrey Law. Which university he graduated from? What is his current job?'
+    # prompt = augmentor.augment(query, vector_store)
+    # print('END PROMPT AUGMENTATION')
+    # print()
 
     prompt = 'What is potato?'
 
@@ -23,7 +22,7 @@ def main():
     print()
 
     print('BEGIN INITIALIZATION')
-    generator = Generator()
+    generator = shirley.Generator()
     print('Device:', generator.device)
     print('END INITIALIZATION')
     print()
@@ -38,24 +37,5 @@ def main():
     print('END PRINT GENERATED TEXT')
     print()
 
-def test():
-    loader = PyPDFLoader("resources/resume.pdf")
-    documents = loader.load()
-
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    docs = text_splitter.split_documents(documents)
-
-    embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-
-    db = Chroma(embedding_function=embedding_function, persist_directory="db/chroma_db")
-
-    db.add_documents(docs)
-
-    query = "What is Geoffrey's current job?"
-    docs = db.similarity_search(query)
-
-    print(docs[0].page_content)
-
 if __name__ == '__main__':
     main()
-    # test()

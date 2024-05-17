@@ -13,6 +13,7 @@ Python is not required for this installation on Windows.
 
 ### Windows
 - Run `install.bat`, which creates Python environment locally.
+- Uncomment `#import site` in `python\<python_version>._pth` file. Otherwise, `pip` may not work expectedly.
 - Install [PyTorch](https://pytorch.org/get-started/locally/).
   ```
   python\Scripts\pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121

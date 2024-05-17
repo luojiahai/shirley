@@ -1,4 +1,8 @@
 import sys, os
+path = os.path.realpath('.')
+if path not in sys.path:
+    sys.path.append(path)
+
 from generator import Generator
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
@@ -53,9 +57,5 @@ def test():
     print(docs[0].page_content)
 
 if __name__ == '__main__':
-    path = os.path.realpath('.')
-    if path not in sys.path:
-        sys.path.append(path)
-
     main()
     # test()

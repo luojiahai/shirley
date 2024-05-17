@@ -1,6 +1,6 @@
 # Shirley🦈
 
-This tool generates text using [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model.
+This generates text using the [mistralai/Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model with RAG support using the [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) embeddings model.
 
 ## Requirements
 - [Git](https://git-scm.com/)

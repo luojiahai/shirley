@@ -4,13 +4,13 @@ def main():
     print('Hello, World!')
     print()
 
-    vector_store = shirley.VectorStore()
-    vector_store.index('resources/resume.pdf')
+    vector_database = shirley.VectorDatabase()
+    vector_database.index('resources/resume.pdf')
 
     print('BEGIN PROMPT AUGMENTATION')
     augmentor = shirley.Augmentor()
     query = 'Introduce Geoffrey Law. Which university he graduated from? What is his current job?'
-    prompt = augmentor.augment(query, vector_store)
+    prompt = augmentor.augment(query, vector_database)
     print('END PROMPT AUGMENTATION')
     print()
 

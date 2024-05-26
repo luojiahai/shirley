@@ -1,7 +1,7 @@
 import modules.augmentor
 import modules.generator
-import modules.vector_store
+import modules.vector_database
 
 Augmentor = modules.augmentor.Augmentor
 Generator = modules.generator.Generator
-VectorStore = modules.vector_store.VectorStore
+VectorDatabase = modules.vector_database.VectorDatabase

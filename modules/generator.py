@@ -9,11 +9,16 @@ from transformers.pipelines.base import Pipeline
 from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 
+DEFAULT_PRETRAINED_MODEL_PATH = os.path.join(os.getcwd(), 'models', 'Mistral-7B-Instruct-v0.2')
+
 class Generator(object):
-    def __init__(self) -> None:
-        if not os.path.exists(self.pretrained_model_path):
+    def __init__(
+        self,
+        pretrained_model_path=DEFAULT_PRETRAINED_MODEL_PATH
+    ) -> None:
+        if not os.path.exists(pretrained_model_path):
             raise FileNotFoundError(
-                f'Model path {self.pretrained_model_path} not found.'
+                f'Model path {pretrained_model_path} not found.'
             )
 
         if torch.cuda.is_available():
@@ -24,13 +29,13 @@ class Generator(object):
             self._device = torch.device('cpu')
 
         self._model = AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path=self.pretrained_model_path,
+            pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
             torch_dtype=torch.bfloat16,
         )
 
         self._tokenizer = AutoTokenizer.from_pretrained(
-            pretrained_model_name_or_path=self.pretrained_model_path,
+            pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
         )
 
@@ -40,10 +45,6 @@ class Generator(object):
             tokenizer=self.tokenizer,
             device=self.device,
         )
-
-    @property
-    def pretrained_model_path(self) -> str:
-        return os.path.join(os.getcwd(), 'models', 'Mistral-7B-Instruct-v0.2')
 
     @property
     def device(self) -> torch.device:

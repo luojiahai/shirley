@@ -1,5 +1,5 @@
 import os
-from modules.vector_store import VectorStore
+from modules.vector_database import VectorDatabase
 
 class Augmentor(object):
     def __init__(self) -> None:
@@ -11,9 +11,9 @@ class Augmentor(object):
     def system_prompt(self) -> str:
         return self._system_prompt
 
-    def augment(self, query: str, vector_store: VectorStore) -> str:
+    def augment(self, query: str, vector_database: VectorDatabase) -> str:
         max_num_results = 4
-        documents = vector_store.retrieve(query)
+        documents = vector_database.retrieve(query)
         search_results = '\n'.join([
             f'{i + 1}. {documents[i].page_content}'
             for i in range(len(documents[:max_num_results]))

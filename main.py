@@ -4,17 +4,17 @@ def main():
     print('Hello, World!')
     print()
 
-    # vector_store = shirley.VectorStore()
-    # vector_store.index('resources/resume.pdf')
+    vector_store = shirley.VectorStore()
+    vector_store.index('resources/resume.pdf')
 
-    # print('BEGIN PROMPT AUGMENTATION')
-    # augmentor = shirley.Augmentor()
-    # query = 'Introduce Geoffrey Law. Which university he graduated from? What is his current job?'
-    # prompt = augmentor.augment(query, vector_store)
-    # print('END PROMPT AUGMENTATION')
-    # print()
+    print('BEGIN PROMPT AUGMENTATION')
+    augmentor = shirley.Augmentor()
+    query = 'Introduce Geoffrey Law. Which university he graduated from? What is his current job?'
+    prompt = augmentor.augment(query, vector_store)
+    print('END PROMPT AUGMENTATION')
+    print()
 
-    prompt = 'What is potato?'
+    # prompt = 'What is potato?'
 
     print('BEGIN PRINT PROMPT')
     print(prompt)

@@ -12,11 +12,10 @@ class Augmentor(object):
         return self._system_prompt
 
     def augment(self, query: str, vector_database: VectorDatabase) -> str:
-        max_num_results = 4
         documents = vector_database.retrieve(query)
         search_results = '\n'.join([
             f'{i + 1}. {documents[i].page_content}'
-            for i in range(len(documents[:max_num_results]))
+            for i in range(len(documents))
         ])
         prompt = self.system_prompt \
             .replace('$search_results$', search_results) \

@@ -4,7 +4,6 @@ from langchain_chroma import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents.base import Document
 from langchain_core.embeddings.embeddings import Embeddings
-from langchain_core.vectorstores import VectorStore
 
 DEFAULT_EMBEDDINGS_PATH = os.path.join(os.getcwd(), 'models', 'all-MiniLM-L6-v2')
 DEFAULT_PERSIST_DIRECTORY = os.path.join(os.getcwd(), 'db', 'chroma_db')
@@ -29,14 +28,12 @@ class VectorDatabase(object):
             persist_directory=persist_directory
         )
 
-        self._client.delete(ids=self._client.get().get('ids'))
-
     @property
     def embeddings(self) -> Embeddings:
         return self._embeddings
 
     @property
-    def client(self) -> VectorStore:
+    def client(self) -> Chroma:
         return self._client
 
     def index(self, documents: List[Document]) -> None:

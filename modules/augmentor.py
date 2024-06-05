@@ -2,10 +2,8 @@ import os
 from modules.vector_database import VectorDatabase
 
 class Augmentor(object):
-    def __init__(self) -> None:
-        system_prompt_path = os.path.join(os.getcwd(), 'system_prompt.txt')
-        with open(system_prompt_path, 'r') as file:
-            self._system_prompt = file.read()
+    def __init__(self, system_prompt: str) -> None:
+        self._system_prompt = system_prompt
 
     @property
     def system_prompt(self) -> str:

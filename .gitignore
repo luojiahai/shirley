@@ -1,12 +1,8 @@
 db/**/*
-models/**/*
 python/
-resources/**/*
 tmp/
 
 !db/.gitkeep
-!models/.gitkeep
-!resources/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

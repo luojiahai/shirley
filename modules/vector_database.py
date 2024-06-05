@@ -5,15 +5,8 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents.base import Document
 from langchain_core.embeddings.embeddings import Embeddings
 
-DEFAULT_EMBEDDINGS_PATH = os.path.join(os.getcwd(), 'models', 'all-MiniLM-L6-v2')
-DEFAULT_PERSIST_DIRECTORY = os.path.join(os.getcwd(), 'db', 'chroma_db')
-
 class VectorDatabase(object):
-    def __init__(
-        self,
-        embeddings_path=DEFAULT_EMBEDDINGS_PATH,
-        persist_directory=DEFAULT_PERSIST_DIRECTORY
-    ) -> None:
+    def __init__(self, embeddings_path: str, persist_directory: str) -> None:
         if not os.path.exists(embeddings_path):
             raise FileNotFoundError(
                 f'Embeddings path {embeddings_path} not found.'

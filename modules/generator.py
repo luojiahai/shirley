@@ -9,13 +9,8 @@ from transformers.pipelines.base import Pipeline
 from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 
-DEFAULT_PRETRAINED_MODEL_PATH = os.path.join(os.getcwd(), 'models', 'Mistral-7B-Instruct-v0.2')
-
 class Generator(object):
-    def __init__(
-        self,
-        pretrained_model_path=DEFAULT_PRETRAINED_MODEL_PATH
-    ) -> None:
+    def __init__(self, pretrained_model_path: str) -> None:
         if not os.path.exists(pretrained_model_path):
             raise FileNotFoundError(
                 f'Model path {pretrained_model_path} not found.'

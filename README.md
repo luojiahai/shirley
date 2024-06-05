@@ -39,7 +39,8 @@ Python is not required for this installation on Windows.
 
 ## Usage
 
-Update `prompt` in `main.py`.
+- Update `config.ini` to specify the configuration.
+- Write prompt in `prompt.txt`.
 
 ### Windows
 - Run `run.bat`.

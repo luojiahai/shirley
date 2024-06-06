@@ -28,18 +28,17 @@ class Generator(object):
             local_files_only=True,
             torch_dtype=torch.bfloat16,
         )
-
         self._tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
         )
-
         self._pipeline = pipeline(
             task='text-generation',
             model=self.model,
             tokenizer=self.tokenizer,
             device=self.device,
         )
+        return
 
     @property
     def device(self) -> torch.device:

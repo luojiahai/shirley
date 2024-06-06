@@ -15,11 +15,11 @@ class VectorDatabase(object):
         self._embeddings = HuggingFaceEmbeddings(
             model_name=embeddings_path
         )
-
         self._client = Chroma(
             embedding_function=self.embeddings,
             persist_directory=persist_directory
         )
+        return
 
     @property
     def embeddings(self) -> Embeddings:

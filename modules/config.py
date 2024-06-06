@@ -5,6 +5,7 @@ class Config(object):
     def __init__(self) -> None:
         self._config = configparser.ConfigParser()
         self._config.read('config.ini')
+        return
     
     @property
     def rag_enabled(self) -> bool:

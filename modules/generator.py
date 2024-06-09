@@ -57,9 +57,9 @@ class Generator(object):
         return self._pipeline
 
     def generate(self, prompt: str) -> str:
-        text_inputs = [{'role': 'user', 'content': prompt}]
         text_outputs = self.pipeline(
-            text_inputs=text_inputs,
+            text_inputs=prompt,
+            return_full_text=False,
             max_new_tokens=256,
             do_sample=True,
             pad_token_id=self.tokenizer.eos_token_id,

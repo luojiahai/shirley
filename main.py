@@ -43,7 +43,7 @@ def main() -> None:
     generated_text = generator.generate(prompt)
 
     print('[SHIRLEY] Prompt:', prompt)
-    print('[SHIRLEY] Response:', generated_text[-1]['content'])
+    print('[SHIRLEY] Response:', generated_text)
     return
 
 if __name__ == '__main__':

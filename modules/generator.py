@@ -26,11 +26,13 @@ class Generator(object):
         self._model = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
+            trust_remote_code=True,
             torch_dtype=torch.bfloat16,
         )
         self._tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
+            trust_remote_code=True,
         )
         self._pipeline = pipeline(
             task='text-generation',
@@ -60,8 +62,6 @@ class Generator(object):
         text_outputs = self.pipeline(
             text_inputs=prompt,
             return_full_text=False,
-            max_new_tokens=256,
-            do_sample=True,
             pad_token_id=self.tokenizer.eos_token_id,
         )
         return text_outputs[0]['generated_text']

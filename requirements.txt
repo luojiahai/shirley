@@ -3,3 +3,7 @@ langchain
 langchain-chroma
 pypdf
 sentence-transformers
+transformers_stream_generator
+einops
+matplotlib
+tiktoken

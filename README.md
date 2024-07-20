@@ -5,53 +5,20 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 ## Requirements
 - [Git](https://git-scm.com/)
 - [CUDA](https://developer.nvidia.com/cuda-toolkit) if using NVIDIA graphics cards
-- [Python 3.10.6](https://www.python.org/downloads/release/python-3106/) and [pip](https://pypi.org/project/pip/) if on MacOS / Linux
+- [Python 3.10.6](https://www.python.org/downloads/release/python-3106/)
+- [pip](https://pypi.org/project/pip/)
 
 ## Installation
 
-### Windows (embeddable)
-
-- Run `install.bat`, which creates Python environment locally.
+- Setup virtual environment.
+  ```
+  python -m venv .venv
+  ```
+- Activate virtual environment.
 - Install [PyTorch](https://pytorch.org/get-started/locally/).
-  ```
-  python\Scripts\pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-  ```
 - Install all dependencies in `requirements.txt`.
   ```
-  python\Scripts\pip3 install -r requirements.txt
-  ```
-
-### Windows
-
-- Install [PyTorch](https://pytorch.org/get-started/locally/).
-  ```
-  pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-  ```
-- Install all dependencies in `requirements.txt`.
-  ```
-  pip3 install -r requirements.txt
-  ```
-
-### MacOS (Apple Silicon)
-
-- Install [PyTorch](https://pytorch.org/get-started/locally/) Preview (Nightly). The Preview (Nightly) build of PyTorch will provide the latest mps support on your device. See https://developer.apple.com/metal/pytorch/.
-  ```
-  pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cpu
-  ```
-- Install all dependencies in `requirements.txt`.
-  ```
-  pip3 install -r requirements.txt
-  ```
-
-### MacOS (Intel) / Linux
-
-- Install [PyTorch](https://pytorch.org/get-started/locally/).
-  ```
-  pip3 install torch torchvision torchaudio
-  ```
-- Install all dependencies in `requirements.txt`.
-  ```
-  pip3 install -r requirements.txt
+  pip install -r requirements.txt
   ```
 
 ## Download models
@@ -63,10 +30,3 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 
 - Update `config.ini` to specify the configuration accordingly.
 - Write prompt in `prompt.txt`.
-
-### Windows
-
-- Run `run.bat`.
-
-### MacOS / Linux
-- Run `python3 main.py`.

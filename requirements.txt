@@ -1,5 +1,6 @@
 transformers
 langchain
+langchain_community
 langchain-chroma
 pypdf
 sentence-transformers

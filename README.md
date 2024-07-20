@@ -1,6 +1,6 @@
 ## 🦈 Shirley
 
-It chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat).
+It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) (通义千问).
 
 ## Requirements
 - [Git](https://git-scm.com/)

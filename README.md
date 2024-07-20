@@ -34,14 +34,25 @@ It chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Cha
 
 ### MacOS (Apple Silicon)
 
-- Install [PyTorch](https://pytorch.org/get-started/locally/) Preview (Nightly).
-  - The Preview (Nightly) build of PyTorch will provide the latest mps support on your device. See https://developer.apple.com/metal/pytorch/.
+- Install [PyTorch](https://pytorch.org/get-started/locally/) Preview (Nightly). The Preview (Nightly) build of PyTorch will provide the latest mps support on your device. See https://developer.apple.com/metal/pytorch/.
+  ```
+  pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cpu
+  ```
 - Install all dependencies in `requirements.txt`.
+  ```
+  pip3 install -r requirements.txt
+  ```
 
 ### MacOS (Intel) / Linux
 
 - Install [PyTorch](https://pytorch.org/get-started/locally/).
+  ```
+  pip3 install torch torchvision torchaudio
+  ```
 - Install all dependencies in `requirements.txt`.
+  ```
+  pip3 install -r requirements.txt
+  ```
 
 ## Download models
 

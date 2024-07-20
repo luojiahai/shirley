@@ -1,12 +1,10 @@
-from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
-from shirley.users.serializers import UserSerializer, PasswordSerializer
-from shirley.users.permissions import IsAdminOrIsSelf
+from api.users.serializers import UserSerializer, PasswordSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -17,13 +15,13 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
 
-    @action(detail=True, methods=['post'], serializer_class=PasswordSerializer, permission_classes=[IsAdminOrIsSelf])
+    @action(detail=True, methods=['post'], serializer_class=PasswordSerializer, permission_classes=[IsAdminUser])
     def set_password(self, request: Request, pk=None):
         user: User = self.get_object()
         serializer = PasswordSerializer(data=request.data)

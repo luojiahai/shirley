@@ -25,7 +25,7 @@ def augment(prompt: str, documents: List[Document]) -> str:
     return augmentor.augment(prompt, documents)
 
 def main() -> None:
-    # prompt = CONFIG.prompt
+    # prompt = 'Introduce Geoffrey Law. Which university he graduated from? What is his current job?'
     # vector_database = shirley.VectorDatabase(
     #     embeddings_path=CONFIG.embeddings_path,
     #     persist_directory=CONFIG.database_persist_directory

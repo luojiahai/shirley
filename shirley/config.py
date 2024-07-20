@@ -26,7 +26,3 @@ class Config(object):
     @property
     def system_prompt(self) -> str:
         return read(getpath(self._config['DEFAULT']['SYSTEM_PROMPT_PATH']))
-    
-    @property
-    def prompt(self) -> str:
-        return read(getpath(self._config['DEFAULT']['PROMPT_PATH']))

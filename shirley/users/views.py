@@ -22,8 +22,8 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
-    
-    @action(detail=True, methods=['post'], permission_classes=[IsAdminOrIsSelf])
+
+    @action(detail=True, methods=['post'], serializer_class=PasswordSerializer, permission_classes=[IsAdminOrIsSelf])
     def set_password(self, request: Request, pk=None):
         user: User = self.get_object()
         serializer = PasswordSerializer(data=request.data)
@@ -33,3 +33,15 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'status': 'password set'})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False)
+    def recent_users(self, request):
+        recent_users = User.objects.all().order_by('-last_login')
+
+        page = self.paginate_queryset(recent_users)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(recent_users, many=True)
+        return Response(serializer.data)

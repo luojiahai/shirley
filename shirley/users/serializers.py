@@ -1,4 +1,3 @@
-from django.db import models
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -10,8 +9,8 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PasswordSerializer(serializers.Serializer):
-    password = models.CharField(max_length=128)
-    password_repeated = models.CharField(max_length=128)
+    password = serializers.CharField(max_length=128)
+    password_repeated = serializers.CharField(max_length=128)
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password_repeated']:

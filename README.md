@@ -1,6 +1,6 @@
-# 🦈 Shirley
+g# 🦈 Shirley
 
-This generates text using the [mistralai/Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model with RAG support using the [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) embeddings model.
+This generates text using the [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) model with RAG support using the [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) embeddings model.
 
 ## Requirements
 - [Git](https://git-scm.com/)
@@ -21,21 +21,21 @@ Python is not required for this installation on Windows.
     ```
     python\Scripts\pip3 install -r requirements.txt
     ```
-- Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
-- Download [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) model to `models` directory.
+- Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) model and save it to `models` directory.
+- Download [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) model and save it to `models` directory.
 
 ### MacOS (Apple Silicon)
 - Install [PyTorch](https://pytorch.org/get-started/locally/) Preview (Nightly).
   - The Preview (Nightly) build of PyTorch will provide the latest mps support on your device. See https://developer.apple.com/metal/pytorch/.
 - Install all dependencies in `requirements.txt`.
-- Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
+- Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/Qwen/Qwen-VL-Chat) model to `models` directory.
 - Download [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) model to `models` directory.
 
 ### MacOS (Intel) / Linux
 - Install [PyTorch](https://pytorch.org/get-started/locally/).
 - Install all dependencies in `requirements.txt`.
-- Download [Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model to `models` directory.
-- Download [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) model to `models` directory.
+- Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) model and save it to `models` directory.
+- Download [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) model and save it to `models` directory.
 
 ## Usage
 

@@ -24,7 +24,6 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 ## Download models
 
 - Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat).
-- Download [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2).
 
 ## Usage
 

@@ -25,9 +25,13 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 
 ## Usage
 
-- Migrate database.
+- Migrate.
   ```
   python manage.py migrate
+  ```
+- Create super user.
+  ```
+  python manage.py createsuperuser
   ```
 - Run server.
   ```

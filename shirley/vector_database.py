@@ -1,36 +1,32 @@
-import os
-from typing import List
-from langchain_chroma import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_core.documents.base import Document
-from langchain_core.embeddings.embeddings import Embeddings
+import chromadb
+import chromadb.config
+import shirley
+import uuid
+
 
 class VectorDatabase(object):
-    def __init__(self, embeddings_path: str, persist_directory: str) -> None:
-        if not os.path.exists(embeddings_path):
-            raise FileNotFoundError(
-                f'Embeddings path {embeddings_path} not found.'
-            )
-
-        self._embeddings = HuggingFaceEmbeddings(
-            model_name=embeddings_path
+    def __init__(self, persist_directory: str, reset: bool = True) -> None:
+        client_settings = chromadb.config.Settings(
+            is_persistent=True,
+            persist_directory=persist_directory,
+            allow_reset=reset
         )
-        self._client = Chroma(
-            embedding_function=self.embeddings,
-            persist_directory=persist_directory
-        )
+        self._client = chromadb.Client(settings=client_settings)
+        if reset: self._client.reset()
+        self._collection = self._client.get_or_create_collection(name='default')
         return
 
     @property
-    def embeddings(self) -> Embeddings:
-        return self._embeddings
-
-    @property
-    def client(self) -> Chroma:
+    def client(self) -> chromadb.ClientAPI:
         return self._client
+    
+    @property
+    def collection(self) -> chromadb.Collection:
+        return self._collection
 
-    def index(self, documents: List[Document]) -> None:
-        self.client.add_documents(documents=documents)
+    def index(self, documents: shirley.Documents) -> None:
+        ids = [str(uuid.uuid4()) for _ in documents]
+        self.collection.upsert(ids=ids, documents=documents)
 
-    def retrieve(self, query: str, k: int = 4) -> List[Document]:
-        return self.client.similarity_search(query=query, k=k)
+    def retrieve(self, query: str, k: int = 4) -> shirley.Documents:
+        return self.collection.query(query_texts=[query], n_results=k)['documents'][0]

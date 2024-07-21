@@ -1,5 +1,5 @@
-from typing import List
-from langchain_core.documents.base import Document
+import shirley
+
 
 class Augmentor(object):
     def __init__(self, system_prompt: str) -> None:
@@ -10,9 +10,9 @@ class Augmentor(object):
     def system_prompt(self) -> str:
         return self._system_prompt
 
-    def augment(self, prompt: str, documents: List[Document]) -> str:
+    def augment(self, prompt: str, documents: shirley.Documents) -> str:
         search_results = '\n'.join([
-            f'{i + 1}. {documents[i].page_content}'
+            f'{i + 1}. {documents[i]}'
             for i in range(len(documents))
         ])
         return self.system_prompt \

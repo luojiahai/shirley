@@ -14,5 +14,5 @@ class PasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password_repeated']:
-            raise serializers.ValidationError("passwords do not match!")
+            raise serializers.ValidationError('passwords do not match!')
         return attrs

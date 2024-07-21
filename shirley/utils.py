@@ -1,6 +1,7 @@
-import os
 import itertools
+import os
 from typing import Any, Callable, List, TypeVar
+
 
 T = TypeVar('T')
 

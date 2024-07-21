@@ -1,7 +1,5 @@
 transformers
-langchain
-langchain_community
-langchain-chroma
+chromadb
 pypdf
 sentence-transformers
 transformers_stream_generator

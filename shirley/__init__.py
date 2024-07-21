@@ -1,3 +1,4 @@
+from shirley.document import Documents
 from shirley.augmentor import Augmentor
 from shirley.config import Config
 from shirley.document_loader import DocumentLoader

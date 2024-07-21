@@ -1,13 +1,8 @@
 import os
-from typing import Union
 import torch
-from transformers.modeling_utils import PreTrainedModel
-from transformers.models.auto.modeling_auto import AutoModelForCausalLM
-from transformers.models.auto.tokenization_auto import AutoTokenizer
-from transformers.pipelines import pipeline
-from transformers.pipelines.base import Pipeline
-from transformers.tokenization_utils import PreTrainedTokenizer
-from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
+import transformers
+from typing import Union
+
 
 class Generator(object):
     def __init__(self, pretrained_model_path: str) -> None:
@@ -23,18 +18,18 @@ class Generator(object):
         else:
             self._device = torch.device('cpu')
 
-        self._model = AutoModelForCausalLM.from_pretrained(
+        self._model = transformers.AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
             trust_remote_code=True,
             torch_dtype=torch.bfloat16,
         )
-        self._tokenizer = AutoTokenizer.from_pretrained(
+        self._tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
             trust_remote_code=True,
         )
-        self._pipeline = pipeline(
+        self._pipeline = transformers.pipeline(
             task='text-generation',
             model=self.model,
             tokenizer=self.tokenizer,
@@ -47,15 +42,15 @@ class Generator(object):
         return self._device
 
     @property
-    def model(self) -> PreTrainedModel:
+    def model(self) -> transformers.PreTrainedModel:
         return self._model
 
     @property
-    def tokenizer(self) -> Union[PreTrainedTokenizer, PreTrainedTokenizerFast]:
+    def tokenizer(self) -> Union[transformers.PreTrainedTokenizer, transformers.PreTrainedTokenizerFast]:
         return self._tokenizer
 
     @property
-    def pipeline(self) -> Pipeline:
+    def pipeline(self) -> transformers.Pipeline:
         return self._pipeline
 
     def generate(self, prompt: str) -> str:

@@ -25,7 +25,17 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 
 - Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat).
 
+## Configuration
+
+- Update `config.ini` accordingly.
+
 ## Usage
 
-- Update `config.ini` to specify the configuration accordingly.
-- Write prompt in `prompt.txt`.
+- Migrate database.
+  ```
+  python manage.py migrate
+  ```
+- Run server.
+  ```
+  python manage.py runserver
+  ```

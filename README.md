@@ -20,13 +20,7 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
   ```
   pip install -r requirements.txt
   ```
-
-## Download models
-
 - Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat).
-
-## Configuration
-
 - Update `config.ini` accordingly.
 
 ## Usage

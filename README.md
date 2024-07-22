@@ -10,7 +10,9 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 - [pip](https://pypi.org/project/pip/)
 - [poetry](https://python-poetry.org/)
 
-## Setup virtual environment
+## Installation
+
+### Setup virtual environment
 
 - [Optional] Configure that creating the virtualenv inside the project’s root directory.
   ```
@@ -21,7 +23,7 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
   poetry shell
   ```
 
-## Installation
+### Setup dependencies
 
 - Install dependencies.
   ```
@@ -31,7 +33,7 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 - Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat).
 - Update `config.ini` accordingly.
 
-## Setup database
+### Setup database
 
 - Migrate.
   ```
@@ -44,7 +46,15 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 
 ## Usage
 
+- Activate the virtual environment.
+  ```
+  poetry shell
+  ```
 - Run server.
   ```
   poetry run python shirley/manage.py runserver
+  ```
+- Run PoC.
+  ```
+  poetry run python shirley/poc.py
   ```

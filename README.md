@@ -14,60 +14,69 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 
 ### Setup virtual environment
 
-- [Optional] Configure that creating the virtualenv inside the project’s root directory:
-  ```
-  poetry config virtualenvs.in-project true
-  ```
-- Create and activate the virtual environment:
-  ```
-  poetry shell
-  ```
+[Optional] Configure that creating the virtualenv inside the project’s root directory:
+```bash
+poetry config virtualenvs.in-project true
+```
+
+Create and activate the virtual environment:
+```bash
+poetry shell
+```
 
 ### Setup dependencies
 
-- Install dependencies:
-  ```
-  poetry install
-  ```
-- Install [PyTorch](https://pytorch.org/get-started/locally/).
-- Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) and save it locally.
-- Update `config.ini` accordingly.
+Install dependencies:
+```bash
+poetry install
+```
+
+Install [PyTorch](https://pytorch.org/get-started/locally/).
+
+Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) and save it locally (in any location).
 
 ### Setup Django
 
-- Create a file `secret_key.txt` in root directory.
-- Generate a random string and put it into the file:
-  ```python
-  >>> from django.core.management.utils import get_random_secret_key
-  >>> get_random_secret_key()
-  ```
-- Migrate database:
-  ```
-  poetry run python shirley/manage.py migrate
-  ```
-- Create super user:
-  ```
-  poetry run python shirley/manage.py createsuperuser
-  ```
+Create a file `secret_key.txt` in root directory.
+
+Generate a random string and put it into the file:
+```python
+>>> from django.core.management.utils import get_random_secret_key
+>>> get_random_secret_key()
+```
+
+Migrate database:
+```bash
+poetry run python shirley/manage.py migrate
+```
+
+Create super user:
+```bash
+poetry run python shirley/manage.py createsuperuser
+```
 
 ## Usage
 
-- Activate the virtual environment:
-  ```
-  poetry shell
-  ```
+Update configuration `config.ini` if necessary.
+
+Activate the virtual environment:
+```bash
+poetry shell
+```
 
 ### Commands
 
-- Run server:
-  ```
-  poetry run shirley/manage.py runserver
-  ```
-- Run PoC:
-  ```
-  poetry run poc
-  ```
-- Run tests:
-  ```
-  poetry run pytest
-  ```
+Run server:
+```bash
+poetry run shirley/manage.py runserver
+```
+
+Run PoC:
+```bash
+poetry run poc
+```
+
+Run tests:
+```bash
+poetry run pytest
+```

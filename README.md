@@ -73,7 +73,7 @@ Run server:
 poetry run shirley/manage.py runserver
 ```
 
-Run PoC:
+Run poc:
 ```bash
 poetry run poc
 ```

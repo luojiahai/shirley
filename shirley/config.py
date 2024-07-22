@@ -9,6 +9,10 @@ class Config(object):
         return
 
     @property
+    def secret_key(self) -> str:
+        return shirley.utils.read(shirley.utils.getpath(self._config['DEFAULT']['SECRET_KEY_PATH']))
+
+    @property
     def documents_path(self) -> str:
         return shirley.utils.getpath(self._config['DEFAULT']['DOCUMENTS_PATH'])
 

@@ -2,6 +2,7 @@
 
 db/
 tmp/
+secret_key.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

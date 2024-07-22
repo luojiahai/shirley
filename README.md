@@ -33,9 +33,11 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 - Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) and save it locally.
 - Update `config.ini` accordingly.
 
-### Setup database
+### Setup Django
 
-- Migrate.
+- Create a file `secret_key.txt` in root directory.
+- Generate a large random string and put it into the file.
+- Migrate database.
   ```
   poetry run python shirley/manage.py migrate
   ```

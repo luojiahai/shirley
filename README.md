@@ -3,37 +3,48 @@
 It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) (通义千问).
 
 ## Requirements
+
 - [Git](https://git-scm.com/)
 - [CUDA](https://developer.nvidia.com/cuda-toolkit) if using NVIDIA graphics cards
 - [Python 3.10.6](https://www.python.org/downloads/release/python-3106/)
 - [pip](https://pypi.org/project/pip/)
+- [poetry](https://python-poetry.org/)
+
+## Setup virtual environment
+
+- [Optional] Configure that creating the virtualenv inside the project’s root directory.
+  ```
+  poetry config virtualenvs.in-project true
+  ```
+- Create and activate the virtual environment.
+  ```
+  poetry shell
+  ```
 
 ## Installation
 
-- Setup virtual environment.
+- Install dependencies.
   ```
-  python -m venv .venv
+  poetry install
   ```
-- Activate virtual environment.
 - Install [PyTorch](https://pytorch.org/get-started/locally/).
-- Install all dependencies in `requirements.txt`.
-  ```
-  pip install -r requirements.txt
-  ```
 - Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat).
 - Update `config.ini` accordingly.
 
-## Usage
+## Setup database
 
 - Migrate.
   ```
-  python manage.py migrate
+  poetry run python shirley/manage.py migrate
   ```
 - Create super user.
   ```
-  python manage.py createsuperuser
+  poetry run python shirley/manage.py createsuperuser
   ```
+
+## Usage
+
 - Run server.
   ```
-  python manage.py runserver
+  poetry run python shirley/manage.py runserver
   ```

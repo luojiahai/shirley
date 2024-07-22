@@ -1,10 +1,10 @@
 transformers
 chromadb
 pypdf
-sentence-transformers
 transformers_stream_generator
 einops
 matplotlib
 tiktoken
 Django
 djangorestframework
+pytest

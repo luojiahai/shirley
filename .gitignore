@@ -1,10 +1,7 @@
 .DS_Store
 
-db/**/*
-python/
+db/
 tmp/
-
-!db/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,7 +1,6 @@
 import os
 import torch
 import transformers
-from typing import Union
 
 
 class Generator(object):
@@ -42,11 +41,11 @@ class Generator(object):
         return self._model
 
     @property
-    def tokenizer(self) -> Union[transformers.PreTrainedTokenizer, transformers.PreTrainedTokenizerFast]:
+    def tokenizer(self) -> transformers.PreTrainedTokenizer:
         return self._tokenizer
 
     def generate(self, prompt: str, history=None) -> str:
         model = self.model.to(device=self.device)
         query = self.tokenizer.from_list_format([{'text': prompt}])
-        response, history = model.chat(self.tokenizer, query=query, history=history)
+        response, history = model.chat(tokenizer=self.tokenizer, query=query, history=history)
         return response

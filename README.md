@@ -50,20 +50,17 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
   ```
   poetry shell
   ```
+
+### Commands
+
 - Run server.
   ```
   poetry run python shirley/manage.py runserver
   ```
-
-## Proof-of-Concept
-
 - Run PoC.
   ```
   poetry run python shirley/poc.py
   ```
-
-## Test
-
 - Run tests.
   ```
   poetry run pytest

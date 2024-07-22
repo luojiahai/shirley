@@ -37,7 +37,7 @@ Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) and save it lo
 
 ### Setup Django
 
-Create a file `secret_key.txt` in root directory.
+Create a file `secret_key.txt` in root directory (do not commit).
 
 Generate a random string and put it into the file:
 ```python

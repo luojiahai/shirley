@@ -1,4 +1,5 @@
 import shirley
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -10,6 +11,7 @@ config = shirley.Config()
 
 class ChatView(APIView):
     serializer_class = ChatSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request: Request, format=None):

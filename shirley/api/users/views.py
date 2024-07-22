@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
@@ -10,6 +11,7 @@ from shirley.api.users.serializers import UserSerializer, PasswordSerializer
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
 
     def get_permissions(self):
         """

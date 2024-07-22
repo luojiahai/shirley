@@ -14,18 +14,18 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 
 ### Setup virtual environment
 
-- [Optional] Configure that creating the virtualenv inside the project’s root directory.
+- [Optional] Configure that creating the virtualenv inside the project’s root directory:
   ```
   poetry config virtualenvs.in-project true
   ```
-- Create and activate the virtual environment.
+- Create and activate the virtual environment:
   ```
   poetry shell
   ```
 
 ### Setup dependencies
 
-- Install dependencies.
+- Install dependencies:
   ```
   poetry install
   ```
@@ -36,34 +36,38 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 ### Setup Django
 
 - Create a file `secret_key.txt` in root directory.
-- Generate a large random string and put it into the file.
-- Migrate database.
+- Generate a random string and put it into the file:
+  ```python
+  >>> from django.core.management.utils import get_random_secret_key
+  >>> get_random_secret_key()
+  ```
+- Migrate database:
   ```
   poetry run python shirley/manage.py migrate
   ```
-- Create super user.
+- Create super user:
   ```
   poetry run python shirley/manage.py createsuperuser
   ```
 
 ## Usage
 
-- Activate the virtual environment.
+- Activate the virtual environment:
   ```
   poetry shell
   ```
 
 ### Commands
 
-- Run server.
+- Run server:
   ```
   poetry run shirley/manage.py runserver
   ```
-- Run PoC.
+- Run PoC:
   ```
   poetry run poc
   ```
-- Run tests.
+- Run tests:
   ```
   poetry run pytest
   ```

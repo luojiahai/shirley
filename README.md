@@ -30,7 +30,7 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
   poetry install
   ```
 - Install [PyTorch](https://pytorch.org/get-started/locally/).
-- Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat).
+- Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) and save it locally.
 - Update `config.ini` accordingly.
 
 ### Setup database
@@ -55,11 +55,11 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 
 - Run server.
   ```
-  poetry run python shirley/manage.py runserver
+  poetry run django runserver
   ```
 - Run PoC.
   ```
-  poetry run python shirley/poc.py
+  poetry run poc
   ```
 - Run tests.
   ```

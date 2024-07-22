@@ -26,19 +26,19 @@ def augment(prompt: str, documents: shirley.Documents) -> str:
 def main() -> None:
     logger.info('Started')
 
-    prompt = 'Introduce Geoffrey Law. Which university he graduated from? What is his current job?'
-    vector_database = shirley.VectorDatabase(persist_directory=config.vector_database_persist_directory)
-    documents = load(config.documents_path)
-    index(vector_database, documents)
-    retrieved_documents = retrieve(vector_database, prompt)
-    augmented_prompt = augment(prompt, retrieved_documents)
+    # prompt = 'Introduce Geoffrey Law. Which university he graduated from? What is his current job?'
+    # vector_database = shirley.VectorDatabase(persist_directory=config.vector_database_persist_directory)
+    # documents = load(config.documents_path)
+    # index(vector_database, documents)
+    # retrieved_documents = retrieve(vector_database, prompt)
+    # augmented_prompt = augment(prompt, retrieved_documents)
 
-    # prompt = 'What is potato?'
+    prompt = 'What is potato?'
 
     generator = shirley.Generator(pretrained_model_path=config.pretrained_model_path)
-    generated_text = generator.generate(augmented_prompt)
+    generated_text = generator.generate(prompt)
 
-    logger.info(f'Prompt: {augmented_prompt}')
+    logger.info(f'Prompt: {prompt}')
     logger.info(f'Response: {generated_text}')
 
     return

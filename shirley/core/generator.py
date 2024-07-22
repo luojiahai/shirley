@@ -22,19 +22,15 @@ class Generator(object):
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
             trust_remote_code=True,
-            torch_dtype=torch.bfloat16,
+            bf16=True,
         )
+
         self._tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
             trust_remote_code=True,
         )
-        self._pipeline = transformers.pipeline(
-            task='text-generation',
-            model=self.model,
-            tokenizer=self.tokenizer,
-            device=self.device,
-        )
+
         return
 
     @property
@@ -49,14 +45,8 @@ class Generator(object):
     def tokenizer(self) -> Union[transformers.PreTrainedTokenizer, transformers.PreTrainedTokenizerFast]:
         return self._tokenizer
 
-    @property
-    def pipeline(self) -> transformers.Pipeline:
-        return self._pipeline
-
-    def generate(self, prompt: str) -> str:
-        text_outputs = self.pipeline(
-            text_inputs=prompt,
-            return_full_text=False,
-            pad_token_id=self.tokenizer.eos_token_id,
-        )
-        return text_outputs[0]['generated_text']
+    def generate(self, prompt: str, history=None) -> str:
+        model = self.model.to(device=self.device)
+        query = self.tokenizer.from_list_format([{'text': prompt}])
+        response, history = model.chat(self.tokenizer, query=query, history=history)
+        return response

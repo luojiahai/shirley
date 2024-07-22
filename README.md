@@ -55,16 +55,18 @@ Create super user:
 poetry run python shirley/manage.py createsuperuser
 ```
 
-## Usage
+### Configuration
 
 Update configuration `config.ini` if necessary.
+
+## Usage
 
 Activate the virtual environment:
 ```bash
 poetry shell
 ```
 
-### Commands
+### Running
 
 Run server:
 ```bash

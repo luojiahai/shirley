@@ -55,7 +55,7 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 
 - Run server.
   ```
-  poetry run django runserver
+  poetry run shirley/manage.py runserver
   ```
 - Run PoC.
   ```

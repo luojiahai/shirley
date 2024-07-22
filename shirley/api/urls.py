@@ -1,5 +1,6 @@
 from django.urls import include, path
 from rest_framework import routers
+from shirley.api.chat.views import ChatView
 from shirley.api.users.views import UserViewSet
 
 
@@ -12,4 +13,5 @@ router.register(r'users', UserViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('chat/', ChatView.as_view()),
 ]

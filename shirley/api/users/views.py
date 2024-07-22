@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
-from api.users.serializers import UserSerializer, PasswordSerializer
+from shirley.api.users.serializers import UserSerializer, PasswordSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):

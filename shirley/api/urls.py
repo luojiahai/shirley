@@ -1,6 +1,6 @@
 from django.urls import include, path
 from rest_framework import routers
-from api.users.views import UserViewSet
+from shirley.api.users.views import UserViewSet
 
 
 # Routers provide a way of automatically determining the URL conf.

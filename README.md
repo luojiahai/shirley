@@ -79,6 +79,11 @@ Run server:
 poetry run shirley/manage.py runserver
 ```
 
+Run WebUI:
+```bash
+poetry run webui
+```
+
 Run poc:
 ```bash
 poetry run poc

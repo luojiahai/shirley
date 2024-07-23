@@ -7,8 +7,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.10.6"
-transformers = "^4.42.4"
-chromadb = "^0.5.4"
+transformers = "4.36.0"
+chromadb = "^0.5.5"
 pypdf = "^4.3.1"
 transformers-stream-generator = "^0.0.5"
 einops = "^0.8.0"
@@ -17,8 +17,10 @@ tiktoken = "^0.7.0"
 django = "^5.0.7"
 djangorestframework = "^3.15.2"
 pytest = "^8.3.1"
+gradio = "^4.39.0"
 
 [tool.poetry.scripts]
+webui = "scripts.webui:main"
 poc = "scripts.poc:main"
 
 

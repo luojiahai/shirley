@@ -33,7 +33,17 @@ poetry install
 
 Install [PyTorch](https://pytorch.org/get-started/locally/).
 
-Download [Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) and save it locally (in any location).
+### Setup pretrained model
+
+Install submodule:
+```
+git submodule update --init --recursive
+```
+
+Update submodule:
+```
+git submodule update --remote --merge
+```
 
 ### Setup Django
 
@@ -54,10 +64,6 @@ Create super user:
 ```bash
 poetry run python shirley/manage.py createsuperuser
 ```
-
-### Configuration
-
-Update configuration `config.ini` if necessary.
 
 ## Usage
 

@@ -7,7 +7,10 @@ import shirley.config
 import tempfile
 import torch
 import transformers
+from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
+from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 from pathlib import Path
+from typing import Tuple
 
 
 PRETRAINED_MODEL_PATH = shirley.config.Config().pretrained_model_path
@@ -15,7 +18,7 @@ BOX_TAG_PATTERN = r'<box>([\s\S]*?)</box>'
 PUNCTUATION = '！？。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏.'
 
 
-def _load_model_and_tokenizer():
+def _load_model_and_tokenizer() -> Tuple[QWenLMHeadModel, QWenTokenizer]:
     if torch.cuda.is_available():
         device = torch.device('cuda')
     elif torch.backends.mps.is_available():
@@ -23,16 +26,14 @@ def _load_model_and_tokenizer():
     else:
         device = torch.device('cpu')
 
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
+    tokenizer: QWenTokenizer = QWenTokenizer.from_pretrained(
         PRETRAINED_MODEL_PATH,
         local_files_only=True,
-        trust_remote_code=True,
     )
 
-    model: transformers.PreTrainedModel = transformers.AutoModelForCausalLM.from_pretrained(
+    model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained(
         PRETRAINED_MODEL_PATH,
         local_files_only=True,
-        trust_remote_code=True,
         bf16=True,
     )
 
@@ -50,7 +51,7 @@ def _load_model_and_tokenizer():
     return model.to(device), tokenizer
 
 
-def _parse_text(text):
+def _parse_text(text: str) -> str:
     lines = text.split('\n')
     lines = [line for line in lines if line != '']
     count = 0
@@ -82,12 +83,12 @@ def _parse_text(text):
     return text
 
 
-def _remove_image_special(text):
+def _remove_image_special(text: str) -> str:
     text = text.replace('<ref>', '').replace('</ref>', '')
     return re.sub(r'<box>.*?(</box>|$)', '', text)
 
 
-def _launch_webui(model, tokenizer):
+def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
     uploaded_file_dir = os.environ.get('GRADIO_TEMP_DIR') or str(
         Path(tempfile.gettempdir()) / 'gradio'
     )
@@ -185,9 +186,7 @@ def _launch_webui(model, tokenizer):
             regen_btn = gr.Button('🤔️ Regenerate (重试)')
             addfile_btn = gr.UploadButton('📁 Upload (上传文件)', file_types=['image'])
 
-        submit_btn.click(add_text, [chatbot, task_history, query], [chatbot, task_history]).then(
-            predict, [chatbot, task_history], [chatbot], show_progress=True
-        )
+        submit_btn.click(add_text, [chatbot, task_history, query], [chatbot, task_history]).then(predict, [chatbot, task_history], [chatbot], show_progress=True)
         submit_btn.click(reset_user_input, [], [query])
         empty_bin.click(reset_state, [task_history], [chatbot], show_progress=True)
         regen_btn.click(regenerate, [chatbot, task_history], [chatbot], show_progress=True)

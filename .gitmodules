@@ -1,0 +1,3 @@
+[submodule "models/Qwen-VL-Chat"]
+	path = models/Qwen-VL-Chat
+	url = https://huggingface.co/Qwen/Qwen-VL-Chat

@@ -1,6 +1,8 @@
 import os
 import torch
 import transformers
+from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
+from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 
 
 class Generator(object):
@@ -17,18 +19,35 @@ class Generator(object):
         else:
             self._device = torch.device('cpu')
 
-        self._model = transformers.AutoModelForCausalLM.from_pretrained(
+        self._tokenizer = QWenTokenizer.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
-            trust_remote_code=True,
+        )
+
+        model = QWenLMHeadModel.from_pretrained(
+            pretrained_model_name_or_path=pretrained_model_path,
+            local_files_only=True,
             bf16=True,
         )
 
-        self._tokenizer = transformers.AutoTokenizer.from_pretrained(
-            pretrained_model_name_or_path=pretrained_model_path,
+        model.generation_config = transformers.GenerationConfig.from_pretrained(
+            pretrained_model_name=pretrained_model_path,
             local_files_only=True,
             trust_remote_code=True,
         )
+
+        if model.generation_config.pad_token_id is not None:
+            model.generation_config.pad_token_id = torch.tensor(
+                [model.generation_config.pad_token_id],
+                device=self._device,
+            )
+        if model.generation_config.eos_token_id is not None:
+            model.generation_config.eos_token_id = torch.tensor(
+                [model.generation_config.eos_token_id],
+                device=self._device,
+            )
+
+        self._model = model.to(device=self._device)
 
         return
 
@@ -37,15 +56,14 @@ class Generator(object):
         return self._device
 
     @property
-    def model(self) -> transformers.PreTrainedModel:
-        return self._model
-
-    @property
-    def tokenizer(self) -> transformers.PreTrainedTokenizer:
+    def tokenizer(self) -> QWenTokenizer:
         return self._tokenizer
 
+    @property
+    def model(self) -> QWenLMHeadModel:
+        return self._model
+
     def generate(self, prompt: str, history=None) -> str:
-        model = self.model.to(device=self.device)
         query = self.tokenizer.from_list_format([{'text': prompt}])
-        response, history = model.chat(tokenizer=self.tokenizer, query=query, history=history)
+        response, history = self.model.chat(tokenizer=self.tokenizer, query=query, history=history)
         return response

@@ -19,6 +19,16 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 poetry config virtualenvs.in-project true
 ```
 
+If you are not using Python 3.10.6, you need to install the specific version. Alternatively, use `pyenv` to manage Python versions:
+```bash
+pyenv install 3.10.6
+```
+
+Use Python 3.10.6 for the environment:
+```bash
+poetry env use <PATH>
+```
+
 Create and activate the virtual environment:
 ```bash
 poetry shell
@@ -45,7 +55,7 @@ Update submodule:
 git submodule update --remote --merge
 ```
 
-### Setup Django
+### [Optional] Setup Django
 
 Create a file `secret_key.txt` in root directory (do not commit).
 
@@ -74,11 +84,6 @@ poetry shell
 
 ### Running
 
-Run server:
-```bash
-poetry run shirley/manage.py runserver
-```
-
 Run WebUI:
 ```bash
 poetry run webui
@@ -92,4 +97,9 @@ poetry run poc
 Run tests:
 ```bash
 poetry run pytest
+```
+
+Run Django server:
+```bash
+poetry run shirley/manage.py runserver
 ```

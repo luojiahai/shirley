@@ -3,52 +3,17 @@ import gradio as gr
 import os
 import re
 import secrets
+import shirley
 import shirley.config
 import tempfile
-import torch
-import transformers
 from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
 from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 from pathlib import Path
-from typing import Tuple
 
 
 PRETRAINED_MODEL_PATH = shirley.config.Config().pretrained_model_path
 BOX_TAG_PATTERN = r'<box>([\s\S]*?)</box>'
 PUNCTUATION = '！？。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏.'
-
-
-def _load_model_and_tokenizer() -> Tuple[QWenLMHeadModel, QWenTokenizer]:
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-    elif torch.backends.mps.is_available():
-        device = torch.device('mps')
-    else:
-        device = torch.device('cpu')
-
-    tokenizer: QWenTokenizer = QWenTokenizer.from_pretrained(
-        PRETRAINED_MODEL_PATH,
-        local_files_only=True,
-    )
-
-    model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained(
-        PRETRAINED_MODEL_PATH,
-        local_files_only=True,
-        bf16=True,
-    )
-
-    model.generation_config = transformers.GenerationConfig.from_pretrained(
-        PRETRAINED_MODEL_PATH,
-        local_files_only=True,
-        trust_remote_code=True,
-    )
-
-    if model.generation_config.pad_token_id:
-        model.generation_config.pad_token_id = torch.tensor([model.generation_config.pad_token_id], device=device)
-    if model.generation_config.eos_token_id:
-        model.generation_config.eos_token_id = torch.tensor([model.generation_config.eos_token_id], device=device)
-
-    return model.to(device), tokenizer
 
 
 def _parse_text(text: str) -> str:
@@ -201,7 +166,9 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
 
 
 def main():
-    model, tokenizer = _load_model_and_tokenizer()
+    generator = shirley.Generator(pretrained_model_path=PRETRAINED_MODEL_PATH)
+    model = generator.model
+    tokenizer = generator.tokenizer
     _launch_webui(model, tokenizer)
 
 

@@ -92,7 +92,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
             full_response = _parse_text(response)
 
         response = full_response
-        history.append((message, response))
+        history.append([message, response])
         image = tokenizer.draw_bbox_on_latest_picture(response, history)
         if image is not None:
             temp_directory = secrets.token_hex(20)

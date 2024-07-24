@@ -139,13 +139,13 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
         task_history = task_history + [[task_query, None]]
         return chatbot, task_history
 
-    def add_file(
+    def upload_file(
         chatbot: ChatbotTuplesInput,
         task_history: StateInput,
-        add_file_button: UploadButtonInput
+        upload_button: UploadButtonInput
     ) -> tuple[ChatbotTuplesOutput, StateOutput]:
-        chatbot = chatbot + [[(add_file_button.name,), None]]
-        task_history = task_history + [[(add_file_button.name,), None]]
+        chatbot = chatbot + [[(upload_button,), None]]
+        task_history = task_history + [[(upload_button,), None]]
         return chatbot, task_history
 
     def reset_user_input() -> TextboxOutput:
@@ -176,7 +176,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
         clear_button.click(fn=reset_state, inputs=[task_history], outputs=[chatbot], show_progress=True)
         regenerate_button.click(fn=regenerate, inputs=[chatbot, task_history], outputs=[chatbot], show_progress=True)
         upload_button.upload(
-            fn=add_file,
+            fn=upload_file,
             inputs=[chatbot, task_history, upload_button],
             outputs=[chatbot, task_history],
             show_progress=True

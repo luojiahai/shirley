@@ -1,14 +1,23 @@
 import copy
+
 import gradio as gr
 import os
 import re
 import secrets
 import shirley
 import shirley.config
+import shirley.utils
 import tempfile
+from gradio.components import Component
 from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
 from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 from pathlib import Path
+
+
+ChatbotTuplesInput = StateInput = list[list[str | tuple[str, str] | Component | None]] | None
+ChatbotTuplesOutput = StateOutput = list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None
+TextboxInput = TextboxOutput = str | None
+UploadButtonInput = bytes | str | list[bytes] | list[str] | None
 
 
 PRETRAINED_MODEL_PATH = shirley.config.Config().pretrained_model_path
@@ -54,114 +63,131 @@ def _remove_image_special(text: str) -> str:
 
 
 def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
-    uploaded_file_dir = os.environ.get('GRADIO_TEMP_DIR') or str(
-        Path(tempfile.gettempdir()) / 'gradio'
-    )
+    uploaded_file_directory = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
 
-    def predict(_chatbot, task_history):
-        chat_query = _chatbot[-1][0]
+    def predict(chatbot: ChatbotTuplesInput, task_history: StateInput) -> ChatbotTuplesOutput: # type: ignore
+        chat_query = chatbot[-1][0]
         query = task_history[-1][0]
         print('User: ' + _parse_text(query))
-        history_cp = copy.deepcopy(task_history)
+        history_copy = copy.deepcopy(task_history)
         full_response = ''
 
         history_filter = []
-        pic_idx = 1
+        pic_index = 1
         pre = ''
-        for i, (q, a) in enumerate(history_cp):
+        for _, [q, a] in enumerate(history_copy):
             if isinstance(q, (tuple, list)):
-                q = f'Picture {pic_idx}: <img>{q[0]}</img>'
+                q = f'Picture {pic_index}: <img>{q[0]}</img>'
                 pre += q + '\n'
-                pic_idx += 1
+                pic_index += 1
             else:
                 pre += q
-                history_filter.append((pre, a))
+                history_filter.append([pre, a])
                 pre = ''
         history, message = history_filter[:-1], history_filter[-1][0]
         # response, history = model.chat(tokenizer, message, history=history)
         for response in model.chat_stream(tokenizer, message, history=history):
-            _chatbot[-1] = (_parse_text(chat_query), _remove_image_special(_parse_text(response)))
-            yield _chatbot
+            chatbot[-1] = [_parse_text(chat_query), _remove_image_special(_parse_text(response))]
+            yield chatbot
             full_response = _parse_text(response)
 
         response = full_response
         history.append((message, response))
         image = tokenizer.draw_bbox_on_latest_picture(response, history)
         if image is not None:
-            temp_dir = secrets.token_hex(20)
-            temp_dir = Path(uploaded_file_dir) / temp_dir
-            temp_dir.mkdir(exist_ok=True, parents=True)
+            temp_directory = secrets.token_hex(20)
+            temp_directory = Path(uploaded_file_directory) / temp_directory
+            temp_directory.mkdir(exist_ok=True, parents=True)
             name = f'tmp{secrets.token_hex(5)}.jpg'
-            filename = temp_dir / name
+            filename = temp_directory / name
             image.save(str(filename))
-            _chatbot.append((None, (str(filename),)))
+            chatbot.append([None, (str(filename),)])
         else:
-            _chatbot[-1] = (_parse_text(chat_query), response)
+            chatbot[-1] = [_parse_text(chat_query), response]
         # full_response = _parse_text(response)
 
-        task_history[-1] = (query, full_response)
+        task_history[-1] = [query, full_response]
         print('🦈 Shirley: ' + _parse_text(full_response))
-        yield _chatbot
+        yield chatbot
 
-    def regenerate(_chatbot, task_history):
+    # TODO: fix regenerate chat stream
+    def regenerate(chatbot: ChatbotTuplesInput, task_history: StateInput) -> ChatbotTuplesOutput:
+        if not chatbot:
+            return chatbot
         if not task_history:
-            return _chatbot
-        item = task_history[-1]
-        if item[1] is None:
-            return _chatbot
-        task_history[-1] = (item[0], None)
-        chatbot_item = _chatbot.pop(-1)
+            return chatbot
+        task_history_item = task_history[-1]
+        if task_history_item[1] is None:
+            return chatbot
+        task_history[-1] = [task_history_item[0], None]
+        chatbot_item = chatbot.pop(-1)
         if chatbot_item[0] is None:
-            _chatbot[-1] = (_chatbot[-1][0], None)
+            chatbot[-1] = [chatbot[-1][0], None]
         else:
-            _chatbot.append((chatbot_item[0], None))
-        return predict(_chatbot, task_history)
+            chatbot.append([chatbot_item[0], None])
+        return predict(chatbot, task_history)
 
-    def add_text(history, task_history, text):
-        task_text = text
-        if len(text) >= 2 and text[-1] in PUNCTUATION and text[-2] not in PUNCTUATION:
-            task_text = text[:-1]
-        history = history + [(_parse_text(text), None)]
-        task_history = task_history + [(task_text, None)]
-        return history, task_history, ''
+    def add_text(
+        chatbot: ChatbotTuplesInput,
+        task_history: StateInput,
+        query: TextboxInput
+    ) -> tuple[ChatbotTuplesOutput, StateOutput]:
+        task_query = query
+        if len(query) >= 2 and query[-1] in PUNCTUATION and query[-2] not in PUNCTUATION:
+            task_query = query[:-1]
+        chatbot = chatbot + [[_parse_text(query), None]]
+        task_history = task_history + [[task_query, None]]
+        return chatbot, task_history
 
-    def add_file(history, task_history, file):
-        history = history + [((file.name,), None)]
-        task_history = task_history + [((file.name,), None)]
-        return history, task_history
+    def add_file(
+        chatbot: ChatbotTuplesInput,
+        task_history: StateInput,
+        add_file_button: UploadButtonInput
+    ) -> tuple[ChatbotTuplesOutput, StateOutput]:
+        chatbot = chatbot + [[(add_file_button.name,), None]]
+        task_history = task_history + [[(add_file_button.name,), None]]
+        return chatbot, task_history
 
-    def reset_user_input():
-        return gr.update(value='')
+    def reset_user_input() -> TextboxOutput:
+        gr.update(value='')
+        return None
 
-    def reset_state(task_history):
+    def reset_state(task_history: StateInput) -> ChatbotTuplesOutput:
         task_history.clear()
         return []
 
-    with gr.Blocks() as webui:
+    with gr.Blocks(title='Shirley WebUI') as webui:
         gr.Markdown('# 🦈 Shirley WebUI')
         gr.Markdown('This WebUI is based on Qwen-VL-Chat. (本WebUI基于通义千问打造，实现聊天机器人功能。)')
 
-        chatbot = gr.Chatbot(label='🦈 Shirley', elem_classes='control-height', height=750)
+        chatbot = gr.Chatbot(label='🦈 Shirley', elem_classes='control-height', height=512)
         query = gr.Textbox(lines=2, label='Input')
         task_history = gr.State([])
 
         with gr.Row():
-            empty_bin = gr.Button('🧹 Clear History (清除历史)')
-            submit_btn = gr.Button('🚀 Submit (发送)')
-            regen_btn = gr.Button('🤔️ Regenerate (重试)')
-            addfile_btn = gr.UploadButton('📁 Upload (上传文件)', file_types=['image'])
+            clear_button = gr.Button('🧹 Clear History (清除历史)')
+            submit_button = gr.Button('🚀 Submit (发送)')
+            regenerate_button = gr.Button('🤔️ Regenerate (重试)', interactive=False) # TODO: enable once fixed
+            upload_button = gr.UploadButton('📁 Upload (上传文件)', file_types=['image'])
 
-        submit_btn.click(add_text, [chatbot, task_history, query], [chatbot, task_history]).then(predict, [chatbot, task_history], [chatbot], show_progress=True)
-        submit_btn.click(reset_user_input, [], [query])
-        empty_bin.click(reset_state, [task_history], [chatbot], show_progress=True)
-        regen_btn.click(regenerate, [chatbot, task_history], [chatbot], show_progress=True)
-        addfile_btn.upload(add_file, [chatbot, task_history, addfile_btn], [chatbot, task_history], show_progress=True)
+        submit_button.click(fn=add_text, inputs=[chatbot, task_history, query], outputs=[chatbot, task_history]) \
+            .then(fn=predict, inputs=[chatbot, task_history], outputs=[chatbot], show_progress=True)
+        submit_button.click(fn=reset_user_input, inputs=[], outputs=[query])
+        clear_button.click(fn=reset_state, inputs=[task_history], outputs=[chatbot], show_progress=True)
+        regenerate_button.click(fn=regenerate, inputs=[chatbot, task_history], outputs=[chatbot], show_progress=True)
+        upload_button.upload(
+            fn=add_file,
+            inputs=[chatbot, task_history, upload_button],
+            outputs=[chatbot, task_history],
+            show_progress=True
+        )
 
     webui.queue().launch(
         share=False,
         inbrowser=False,
         server_port=8000,
         server_name='127.0.0.1',
+        favicon_path=shirley.utils.getpath('./static/favicon.ico'),
     )
 
 

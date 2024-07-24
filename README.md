@@ -55,26 +55,6 @@ Update submodule:
 git submodule update --remote --merge
 ```
 
-### [Optional] Setup Django
-
-Create a file `secret_key.txt` in root directory (do not commit).
-
-Generate a random string and put it into the file:
-```python
->>> from django.core.management.utils import get_random_secret_key
->>> get_random_secret_key()
-```
-
-Migrate database:
-```bash
-poetry run python shirley/manage.py migrate
-```
-
-Create super user:
-```bash
-poetry run python shirley/manage.py createsuperuser
-```
-
 ## Usage
 
 Activate the virtual environment:
@@ -97,6 +77,26 @@ poetry run poc
 Run tests:
 ```bash
 poetry run pytest
+```
+
+## Django
+
+Create a file `secret_key.txt` in root directory (do not commit).
+
+Generate a random string and put it into the file:
+```python
+>>> from django.core.management.utils import get_random_secret_key
+>>> get_random_secret_key()
+```
+
+Migrate database:
+```bash
+poetry run python shirley/manage.py migrate
+```
+
+Create super user:
+```bash
+poetry run python shirley/manage.py createsuperuser
 ```
 
 Run Django server:

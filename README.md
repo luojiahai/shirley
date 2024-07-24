@@ -79,7 +79,7 @@ Run tests:
 poetry run pytest
 ```
 
-## Django
+## [Deprecated] Django
 
 Create a file `secret_key.txt` in root directory (do not commit).
 

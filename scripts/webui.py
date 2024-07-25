@@ -1,6 +1,5 @@
 import copy
-
-import gradio as gr
+import gradio
 import os
 import re
 import secrets
@@ -65,7 +64,7 @@ def _remove_image_special(text: str) -> str:
 def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
     uploaded_file_directory = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
 
-    def predict(chatbot: ChatbotTuplesInput, task_history: StateInput) -> ChatbotTuplesOutput: # type: ignore
+    def predict(chatbot: ChatbotTuplesInput, task_history: StateInput) -> tuple[ChatbotTuplesOutput, StateOutput]: # type: ignore
         chat_query = chatbot[-1][0]
         query = task_history[-1][0]
         print('User: ' + _parse_text(query))
@@ -85,10 +84,9 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
                 history_filter.append([pre, a])
                 pre = ''
         history, message = history_filter[:-1], history_filter[-1][0]
-        # response, history = model.chat(tokenizer, message, history=history)
         for response in model.chat_stream(tokenizer, message, history=history):
             chatbot[-1] = [_parse_text(chat_query), _remove_image_special(_parse_text(response))]
-            yield chatbot
+            yield chatbot, task_history
             full_response = _parse_text(response)
 
         response = full_response
@@ -104,28 +102,26 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
             chatbot.append([None, (str(filename),)])
         else:
             chatbot[-1] = [_parse_text(chat_query), response]
-        # full_response = _parse_text(response)
 
         task_history[-1] = [query, full_response]
         print('🦈 Shirley: ' + _parse_text(full_response))
-        yield chatbot
+        yield chatbot, task_history
 
-    # TODO: fix regenerate chat stream
-    def regenerate(chatbot: ChatbotTuplesInput, task_history: StateInput) -> ChatbotTuplesOutput:
+    def regenerate(chatbot: ChatbotTuplesInput, task_history: StateInput) -> tuple[ChatbotTuplesOutput, StateOutput]:
         if not chatbot:
-            return chatbot
+            return chatbot, task_history
         if not task_history:
-            return chatbot
+            return chatbot, task_history
         task_history_item = task_history[-1]
         if task_history_item[1] is None:
-            return chatbot
+            return chatbot, task_history
         task_history[-1] = [task_history_item[0], None]
         chatbot_item = chatbot.pop(-1)
         if chatbot_item[0] is None:
             chatbot[-1] = [chatbot[-1][0], None]
         else:
             chatbot.append([chatbot_item[0], None])
-        return predict(chatbot, task_history)
+        return chatbot, task_history
 
     def add_text(
         chatbot: ChatbotTuplesInput,
@@ -149,38 +145,34 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
         return chatbot, task_history
 
     def reset_user_input() -> TextboxOutput:
-        gr.update(value='')
+        gradio.update(value='')
         return None
 
     def reset_state(task_history: StateInput) -> ChatbotTuplesOutput:
         task_history.clear()
         return []
 
-    with gr.Blocks(title='Shirley WebUI') as webui:
-        gr.Markdown('# 🦈 Shirley WebUI')
-        gr.Markdown('This WebUI is based on Qwen-VL-Chat. (本WebUI基于通义千问打造，实现聊天机器人功能。)')
+    with gradio.Blocks(title='Shirley WebUI') as webui:
+        gradio.Markdown('# 🦈 Shirley WebUI')
+        gradio.Markdown('This WebUI is based on Qwen-VL-Chat. (本WebUI基于通义千问打造，实现聊天机器人功能。)')
 
-        chatbot = gr.Chatbot(label='🦈 Shirley', elem_classes='control-height', height=512)
-        query = gr.Textbox(lines=2, label='Input')
-        task_history = gr.State([])
+        chatbot = gradio.Chatbot(label='🦈 Shirley', elem_classes='control-height', height=512)
+        query = gradio.Textbox(lines=2, label='Input')
+        task_history = gradio.State([])
 
-        with gr.Row():
-            clear_button = gr.Button('🧹 Clear History (清除历史)')
-            submit_button = gr.Button('🚀 Submit (发送)')
-            regenerate_button = gr.Button('🤔️ Regenerate (重试)', interactive=False) # TODO: enable once fixed
-            upload_button = gr.UploadButton('📁 Upload (上传文件)', file_types=['image'])
+        with gradio.Row():
+            clear_button = gradio.Button('🧹 Clear History (清除历史)')
+            submit_button = gradio.Button('🚀 Submit (发送)')
+            regenerate_button = gradio.Button('🤔️ Regenerate (重试)')
+            upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_types=['image'])
 
         submit_button.click(fn=add_text, inputs=[chatbot, task_history, query], outputs=[chatbot, task_history]) \
-            .then(fn=predict, inputs=[chatbot, task_history], outputs=[chatbot], show_progress=True)
-        submit_button.click(fn=reset_user_input, inputs=[], outputs=[query])
+            .then(fn=predict, inputs=[chatbot, task_history], outputs=[chatbot, task_history], show_progress=True)
+        submit_button.click(fn=reset_user_input, inputs=None, outputs=[query])
         clear_button.click(fn=reset_state, inputs=[task_history], outputs=[chatbot], show_progress=True)
-        regenerate_button.click(fn=regenerate, inputs=[chatbot, task_history], outputs=[chatbot], show_progress=True)
-        upload_button.upload(
-            fn=upload_file,
-            inputs=[chatbot, task_history, upload_button],
-            outputs=[chatbot, task_history],
-            show_progress=True
-        )
+        regenerate_button.click(fn=regenerate, inputs=[chatbot, task_history], outputs=[chatbot, task_history], show_progress=True) \
+            .then(fn=predict, inputs=[chatbot, task_history], outputs=[chatbot, task_history], show_progress=True)
+        upload_button.upload(fn=upload_file, inputs=[chatbot, task_history, upload_button], outputs=[chatbot, task_history], show_progress=True)
 
     webui.queue().launch(
         share=False,

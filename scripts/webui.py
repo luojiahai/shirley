@@ -13,8 +13,8 @@ from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 from pathlib import Path
 
 
-ChatbotTuplesInput = StateInput = list[list[str | tuple[str, str] | Component | None]] | None
-ChatbotTuplesOutput = StateOutput = list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None
+ChatbotTuplesInput = TaskHistoryInput = list[list[str | tuple[str, str] | Component | None]] | None
+ChatbotTuplesOutput = TaskHistoryOutput = list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None
 TextboxInput = TextboxOutput = str | None
 UploadButtonInput = bytes | str | list[bytes] | list[str] | None
 
@@ -64,7 +64,10 @@ def _remove_image_special(text: str) -> str:
 def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
     uploaded_file_directory = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
 
-    def predict(chatbot: ChatbotTuplesInput, task_history: StateInput) -> tuple[ChatbotTuplesOutput, StateOutput]: # type: ignore
+    def predict(
+        chatbot: ChatbotTuplesInput,
+        task_history: TaskHistoryInput
+    ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]: # type: ignore
         chat_query = chatbot[-1][0]
         query = task_history[-1][0]
         print('User: ' + _parse_text(query))
@@ -107,7 +110,10 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
         print('🦈 Shirley: ' + _parse_text(full_response))
         yield chatbot, task_history
 
-    def regenerate(chatbot: ChatbotTuplesInput, task_history: StateInput) -> tuple[ChatbotTuplesOutput, StateOutput]:
+    def regenerate(
+        chatbot: ChatbotTuplesInput,
+        task_history: TaskHistoryInput
+    ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
         if not chatbot:
             return chatbot, task_history
         if not task_history:
@@ -125,9 +131,9 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
 
     def add_text(
         chatbot: ChatbotTuplesInput,
-        task_history: StateInput,
+        task_history: TaskHistoryInput,
         query: TextboxInput
-    ) -> tuple[ChatbotTuplesOutput, StateOutput]:
+    ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
         task_query = query
         if len(query) >= 2 and query[-1] in PUNCTUATION and query[-2] not in PUNCTUATION:
             task_query = query[:-1]
@@ -137,9 +143,9 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
 
     def upload_file(
         chatbot: ChatbotTuplesInput,
-        task_history: StateInput,
+        task_history: TaskHistoryInput,
         upload_button: UploadButtonInput
-    ) -> tuple[ChatbotTuplesOutput, StateOutput]:
+    ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
         chatbot = chatbot + [[(upload_button,), None]]
         task_history = task_history + [[(upload_button,), None]]
         return chatbot, task_history
@@ -148,9 +154,8 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
         gradio.update(value='')
         return None
 
-    def reset_state(task_history: StateInput) -> ChatbotTuplesOutput:
-        task_history.clear()
-        return []
+    def reset_state() -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
+        return [], []
 
     with gradio.Blocks(title='Shirley WebUI') as webui:
         gradio.Markdown('# 🦈 Shirley WebUI')
@@ -166,13 +171,50 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
             regenerate_button = gradio.Button('🤔️ Regenerate (重试)')
             upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_types=['image'])
 
-        submit_button.click(fn=add_text, inputs=[chatbot, task_history, query], outputs=[chatbot, task_history]) \
-            .then(fn=predict, inputs=[chatbot, task_history], outputs=[chatbot, task_history], show_progress=True)
-        submit_button.click(fn=reset_user_input, inputs=None, outputs=[query])
-        clear_button.click(fn=reset_state, inputs=[task_history], outputs=[chatbot], show_progress=True)
-        regenerate_button.click(fn=regenerate, inputs=[chatbot, task_history], outputs=[chatbot, task_history], show_progress=True) \
-            .then(fn=predict, inputs=[chatbot, task_history], outputs=[chatbot, task_history], show_progress=True)
-        upload_button.upload(fn=upload_file, inputs=[chatbot, task_history, upload_button], outputs=[chatbot, task_history], show_progress=True)
+        submit_clicked = submit_button.click(
+            fn=add_text,
+            inputs=[chatbot, task_history, query],
+            outputs=[chatbot, task_history]
+        )
+        submit_clicked.then(
+            fn=predict,
+            inputs=[chatbot, task_history],
+            outputs=[chatbot, task_history],
+            show_progress=True
+        )
+
+        submit_button.click(
+            fn=reset_user_input,
+            inputs=None,
+            outputs=[query]
+        )
+
+        clear_button.click(
+            fn=reset_state,
+            inputs=None,
+            outputs=[chatbot, task_history],
+            show_progress=True
+        )
+
+        regenerate_clicked = regenerate_button.click(
+            fn=regenerate,
+            inputs=[chatbot, task_history],
+            outputs=[chatbot, task_history],
+            show_progress=True
+        )
+        regenerate_clicked.then(
+            fn=predict,
+            inputs=[chatbot, task_history],
+            outputs=[chatbot, task_history],
+            show_progress=True
+        )
+
+        upload_button.upload(
+            fn=upload_file,
+            inputs=[chatbot, task_history, upload_button],
+            outputs=[chatbot, task_history],
+            show_progress=True
+        )
 
     webui.queue().launch(
         share=False,

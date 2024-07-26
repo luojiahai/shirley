@@ -71,7 +71,7 @@ def _is_valid_image(file_path: str) -> bool:
         return False
     
 
-def _augment(task_history: TaskHistoryInput):
+def _augment(task_history: TaskHistoryInput) -> tuple[TaskHistoryOutput, str]:
     history_filter = []
     picture_index = 1
     pre = ''
@@ -91,7 +91,7 @@ def _augment(task_history: TaskHistoryInput):
     return history_filter[:-1], history_filter[-1][0]
 
 
-def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
+def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer) -> None:
     uploaded_file_directory = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
 
     def generate(
@@ -253,7 +253,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
     )
 
 
-def main():
+def main() -> None:
     generator = shirley.Generator(pretrained_model_path=PRETRAINED_MODEL_PATH)
     model = generator.model
     tokenizer = generator.tokenizer

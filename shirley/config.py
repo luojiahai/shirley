@@ -13,10 +13,6 @@ class Config(object):
         return shirley.utils.read(shirley.utils.getpath(self._config['DEFAULT']['SECRET_KEY_PATH']))
 
     @property
-    def documents_path(self) -> str:
-        return shirley.utils.getpath(self._config['DEFAULT']['DOCUMENTS_PATH'])
-
-    @property
     def pretrained_model_path(self) -> str:
         return shirley.utils.getpath(self._config['DEFAULT']['PRETRAINED_MODEL_PATH'])
 

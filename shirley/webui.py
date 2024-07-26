@@ -11,6 +11,7 @@ from gradio.components import Component
 from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
 from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 from pathlib import Path
+from PIL import Image
 
 
 ChatbotTuplesInput = TaskHistoryInput = list[list[str | tuple[str, str] | Component | None]] | None
@@ -20,8 +21,8 @@ UploadButtonInput = bytes | str | list[bytes] | list[str] | None
 
 
 PRETRAINED_MODEL_PATH = shirley.config.Config().pretrained_model_path
-BOX_TAG_PATTERN = r'<box>([\s\S]*?)</box>'
-PUNCTUATION = '！？。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏.'
+PUNCTUATION = '！？。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟\
+    〰〾〿–—‘’‛“”„‟…‧﹏.'
 
 
 def _parse_text(text: str) -> str:
@@ -61,40 +62,55 @@ def _remove_image_special(text: str) -> str:
     return re.sub(r'<box>.*?(</box>|$)', '', text)
 
 
+def _is_valid_image(file_path: str) -> bool:
+    try:
+        with Image.open(file_path) as img:
+            img.verify()
+            return True
+    except (IOError, SyntaxError):
+        return False
+    
+
+def _augment(task_history: TaskHistoryInput):
+    history_filter = []
+    picture_index = 1
+    pre = ''
+    for _, [q, a] in enumerate(task_history):
+        if isinstance(q, (tuple, list)):
+            if _is_valid_image(q[0]):
+                q = f'Picture {picture_index}: <img>{q[0]}</img>'
+                pre += q + '\n'
+                picture_index += 1
+            else:
+                # TODO: other file types
+                pass
+        else:
+            pre += q
+            history_filter.append([pre, a])
+            pre = ''
+    return history_filter[:-1], history_filter[-1][0]
+
+
 def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
     uploaded_file_directory = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
 
-    def predict(
+    def generate(
         chatbot: ChatbotTuplesInput,
         task_history: TaskHistoryInput
     ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]: # type: ignore
         chat_query = chatbot[-1][0]
         query = task_history[-1][0]
         print('User: ' + _parse_text(query))
-        history_copy = copy.deepcopy(task_history)
-        full_response = ''
 
-        history_filter = []
-        pic_index = 1
-        pre = ''
-        for _, [q, a] in enumerate(history_copy):
-            if isinstance(q, (tuple, list)):
-                q = f'Picture {pic_index}: <img>{q[0]}</img>'
-                pre += q + '\n'
-                pic_index += 1
-            else:
-                pre += q
-                history_filter.append([pre, a])
-                pre = ''
-        history, message = history_filter[:-1], history_filter[-1][0]
+        full_response = ''
+        history, message = _augment(copy.deepcopy(task_history))
         for response in model.chat_stream(tokenizer, message, history=history):
             chatbot[-1] = [_parse_text(chat_query), _remove_image_special(_parse_text(response))]
             yield chatbot, task_history
             full_response = _parse_text(response)
+        history.append([message, full_response])
 
-        response = full_response
-        history.append([message, response])
-        image = tokenizer.draw_bbox_on_latest_picture(response, history)
+        image = tokenizer.draw_bbox_on_latest_picture(full_response, history)
         if image is not None:
             temp_directory = secrets.token_hex(20)
             temp_directory = Path(uploaded_file_directory) / temp_directory
@@ -104,9 +120,9 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
             image.save(str(filename))
             chatbot.append([None, (str(filename),)])
         else:
-            chatbot[-1] = [_parse_text(chat_query), response]
-
+            chatbot[-1] = [_parse_text(chat_query), full_response]
         task_history[-1] = [query, full_response]
+
         print('🦈 Shirley: ' + _parse_text(full_response))
         yield chatbot, task_history
 
@@ -154,14 +170,18 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
         gradio.update(value='')
         return None
 
-    def reset_state() -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
+    def clear() -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
         return [], []
 
     with gradio.Blocks(title='Shirley WebUI') as webui:
         gradio.Markdown('# 🦈 Shirley WebUI')
-        gradio.Markdown('This WebUI is based on Qwen-VL-Chat. (本WebUI基于通义千问打造，实现聊天机器人功能。)')
+        gradio.Markdown(
+            'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) to implement \
+            chatbot functionality. \
+            (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
+        )
 
-        chatbot = gradio.Chatbot(label='🦈 Shirley', elem_classes='control-height', height=512)
+        chatbot = gradio.Chatbot(label='🦈 Shirley', elem_classes='control-height', height=750)
         query = gradio.Textbox(lines=2, label='Input')
         task_history = gradio.State([])
 
@@ -169,7 +189,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
             clear_button = gradio.Button('🧹 Clear History (清除历史)')
             submit_button = gradio.Button('🚀 Submit (发送)')
             regenerate_button = gradio.Button('🤔️ Regenerate (重试)')
-            upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_types=['image'])
+            upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_types=['file'])
 
         submit_clicked = submit_button.click(
             fn=add_text,
@@ -177,7 +197,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
             outputs=[chatbot, task_history]
         )
         submit_clicked.then(
-            fn=predict,
+            fn=generate,
             inputs=[chatbot, task_history],
             outputs=[chatbot, task_history],
             show_progress=True
@@ -190,7 +210,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
         )
 
         clear_button.click(
-            fn=reset_state,
+            fn=clear,
             inputs=None,
             outputs=[chatbot, task_history],
             show_progress=True
@@ -203,7 +223,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
             show_progress=True
         )
         regenerate_clicked.then(
-            fn=predict,
+            fn=generate,
             inputs=[chatbot, task_history],
             outputs=[chatbot, task_history],
             show_progress=True
@@ -214,6 +234,14 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer):
             inputs=[chatbot, task_history, upload_button],
             outputs=[chatbot, task_history],
             show_progress=True
+        )
+
+        gradio.Markdown(
+            '<font size=2>Note: This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise \
+            users not to knowingly generate or allow others to knowingly generate harmful content, including hate \
+            speech, violence, pornography, deception, etc. \
+            (注：本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，包括但不限于仇恨言论、\
+            暴力、色情、欺诈相关的有害信息。)'
         )
 
     webui.queue().launch(

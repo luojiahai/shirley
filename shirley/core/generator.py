@@ -27,7 +27,6 @@ class Generator(object):
         model = QWenLMHeadModel.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_path,
             local_files_only=True,
-            bf16=True,
         )
 
         model.generation_config = transformers.GenerationConfig.from_pretrained(

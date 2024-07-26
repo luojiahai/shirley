@@ -20,7 +20,7 @@ pytest = "^8.3.1"
 gradio = "^4.39.0"
 
 [tool.poetry.scripts]
-webui = "scripts.webui:main"
+webui = "shirley.webui:main"
 poc = "scripts.poc:main"
 
 

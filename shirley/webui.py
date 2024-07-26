@@ -74,20 +74,20 @@ def _is_valid_image(file_path: str) -> bool:
 def _augment(task_history: TaskHistoryInput) -> tuple[TaskHistoryOutput, str]:
     history_filter = []
     picture_index = 1
-    pre = ''
-    for _, [q, a] in enumerate(task_history):
-        if isinstance(q, (tuple, list)):
-            if _is_valid_image(q[0]):
-                q = f'Picture {picture_index}: <img>{q[0]}</img>'
-                pre += q + '\n'
+    text = ''
+    for _, [query, response] in enumerate(task_history):
+        if isinstance(query, (tuple, list)):
+            if _is_valid_image(query[0]):
+                query = f'Picture {picture_index}: <img>{query[0]}</img>'
+                text += query + '\n'
                 picture_index += 1
             else:
                 # TODO: other file types
                 pass
         else:
-            pre += q
-            history_filter.append([pre, a])
-            pre = ''
+            text += query
+            history_filter.append([text, response])
+            text = ''
     return history_filter[:-1], history_filter[-1][0]
 
 
@@ -102,15 +102,15 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer) -> None:
         query = task_history[-1][0]
         print('User: ' + _parse_text(query))
 
-        full_response = ''
+        full_response: str = ''
         history, message = _augment(copy.deepcopy(task_history))
-        for response in model.chat_stream(tokenizer, message, history=history):
+        for response in model.chat_stream(tokenizer=tokenizer, query=message, history=history):
             chatbot[-1] = [_parse_text(chat_query), _remove_image_special(_parse_text(response))]
             yield chatbot, task_history
             full_response = _parse_text(response)
         history.append([message, full_response])
 
-        image = tokenizer.draw_bbox_on_latest_picture(full_response, history)
+        image = tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
         if image is not None:
             temp_directory = secrets.token_hex(20)
             temp_directory = Path(uploaded_file_directory) / temp_directory

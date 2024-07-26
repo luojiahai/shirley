@@ -1,1 +1,1 @@
-from shirley.generator import Generator
+from shirley.client import Client

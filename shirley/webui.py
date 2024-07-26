@@ -145,7 +145,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer) -> None:
             chatbot.append([chatbot_item[0], None])
         return chatbot, task_history
 
-    def add_text(
+    def submit(
         chatbot: ChatbotTuplesInput,
         task_history: TaskHistoryInput,
         query: TextboxInput
@@ -157,7 +157,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer) -> None:
         task_history = task_history + [[task_query, None]]
         return chatbot, task_history
 
-    def upload_file(
+    def upload(
         chatbot: ChatbotTuplesInput,
         task_history: TaskHistoryInput,
         upload_button: UploadButtonInput
@@ -166,7 +166,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer) -> None:
         task_history = task_history + [[(upload_button,), None]]
         return chatbot, task_history
 
-    def reset_user_input() -> TextboxOutput:
+    def reset_textbox() -> TextboxOutput:
         gradio.update(value='')
         return None
 
@@ -186,13 +186,13 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer) -> None:
         task_history = gradio.State([])
 
         with gradio.Row():
-            clear_button = gradio.Button('🧹 Clear History (清除历史)')
+            clear_button = gradio.Button('🧹 Clear (清除历史)')
             submit_button = gradio.Button('🚀 Submit (发送)')
             regenerate_button = gradio.Button('🤔️ Regenerate (重试)')
             upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_types=['file'])
 
         submit_clicked = submit_button.click(
-            fn=add_text,
+            fn=submit,
             inputs=[chatbot, task_history, query],
             outputs=[chatbot, task_history]
         )
@@ -204,7 +204,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer) -> None:
         )
 
         submit_button.click(
-            fn=reset_user_input,
+            fn=reset_textbox,
             inputs=None,
             outputs=[query]
         )
@@ -230,7 +230,7 @@ def _launch_webui(model: QWenLMHeadModel, tokenizer: QWenTokenizer) -> None:
         )
 
         upload_button.upload(
-            fn=upload_file,
+            fn=upload,
             inputs=[chatbot, task_history, upload_button],
             outputs=[chatbot, task_history],
             show_progress=True

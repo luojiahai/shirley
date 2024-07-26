@@ -93,8 +93,8 @@ def generate(chatbot: Chatbot, task_history: TaskHistory) -> Iterator[Tuple[Chat
         chatbot[-1] = [_parse_text(chat_query), _remove_image_special(_parse_text(response))]
         yield chatbot, task_history
         full_response = _parse_text(response)
-    history.append((augmented_query, full_response))
 
+    history.append((augmented_query, full_response))
     image = CLIENT.tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
     if image is not None:
         image_temp_directory = secrets.token_hex(20)

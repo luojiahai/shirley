@@ -5,14 +5,8 @@ import secrets
 import shirley
 import shirley.utils
 import tempfile
-from gradio.components import Component
 from pathlib import Path
-
-
-ChatbotTuplesInput = TaskHistoryInput = list[list[str | tuple[str, str] | Component | None]] | None
-ChatbotTuplesOutput = TaskHistoryOutput = list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None
-TextboxInput = TextboxOutput = str | None
-UploadButtonInput = bytes | str | list[bytes] | list[str] | None
+from typing import Iterator, List, Tuple
 
 
 PRETRAINED_MODEL_PATH = shirley.utils.get_path('./models/qwen_vl_chat')
@@ -26,24 +20,21 @@ def _launch_webui() -> None:
     tokenizer = generator.tokenizer
     uploaded_file_directory = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
 
-    def generate(
-        chatbot: ChatbotTuplesInput,
-        task_history: TaskHistoryInput
-    ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]: # type: ignore
+    def generate(chatbot: List[Tuple], task_history: List[Tuple]) -> Iterator[Tuple[List[Tuple], List[Tuple]]]:
         chat_query = chatbot[-1][0]
         query = task_history[-1][0]
         print('User: ' + shirley.utils.parse_text(query))
 
         full_response: str = ''
-        history, message = generator.augment(copy.deepcopy(task_history))
-        for response in model.chat_stream(tokenizer=tokenizer, query=message, history=history):
+        augmented_query, history = generator.augment(copy.deepcopy(task_history))
+        for response in model.chat_stream(tokenizer=tokenizer, query=augmented_query, history=history):
             chatbot[-1] = [
                 shirley.utils.parse_text(chat_query),
                 shirley.utils.remove_image_special(shirley.utils.parse_text(response)),
             ]
             yield chatbot, task_history
             full_response = shirley.utils.parse_text(response)
-        history.append([message, full_response])
+        history.append((augmented_query, full_response))
 
         image = tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
         if image is not None:
@@ -53,59 +44,48 @@ def _launch_webui() -> None:
             name = f'tmp{secrets.token_hex(5)}.jpg'
             filename = temp_directory / name
             image.save(str(filename))
-            chatbot.append([None, (str(filename),)])
+            chatbot.append((None, (str(filename),)))
         else:
-            chatbot[-1] = [shirley.utils.parse_text(chat_query), full_response]
-        task_history[-1] = [query, full_response]
+            chatbot[-1] = (shirley.utils.parse_text(chat_query), full_response)
+        task_history[-1] = (query, full_response)
 
         print('🦈 Shirley: ' + shirley.utils.parse_text(full_response))
         yield chatbot, task_history
 
-    def regenerate(
-        chatbot: ChatbotTuplesInput,
-        task_history: TaskHistoryInput
-    ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
+    def regenerate(chatbot: List[Tuple], task_history: List[Tuple]) -> Tuple[List[Tuple], List[Tuple]]:
         if not chatbot:
-            return chatbot, task_history
+            return (chatbot, task_history)
         if not task_history:
-            return chatbot, task_history
+            return (chatbot, task_history)
         task_history_item = task_history[-1]
         if task_history_item[1] is None:
-            return chatbot, task_history
-        task_history[-1] = [task_history_item[0], None]
+            return (chatbot, task_history)
+        task_history[-1] = (task_history_item[0], None)
         chatbot_item = chatbot.pop(-1)
         if chatbot_item[0] is None:
-            chatbot[-1] = [chatbot[-1][0], None]
+            chatbot[-1] = (chatbot[-1][0], None)
         else:
-            chatbot.append([chatbot_item[0], None])
+            chatbot.append((chatbot_item[0], None))
         return chatbot, task_history
 
-    def submit(
-        chatbot: ChatbotTuplesInput,
-        task_history: TaskHistoryInput,
-        query: TextboxInput
-    ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
+    def submit(chatbot: List[Tuple], task_history: List[Tuple], query: str) -> Tuple[List[Tuple], List[Tuple]]:
         task_query = query
         if len(query) >= 2 and query[-1] in PUNCTUATION and query[-2] not in PUNCTUATION:
             task_query = query[:-1]
-        chatbot = chatbot + [[shirley.utils.parse_text(query), None]]
-        task_history = task_history + [[task_query, None]]
+        chatbot = chatbot + [(shirley.utils.parse_text(query), None)]
+        task_history = task_history + [(task_query, None)]
         return chatbot, task_history
 
-    def upload(
-        chatbot: ChatbotTuplesInput,
-        task_history: TaskHistoryInput,
-        upload_button: UploadButtonInput
-    ) -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
-        chatbot = chatbot + [[(upload_button,), None]]
-        task_history = task_history + [[(upload_button,), None]]
+    def upload(chatbot: List[Tuple], task_history: List[Tuple], upload_button: str) -> Tuple[List[Tuple], List[Tuple]]:
+        chatbot = chatbot + [((upload_button,), None)]
+        task_history = task_history + [((upload_button,), None)]
         return chatbot, task_history
 
-    def reset_textbox() -> TextboxOutput:
+    def reset_textbox() -> str:
         gradio.update(value='')
-        return None
+        return ''
 
-    def clear() -> tuple[ChatbotTuplesOutput, TaskHistoryOutput]:
+    def clear() -> Tuple[List[Tuple], List[Tuple]]:
         return [], []
 
     with gradio.Blocks(title='Shirley WebUI') as webui:
@@ -129,46 +109,46 @@ def _launch_webui() -> None:
         submit_clicked = submit_button.click(
             fn=submit,
             inputs=[chatbot, task_history, query],
-            outputs=[chatbot, task_history]
+            outputs=[chatbot, task_history],
         )
         submit_clicked.then(
             fn=generate,
             inputs=[chatbot, task_history],
             outputs=[chatbot, task_history],
-            show_progress=True
+            show_progress=True,
         )
 
         submit_button.click(
             fn=reset_textbox,
             inputs=None,
-            outputs=[query]
+            outputs=query,
         )
 
         clear_button.click(
             fn=clear,
             inputs=None,
             outputs=[chatbot, task_history],
-            show_progress=True
+            show_progress=True,
         )
 
         regenerate_clicked = regenerate_button.click(
             fn=regenerate,
             inputs=[chatbot, task_history],
             outputs=[chatbot, task_history],
-            show_progress=True
+            show_progress=True,
         )
         regenerate_clicked.then(
             fn=generate,
             inputs=[chatbot, task_history],
             outputs=[chatbot, task_history],
-            show_progress=True
+            show_progress=True,
         )
 
         upload_button.upload(
             fn=upload,
             inputs=[chatbot, task_history, upload_button],
             outputs=[chatbot, task_history],
-            show_progress=True
+            show_progress=True,
         )
 
         gradio.Markdown(

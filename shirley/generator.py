@@ -1,15 +1,15 @@
 import os
-import shirley
 import shirley.utils
 import torch
 import transformers
 from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
 from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
-from typing import Tuple
+from typing import List, Tuple
 
 
 class Generator(object):
+
     def __init__(self, pretrained_model_path: str) -> None:
         if not os.path.exists(pretrained_model_path):
             raise FileNotFoundError(
@@ -66,12 +66,12 @@ class Generator(object):
     def model(self) -> QWenLMHeadModel:
         return self._model
     
-    def augment(self, task_history: shirley.TaskHistoryInput) -> Tuple[HistoryType, str]:
+    def augment(self, task_history: List[Tuple]) -> Tuple[str, HistoryType]:
         history = []
         picture_index = 1
         text = ''
-        for _, [query, response] in enumerate(task_history):
-            if isinstance(query, (tuple, list)):
+        for _, (query, response) in enumerate(task_history):
+            if isinstance(query, (Tuple, List)):
                 file_path = query[0]
                 if shirley.utils.is_image(file_path):
                     query = f'Picture {picture_index}: <img>{file_path}</img>'
@@ -82,9 +82,9 @@ class Generator(object):
                     pass
             else:
                 text += query
-                history.append([text, response])
+                history.append((text, response))
                 text = ''
-        return history[:-1], history[-1][0]
+        return history[-1][0], history[:-1]
 
     def generate(self, text: str, history: HistoryType = None) -> Tuple[str, HistoryType]:
         chat = [{'text': text}]

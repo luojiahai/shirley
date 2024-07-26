@@ -7,6 +7,7 @@ Documents = List[Document]
 
 
 class DocumentLoader(object):
+
     def __init__(self) -> None:
         return
 

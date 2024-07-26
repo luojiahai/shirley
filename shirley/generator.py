@@ -1,15 +1,19 @@
 import os
+import shirley
+import shirley.utils
 import torch
 import transformers
 from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
 from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
+from models.qwen_vl_chat.qwen_generation_utils import HistoryType
+from typing import Tuple
 
 
 class Generator(object):
     def __init__(self, pretrained_model_path: str) -> None:
         if not os.path.exists(pretrained_model_path):
             raise FileNotFoundError(
-                f'Model path {pretrained_model_path} not found.'
+                f'Model not found in path {pretrained_model_path}.'
             )
 
         if torch.cuda.is_available():
@@ -61,8 +65,28 @@ class Generator(object):
     @property
     def model(self) -> QWenLMHeadModel:
         return self._model
+    
+    def augment(self, task_history: shirley.TaskHistoryInput) -> Tuple[HistoryType, str]:
+        history = []
+        picture_index = 1
+        text = ''
+        for _, [query, response] in enumerate(task_history):
+            if isinstance(query, (tuple, list)):
+                file_path = query[0]
+                if shirley.utils.is_image(file_path):
+                    query = f'Picture {picture_index}: <img>{file_path}</img>'
+                    text += query + '\n'
+                    picture_index += 1
+                else:
+                    # TODO: other file types
+                    pass
+            else:
+                text += query
+                history.append([text, response])
+                text = ''
+        return history[:-1], history[-1][0]
 
-    def generate(self, prompt: str, history=None) -> str:
-        query = self.tokenizer.from_list_format([{'text': prompt}])
-        response, history = self.model.chat(tokenizer=self.tokenizer, query=query, history=history)
-        return response
+    def generate(self, text: str, history: HistoryType = None) -> Tuple[str, HistoryType]:
+        chat = [{'text': text}]
+        query = self.tokenizer.from_list_format(chat)
+        return self.model.chat(tokenizer=self.tokenizer, query=query, history=history)

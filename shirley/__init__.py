@@ -1,6 +1,16 @@
-from shirley.core.document import Documents
-from shirley.core.augmentor import Augmentor
-from shirley.config import Config
-from shirley.core.document import DocumentLoader
-from shirley.core.generator import Generator
-from shirley.core.vector_database import VectorDatabase
+from shirley.webui import (
+    ChatbotTuplesInput,
+    ChatbotTuplesOutput,
+    TaskHistoryInput,
+    TaskHistoryOutput,
+    TextboxInput,
+    TextboxOutput,
+    UploadButtonInput,
+)
+
+from shirley.document import (
+    Document,
+    Documents,
+    DocumentLoader,
+)
+from shirley.generator import Generator

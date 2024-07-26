@@ -19,7 +19,8 @@ It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qw
 poetry config virtualenvs.in-project true
 ```
 
-If you are not using Python 3.10.6, you need to install the specific version. Alternatively, use `pyenv` to manage Python versions:
+If you are not using Python 3.10.6, you need to install the specific version. Alternatively, use `pyenv` to manage
+Python versions:
 ```bash
 pyenv install 3.10.6
 ```
@@ -77,29 +78,4 @@ poetry run poc
 Run tests:
 ```bash
 poetry run pytest
-```
-
-## [Deprecated] Django
-
-Create a file `secret_key.txt` in root directory (do not commit).
-
-Generate a random string and put it into the file:
-```python
->>> from django.core.management.utils import get_random_secret_key
->>> get_random_secret_key()
-```
-
-Migrate database:
-```bash
-poetry run python shirley/manage.py migrate
-```
-
-Create super user:
-```bash
-poetry run python shirley/manage.py createsuperuser
-```
-
-Run Django server:
-```bash
-poetry run shirley/manage.py runserver
 ```

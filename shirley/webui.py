@@ -4,14 +4,15 @@ import pypdf
 import re
 import secrets
 import shirley
-import shirley.utils
 import tempfile
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
+from shirley.types import Chatbot, TaskHistory
+from shirley.utils import getpath, isimage
 from typing import Iterator, List, Tuple
 
 
-CLIENT: shirley.Client = shirley.Client(pretrained_model_path=shirley.utils.get_path('./models/qwen_vl_chat'))
+CLIENT: shirley.Client = shirley.Client(pretrained_model_path=getpath('./models/qwen_vl_chat'))
 GRADIO_TEMP_DIRECTORY: str = str(Path(tempfile.gettempdir()) / 'gradio')
 
 
@@ -60,14 +61,14 @@ def _load_file(file_path: str) -> str:
     return ''
 
 
-def _augment(task_history: List[Tuple]) -> Tuple[str, HistoryType]:
+def _augment(task_history: TaskHistory) -> Tuple[str, HistoryType]:
     history = []
     picture_index = 1
     text = ''
     for _, (query, response) in enumerate(task_history):
         if isinstance(query, (Tuple, List)):
             file_path = query[0]
-            if shirley.utils.is_image(file_path):
+            if isimage(file_path):
                 query = f'Picture {picture_index}: <img>{file_path}</img>'
                 text += query + '\n'
                 picture_index += 1
@@ -81,7 +82,7 @@ def _augment(task_history: List[Tuple]) -> Tuple[str, HistoryType]:
     return history[-1][0], history[:-1]
 
 
-def generate(chatbot: List[Tuple], task_history: List[Tuple]) -> Iterator[Tuple[List[Tuple], List[Tuple]]]:
+def generate(chatbot: Chatbot, task_history: TaskHistory) -> Iterator[Tuple[Chatbot, TaskHistory]]:
     chat_query = chatbot[-1][0]
     query = task_history[-1][0]
     print('User: ' + _parse_text(query))
@@ -111,7 +112,7 @@ def generate(chatbot: List[Tuple], task_history: List[Tuple]) -> Iterator[Tuple[
     yield chatbot, task_history
 
 
-def regenerate(chatbot: List[Tuple], task_history: List[Tuple]) -> Tuple[List[Tuple], List[Tuple]]:
+def regenerate(chatbot: Chatbot, task_history: TaskHistory) -> Tuple[Chatbot, TaskHistory]:
     if not chatbot or not task_history:
         return chatbot, task_history
     task_history_item = task_history[-1]
@@ -126,24 +127,23 @@ def regenerate(chatbot: List[Tuple], task_history: List[Tuple]) -> Tuple[List[Tu
     return chatbot, task_history
 
 
-def submit(chatbot: List[Tuple], task_history: List[Tuple], query: str) -> Tuple[List[Tuple], List[Tuple]]:
+def submit(chatbot: Chatbot, task_history: TaskHistory, query: str) -> Tuple[Chatbot, TaskHistory]:
     chatbot = chatbot + [(_parse_text(query), None)]
     task_history = task_history + [(query, None)]
     return chatbot, task_history
 
 
-def upload(chatbot: List[Tuple], task_history: List[Tuple], upload_button: str) -> Tuple[List[Tuple], List[Tuple]]:
+def upload(chatbot: Chatbot, task_history: TaskHistory, upload_button: str) -> Tuple[Chatbot, TaskHistory]:
     chatbot = chatbot + [((upload_button,), None)]
     task_history = task_history + [((upload_button,), None)]
     return chatbot, task_history
 
 
-def reset_textbox() -> str:
-    gradio.update(value='')
+def reset_input() -> str:
     return ''
 
 
-def clear() -> Tuple[List[Tuple], List[Tuple]]:
+def clear() -> Tuple[Chatbot, TaskHistory]:
     return [], []
 
 
@@ -166,12 +166,12 @@ def main() -> None:
             regenerate_button = gradio.Button('🤔️ Regenerate (重试)')
             upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_types=['file'])
 
-        submit_clicked = submit_button.click(
+        submit_button.click(
             fn=submit,
             inputs=[chatbot, task_history, query],
             outputs=[chatbot, task_history],
-        )
-        submit_clicked.then(
+        ) \
+        .then(
             fn=generate,
             inputs=[chatbot, task_history],
             outputs=[chatbot, task_history],
@@ -179,7 +179,7 @@ def main() -> None:
         )
 
         submit_button.click(
-            fn=reset_textbox,
+            fn=reset_input,
             inputs=None,
             outputs=query,
         )
@@ -191,13 +191,13 @@ def main() -> None:
             show_progress=True,
         )
 
-        regenerate_clicked = regenerate_button.click(
+        regenerate_button.click(
             fn=regenerate,
             inputs=[chatbot, task_history],
             outputs=[chatbot, task_history],
             show_progress=True,
-        )
-        regenerate_clicked.then(
+        ) \
+        .then(
             fn=generate,
             inputs=[chatbot, task_history],
             outputs=[chatbot, task_history],
@@ -224,7 +224,7 @@ def main() -> None:
         inbrowser=False,
         server_port=8000,
         server_name='127.0.0.1',
-        favicon_path=shirley.utils.get_path('./static/favicon.ico'),
+        favicon_path=getpath('./static/favicon.ico'),
     )
 
 

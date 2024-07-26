@@ -12,7 +12,7 @@ class Client(object):
     def __init__(self, pretrained_model_path: str) -> None:
         if not os.path.exists(pretrained_model_path):
             raise FileNotFoundError(
-                f'Model not found in path {pretrained_model_path}.'
+                f'Pretrained model not found in path {pretrained_model_path}.'
             )
 
         if torch.cuda.is_available():

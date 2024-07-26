@@ -70,11 +70,6 @@ Run WebUI:
 poetry run webui
 ```
 
-Run poc:
-```bash
-poetry run poc
-```
-
 Run tests:
 ```bash
 poetry run pytest

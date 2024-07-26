@@ -97,8 +97,7 @@ def generate(chatbot: Chatbot, task_history: TaskHistory) -> Iterator[Tuple[Chat
     history.append((augmented_query, full_response))
     image = CLIENT.tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
     if image is not None:
-        image_temp_directory = secrets.token_hex(20)
-        image_temp_directory = Path(GRADIO_TEMP_DIRECTORY) / image_temp_directory
+        image_temp_directory = Path(GRADIO_TEMP_DIRECTORY) / secrets.token_hex(20)
         image_temp_directory.mkdir(exist_ok=True, parents=True)
         name = f'tmp{secrets.token_hex(5)}.jpg'
         filename = image_temp_directory / name

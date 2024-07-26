@@ -1,6 +1,5 @@
 import copy
 import gradio
-import os
 import pypdf
 import re
 import secrets
@@ -12,13 +11,8 @@ from pathlib import Path
 from typing import Iterator, List, Tuple
 
 
-PRETRAINED_MODEL_PATH = shirley.utils.get_path('./models/qwen_vl_chat')
-PUNCTUATION = '！？。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟\
-    〰〾〿–—‘’‛“”„‟…‧﹏.'
-
-
-client = shirley.Client(pretrained_model_path=PRETRAINED_MODEL_PATH)
-uploaded_file_directory = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
+CLIENT: shirley.Client = shirley.Client(pretrained_model_path=shirley.utils.get_path('./models/qwen_vl_chat'))
+GRADIO_TEMP_DIRECTORY: str = str(Path(tempfile.gettempdir()) / 'gradio')
 
 
 def _parse_text(text: str) -> str:
@@ -94,19 +88,19 @@ def generate(chatbot: List[Tuple], task_history: List[Tuple]) -> Iterator[Tuple[
 
     full_response: str = ''
     augmented_query, history = _augment(copy.deepcopy(task_history))
-    for response in client.model.chat_stream(tokenizer=client.tokenizer, query=augmented_query, history=history):
+    for response in CLIENT.model.chat_stream(tokenizer=CLIENT.tokenizer, query=augmented_query, history=history):
         chatbot[-1] = [_parse_text(chat_query), _remove_image_special(_parse_text(response))]
         yield chatbot, task_history
         full_response = _parse_text(response)
     history.append((augmented_query, full_response))
 
-    image = client.tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
+    image = CLIENT.tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
     if image is not None:
-        temp_directory = secrets.token_hex(20)
-        temp_directory = Path(uploaded_file_directory) / temp_directory
-        temp_directory.mkdir(exist_ok=True, parents=True)
+        image_temp_directory = secrets.token_hex(20)
+        image_temp_directory = Path(GRADIO_TEMP_DIRECTORY) / image_temp_directory
+        image_temp_directory.mkdir(exist_ok=True, parents=True)
         name = f'tmp{secrets.token_hex(5)}.jpg'
-        filename = temp_directory / name
+        filename = image_temp_directory / name
         image.save(str(filename))
         chatbot.append((None, (str(filename),)))
     else:
@@ -135,11 +129,8 @@ def regenerate(chatbot: List[Tuple], task_history: List[Tuple]) -> Tuple[List[Tu
 
 
 def submit(chatbot: List[Tuple], task_history: List[Tuple], query: str) -> Tuple[List[Tuple], List[Tuple]]:
-    task_query = query
-    if len(query) >= 2 and query[-1] in PUNCTUATION and query[-2] not in PUNCTUATION:
-        task_query = query[:-1]
     chatbot = chatbot + [(_parse_text(query), None)]
-    task_history = task_history + [(task_query, None)]
+    task_history = task_history + [(query, None)]
     return chatbot, task_history
 
 

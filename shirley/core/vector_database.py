@@ -1,14 +1,15 @@
 import chromadb
 import chromadb.config
 import shirley
+import shirley.utils
 import uuid
 
 
 class VectorDatabase(object):
-    def __init__(self, persist_directory: str, reset: bool = True) -> None:
+    def __init__(self, reset: bool = True) -> None:
         client_settings = chromadb.config.Settings(
             is_persistent=True,
-            persist_directory=persist_directory,
+            persist_directory=shirley.utils.getpath('./db/chroma'),
             allow_reset=reset
         )
         self._client = chromadb.Client(settings=client_settings)

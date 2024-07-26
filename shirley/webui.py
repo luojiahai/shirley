@@ -4,7 +4,6 @@ import os
 import re
 import secrets
 import shirley
-import shirley.config
 import shirley.utils
 import tempfile
 from gradio.components import Component
@@ -20,7 +19,7 @@ TextboxInput = TextboxOutput = str | None
 UploadButtonInput = bytes | str | list[bytes] | list[str] | None
 
 
-PRETRAINED_MODEL_PATH = shirley.config.Config().pretrained_model_path
+PRETRAINED_MODEL_PATH = shirley.utils.getpath('./models/qwen_vl_chat')
 PUNCTUATION = '！？。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟\
     〰〾〿–—‘’‛“”„‟…‧﹏.'
 

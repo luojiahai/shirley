@@ -1,4 +1,5 @@
 import os
+import pypdf
 import re
 from PIL import Image
 
@@ -51,3 +52,11 @@ def parse_text(text: str) -> str:
 def remove_image_special(text: str) -> str:
     text = text.replace('<ref>', '').replace('</ref>', '')
     return re.sub(r'<box>.*?(</box>|$)', '', text)
+
+
+def load_file(file_path: str) -> str:
+    if file_path.endswith('.pdf'):
+        reader = pypdf.PdfReader(stream=file_path)
+        return '\n'.join([page.extract_text() for page in reader.pages])
+    # TODO: support other file formats
+    return ''

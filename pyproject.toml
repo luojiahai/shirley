@@ -8,18 +8,16 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "3.10.6"
 transformers = "4.36.0"
-chromadb = "^0.5.5"
-pypdf = "^4.3.1"
-transformers-stream-generator = "^0.0.5"
-einops = "^0.8.0"
-matplotlib = "^3.9.1"
-tiktoken = "^0.7.0"
-pytest = "^8.3.1"
+numpy = "1.26.4"
 gradio = "^4.39.0"
+pypdf = "^4.3.1"
+pytest = "^8.3.1"
+tiktoken = "^0.7.0"
+einops = "^0.8.0"
+transformers-stream-generator = "^0.0.5"
 
 [tool.poetry.scripts]
 webui = "shirley.webui:main"
-poc = "scripts.poc:main"
 
 
 [build-system]

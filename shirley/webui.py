@@ -14,7 +14,7 @@ PUNCTUATION = '！？。＂＃＄％＆＇（）＊＋，－／：；＜＝＞�
     〰〾〿–—‘’‛“”„‟…‧﹏.'
 
 
-def _launch_webui() -> None:
+def main() -> None:
     generator = shirley.Generator(pretrained_model_path=PRETRAINED_MODEL_PATH)
     model = generator.model
     tokenizer = generator.tokenizer
@@ -166,10 +166,6 @@ def _launch_webui() -> None:
         server_name='127.0.0.1',
         favicon_path=shirley.utils.get_path('./static/favicon.ico'),
     )
-
-
-def main() -> None:
-    _launch_webui()
 
 
 if __name__ == '__main__':

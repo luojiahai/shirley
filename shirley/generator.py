@@ -78,8 +78,8 @@ class Generator(object):
                     text += query + '\n'
                     picture_index += 1
                 else:
-                    # TODO: other file types
-                    pass
+                    query = shirley.utils.load_file(file_path=file_path)
+                    text += query + '\n'
             else:
                 text += query
                 history.append((text, response))

@@ -112,9 +112,7 @@ def generate(chatbot: List[Tuple], task_history: List[Tuple]) -> Iterator[Tuple[
 
 
 def regenerate(chatbot: List[Tuple], task_history: List[Tuple]) -> Tuple[List[Tuple], List[Tuple]]:
-    if not chatbot:
-        return chatbot, task_history
-    if not task_history:
+    if not chatbot or not task_history:
         return chatbot, task_history
     task_history_item = task_history[-1]
     if task_history_item[1] is None:

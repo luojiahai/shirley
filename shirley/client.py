@@ -65,6 +65,7 @@ class Client(object):
     def model(self) -> QWenLMHeadModel:
         return self._model
 
+    @classmethod
     def generate(self, text: str, history: HistoryType = None) -> Tuple[str, HistoryType]:
         chat = [{'text': text}]
         query = self.tokenizer.from_list_format(chat)

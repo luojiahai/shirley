@@ -16,7 +16,7 @@ CLIENT: shirley.Client = shirley.Client(pretrained_model_path=getpath('./models/
 GRADIO_TEMP_DIRECTORY: str = str(Path(tempfile.gettempdir()) / 'gradio')
 
 
-def _parse_text(text: str) -> str:
+def _parse(text: str) -> str:
     lines = text.split('\n')
     lines = [line for line in lines if line != '']
     count = 0
@@ -48,7 +48,8 @@ def _parse_text(text: str) -> str:
     return text
 
 
-def _remove_image_special(text: str) -> str:
+def _parse_response(text: str) -> str:
+    text = _parse(text)
     text = text.replace('<ref>', '').replace('</ref>', '')
     return re.sub(r'<box>.*?(</box>|$)', '', text)
 
@@ -85,14 +86,14 @@ def _augment(task_history: TaskHistory) -> Tuple[str, HistoryType]:
 def generate(chatbot: Chatbot, task_history: TaskHistory) -> Iterator[Tuple[Chatbot, TaskHistory]]:
     chat_query = chatbot[-1][0]
     query = task_history[-1][0]
-    print('User: ' + _parse_text(query))
+    print('User: ' + _parse(query))
 
     full_response: str = ''
     augmented_query, history = _augment(copy.deepcopy(task_history))
     for response in CLIENT.model.chat_stream(tokenizer=CLIENT.tokenizer, query=augmented_query, history=history):
-        chatbot[-1] = [_parse_text(chat_query), _remove_image_special(_parse_text(response))]
+        chatbot[-1] = [_parse(chat_query), _parse_response(response)]
         yield chatbot, task_history
-        full_response = _parse_text(response)
+        full_response = _parse(response)
 
     history.append((augmented_query, full_response))
     image = CLIENT.tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
@@ -104,10 +105,10 @@ def generate(chatbot: Chatbot, task_history: TaskHistory) -> Iterator[Tuple[Chat
         image.save(str(filename))
         chatbot.append((None, (str(filename),)))
     else:
-        chatbot[-1] = (_parse_text(chat_query), full_response)
+        chatbot[-1] = (_parse(chat_query), full_response)
     task_history[-1] = (query, full_response)
 
-    print('🦈 Shirley: ' + _parse_text(full_response))
+    print('🦈 Shirley: ' + _parse(full_response))
     yield chatbot, task_history
 
 
@@ -127,7 +128,7 @@ def regenerate(chatbot: Chatbot, task_history: TaskHistory) -> Tuple[Chatbot, Ta
 
 
 def submit(chatbot: Chatbot, task_history: TaskHistory, query: str) -> Tuple[Chatbot, TaskHistory]:
-    chatbot = chatbot + [(_parse_text(query), None)]
+    chatbot = chatbot + [(_parse(query), None)]
     task_history = task_history + [(query, None)]
     return chatbot, task_history
 

@@ -86,6 +86,7 @@ class WebUI(object):
 
 
     def generate(self, chatbot: Chatbot, state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
+        logger.debug('generate')
         logger.info(f'User: {chatbot[-1][0]}')
 
         query, history = self.augment(state)
@@ -108,6 +109,8 @@ class WebUI(object):
 
 
     def regenerate(self, chatbot: Chatbot, state: HistoryState) -> Tuple[Chatbot, HistoryState]:
+        logger.debug('regenerate')
+
         if len(chatbot) < 1 or len(state) < 1:
             return chatbot, state
 
@@ -126,18 +129,21 @@ class WebUI(object):
 
 
     def submit(self, chatbot: Chatbot, state: HistoryState, text: str) -> Tuple[Chatbot, HistoryState]:
+        logger.debug('submit')
         chatbot = chatbot + [(self.parse(text), None)]
         state = state + [(text, None)]
         return chatbot, state
 
 
     def upload(self, chatbot: Chatbot, state: HistoryState, filepath: str) -> Tuple[Chatbot, HistoryState]:
+        logger.debug('upload')
         chatbot = chatbot + [((filepath,), None)]
         state = state + [((filepath,), None)]
         return chatbot, state
 
 
     def print(self, chatbot: Chatbot, state: HistoryState) -> None:
+        logger.debug('print')
         logger.info(f'chatbot: {chatbot}')
         logger.info(f'state: {state}')
 

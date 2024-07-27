@@ -54,9 +54,9 @@ def _parse_response(text: str) -> str:
     return re.sub(r'<box>.*?(</box>|$)', '', text)
 
 
-def _load_file(file_path: str) -> str:
-    if file_path.endswith('.pdf'):
-        reader = pypdf.PdfReader(stream=file_path)
+def _load_file(filepath: str) -> str:
+    if filepath.endswith('.pdf'):
+        reader = pypdf.PdfReader(stream=filepath)
         return '\n'.join([page.extract_text() for page in reader.pages])
     # TODO: support more file types
     return ''
@@ -68,13 +68,13 @@ def _augment(task_history: TaskHistory) -> Tuple[str, HistoryType]:
     text = ''
     for _, (query, response) in enumerate(task_history):
         if isinstance(query, (Tuple, List)):
-            file_path = query[0]
-            if isimage(file_path):
-                query = f'Picture {picture_index}: <img>{file_path}</img>'
+            filepath = query[0]
+            if isimage(filepath):
+                query = f'Picture {picture_index}: <img>{filepath}</img>'
                 text += query + '\n'
                 picture_index += 1
             else:
-                query = _load_file(file_path=file_path)
+                query = _load_file(filepath=filepath)
                 text += query + '\n'
         else:
             text += query
@@ -115,15 +115,18 @@ def generate(chatbot: Chatbot, task_history: TaskHistory) -> Iterator[Tuple[Chat
 def regenerate(chatbot: Chatbot, task_history: TaskHistory) -> Tuple[Chatbot, TaskHistory]:
     if not chatbot or not task_history:
         return chatbot, task_history
+
     task_history_item = task_history[-1]
     if task_history_item[1] is None:
         return chatbot, task_history
     task_history[-1] = (task_history_item[0], None)
+
     chatbot_item = chatbot.pop(-1)
     if chatbot_item[0] is None:
         chatbot[-1] = (chatbot[-1][0], None)
     else:
         chatbot.append((chatbot_item[0], None))
+
     return chatbot, task_history
 
 
@@ -133,9 +136,9 @@ def submit(chatbot: Chatbot, task_history: TaskHistory, query: str) -> Tuple[Cha
     return chatbot, task_history
 
 
-def upload(chatbot: Chatbot, task_history: TaskHistory, upload_button: str) -> Tuple[Chatbot, TaskHistory]:
-    chatbot = chatbot + [((upload_button,), None)]
-    task_history = task_history + [((upload_button,), None)]
+def upload(chatbot: Chatbot, task_history: TaskHistory, filepath: str) -> Tuple[Chatbot, TaskHistory]:
+    chatbot = chatbot + [((filepath,), None)]
+    task_history = task_history + [((filepath,), None)]
     return chatbot, task_history
 
 
@@ -157,14 +160,14 @@ def main() -> None:
         )
 
         chatbot = gradio.Chatbot(label='🦈 Shirley', elem_classes='control-height', height=750)
-        query = gradio.Textbox(lines=2, label='Input')
+        query = gradio.Textbox(lines=2, label='Input (输入)')
         task_history = gradio.State([])
 
         with gradio.Row():
-            clear_button = gradio.Button('🧹 Clear (清除历史)')
             submit_button = gradio.Button('🚀 Submit (发送)')
             regenerate_button = gradio.Button('🤔️ Regenerate (重试)')
-            upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_types=['file'])
+            upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_count='single', file_types=['file'])
+            clear_button = gradio.Button('🧹 Clear (清除历史)')
 
         submit_button.click(
             fn=submit,

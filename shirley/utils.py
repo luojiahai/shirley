@@ -2,13 +2,13 @@ import os
 from PIL import Image
 
 
-def getpath(path: str) -> str:
-    return os.path.abspath(os.path.expanduser(path))
+def getpath(filepath: str) -> str:
+    return os.path.abspath(os.path.expanduser(filepath))
 
 
-def isimage(file_path: str) -> bool:
+def isimage(filepath: str) -> bool:
     try:
-        with Image.open(file_path) as img:
+        with Image.open(filepath) as img:
             img.verify()
             return True
     except (IOError, SyntaxError):

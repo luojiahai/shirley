@@ -2,9 +2,9 @@ import copy
 import gradio
 import pypdf
 import re
-import secrets
 import shirley
 import tempfile
+import uuid
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
 from shirley.types import Chatbot, TaskHistory
@@ -48,7 +48,7 @@ def _parse(text: str) -> str:
     return text
 
 
-def _parse_response(text: str) -> str:
+def _parse_and_remove_tags(text: str) -> str:
     text = _parse(text)
     text = text.replace('<ref>', '').replace('</ref>', '')
     return re.sub(r'<box>.*?(</box>|$)', '', text)
@@ -64,51 +64,48 @@ def _load_file(filepath: str) -> str:
 
 def _augment(task_history: TaskHistory) -> Tuple[str, HistoryType]:
     history = []
-    picture_index = 1
-    text = ''
-    for _, (query, response) in enumerate(task_history):
-        if isinstance(query, (Tuple, List)):
-            filepath = query[0]
+    current_query = ''
+    for _, (raw_query, response) in enumerate(task_history):
+        if isinstance(raw_query, (Tuple, List)):
+            filepath = raw_query[0]
             if isimage(filepath):
-                query = f'Picture {picture_index}: <img>{filepath}</img>'
-                text += query + '\n'
-                picture_index += 1
+                context = f'Picture: <img>{filepath}</img>'
+                current_query += context + '\n'
             else:
-                query = _load_file(filepath=filepath)
-                text += query + '\n'
+                context = _load_file(filepath=filepath)
+                current_query += context + '\n'
         else:
-            text += query
-            history.append((text, response))
-            text = ''
+            current_query += raw_query
+            history.append((current_query, response))
+            current_query = ''
     return history[-1][0], history[:-1]
 
 
 def generate(chatbot: Chatbot, task_history: TaskHistory) -> Iterator[Tuple[Chatbot, TaskHistory]]:
-    chat_query = chatbot[-1][0]
-    query = task_history[-1][0]
-    print('User: ' + _parse(query))
+    query = chatbot[-1][0]
+    raw_query = task_history[-1][0]
+    print('User: ' + query)
 
-    full_response: str = ''
     augmented_query, history = _augment(copy.deepcopy(task_history))
     for response in CLIENT.model.chat_stream(tokenizer=CLIENT.tokenizer, query=augmented_query, history=history):
-        chatbot[-1] = [_parse(chat_query), _parse_response(response)]
+        chatbot[-1] = [_parse(query), _parse_and_remove_tags(response)]
         yield chatbot, task_history
         full_response = _parse(response)
 
     history.append((augmented_query, full_response))
     image = CLIENT.tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
     if image is not None:
-        temp_directory = Path(GRADIO_TEMP_DIRECTORY) / secrets.token_hex(20)
+        temp_directory = Path(GRADIO_TEMP_DIRECTORY) / 'images'
         temp_directory.mkdir(exist_ok=True, parents=True)
-        name = f'tmp{secrets.token_hex(5)}.jpg'
+        name = f'tmp-{uuid.uuid4()}.jpg'
         filename = temp_directory / name
         image.save(str(filename))
         chatbot.append((None, (str(filename),)))
     else:
-        chatbot[-1] = (_parse(chat_query), full_response)
-    task_history[-1] = (query, full_response)
+        chatbot[-1] = (_parse(query), full_response)
+    task_history[-1] = (raw_query, full_response)
 
-    print('🦈 Shirley: ' + _parse(full_response))
+    print('🦈 Shirley: ' + full_response)
     yield chatbot, task_history
 
 
@@ -218,8 +215,8 @@ def main() -> None:
             '<font size=2>Note: This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise \
             users not to knowingly generate or allow others to knowingly generate harmful content, including hate \
             speech, violence, pornography, deception, etc. \
-            (注：本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，包括但不限于仇恨言论、\
-            暴力、色情、欺诈相关的有害信息。)'
+            (注：本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，包括但不限于仇恨言论、暴力、色情、\
+            欺诈相关的有害信息。)'
         )
 
     webui.queue().launch(

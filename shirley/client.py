@@ -54,7 +54,8 @@ class Client(object):
             device = torch.device('mps')
         else:
             device = torch.device('cpu')
-        return device
+        # return device
+        return torch.device('cpu')
 
     @property
     def tokenizer(self) -> QWenTokenizer:

@@ -8,7 +8,7 @@ import tempfile
 from fastapi import FastAPI
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
-from shirley.types import Chatbot, HistoryState
+from shirley.types import Chatbot, HistoryState, FileExplorer
 from shirley.utils import getpath, isimage
 from typing import Iterator, List, Tuple
 
@@ -91,10 +91,10 @@ class WebUI(object):
 
         query, history = self.augment(state)
         for response in self.client.chat_stream(query=query, history=history):
-            response = self.parse(response)
-            response = response.replace('<ref>', '').replace('</ref>', '')
-            response = re.sub(r'<box>.*?(</box>|$)', '', response)
-            chatbot[-1] = (chatbot[-1][0], response)
+            text = self.parse(response)
+            text = text.replace('<ref>', '').replace('</ref>', '')
+            text = re.sub(r'<box>.*?(</box>|$)', '', text)
+            chatbot[-1] = (chatbot[-1][0], text)
             yield chatbot, state
             full_response = self.parse(response)
 
@@ -149,17 +149,23 @@ class WebUI(object):
 
 
     def blocks(self) -> gradio.Blocks:
-        with gradio.Blocks(title='Shirley WebUI') as blocks:
+        with gradio.Blocks(title='Shirley WebUI', css=getpath('./static/custom.css')) as blocks:
             gradio.Markdown('# 🦈 Shirley WebUI')
             gradio.Markdown(
                 'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) to implement \
                 chatbot functionality. \
                 (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
             )
+            
+            with gradio.Row():
+                with gradio.Column(scale=2):
+                    chatbot = gradio.Chatbot(label='🦈 Shirley', height='50vh')
+                    state = gradio.State(value=[])
 
-            chatbot = gradio.Chatbot(label='🦈 Shirley')
-            state = gradio.State(value=[])
-            textbox = gradio.Textbox(lines=2, label='✏️ Input (输入)')
+                with gradio.Column(scale=1):
+                    fileexplorer = gradio.FileExplorer(glob='*.*', file_count='single', root_dir=self._tempdir, height='50vh')
+
+            textbox = gradio.Textbox(lines=5, max_lines=5, label='✏️ Input (输入)')
 
             with gradio.Row():
                 submit_button = gradio.Button('🚀 Submit (发送)')
@@ -268,7 +274,7 @@ def main() -> None:
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
     client = shirley.Client(pretrained_model_path=getpath('./models/qwen_vl_chat'))
-    tempdir = str(Path(tempfile.gettempdir()) / 'shirley')
+    tempdir = str(Path(tempfile.gettempdir()) / 'gradio')
     webui = WebUI(client, tempdir)
     webui.launch()
 

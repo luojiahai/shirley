@@ -87,7 +87,7 @@ class WebUI(object):
 
     def generate(self, chatbot: Chatbot, state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
         logger.debug('generate')
-        logger.info(f'User: {chatbot[-1][0]}')
+        logger.info(f'🙂 User: {chatbot[-1][0]}')
 
         query, history = self.augment(state)
         for response in self.client.chat_stream(query=query, history=history):
@@ -159,7 +159,7 @@ class WebUI(object):
 
             chatbot = gradio.Chatbot(label='🦈 Shirley')
             state = gradio.State([])
-            textbox = gradio.Textbox(lines=2, label='Input (输入)')
+            textbox = gradio.Textbox(lines=2, label='✏️ Input (输入)')
 
             with gradio.Row():
                 submit_button = gradio.Button('🚀 Submit (发送)')

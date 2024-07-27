@@ -158,7 +158,7 @@ class WebUI(object):
             )
 
             chatbot = gradio.Chatbot(label='🦈 Shirley')
-            state = gradio.State([])
+            state = gradio.State(value=[])
             textbox = gradio.Textbox(lines=2, label='✏️ Input (输入)')
 
             with gradio.Row():
@@ -167,76 +167,80 @@ class WebUI(object):
                 upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_count='single', file_types=['file'])
                 clear_button = gradio.Button('🧹 Clear (清除历史)')
 
-            submit_button.click(
-                fn=self.submit,
-                inputs=[chatbot, state, textbox],
-                outputs=[chatbot, state],
-            ) \
-            .then(
-                fn=lambda: '',
-                inputs=[],
-                outputs=[textbox],
-                show_api=False,
-            ) \
-            .then(
-                fn=self.generate,
-                inputs=[chatbot, state],
-                outputs=[chatbot, state],
-                show_progress=True,
-            ) \
-            .then(
-                fn=self.print,
-                inputs=[chatbot, state],
-                outputs=[],
-                show_api=False,
-            )
+            submit_button \
+                .click(
+                    fn=self.submit,
+                    inputs=[chatbot, state, textbox],
+                    outputs=[chatbot, state],
+                ) \
+                .then(
+                    fn=lambda: '',
+                    inputs=[],
+                    outputs=[textbox],
+                    show_api=False,
+                ) \
+                .then(
+                    fn=self.generate,
+                    inputs=[chatbot, state],
+                    outputs=[chatbot, state],
+                    show_progress=True,
+                ) \
+                .then(
+                    fn=self.print,
+                    inputs=[chatbot, state],
+                    outputs=[],
+                    show_api=False,
+                )
 
-            regenerate_button.click(
-                fn=self.regenerate,
-                inputs=[chatbot, state],
-                outputs=[chatbot, state],
-                show_progress=True,
-            ) \
-            .then(
-                fn=self.generate,
-                inputs=[chatbot, state],
-                outputs=[chatbot, state],
-                show_progress=True,
-                show_api=False,
-            ) \
-            .then(
-                fn=self.print,
-                inputs=[chatbot, state],
-                outputs=[],
-                show_api=False,
-            )
+            regenerate_button \
+                .click(
+                    fn=self.regenerate,
+                    inputs=[chatbot, state],
+                    outputs=[chatbot, state],
+                    show_progress=True,
+                ) \
+                .then(
+                    fn=self.generate,
+                    inputs=[chatbot, state],
+                    outputs=[chatbot, state],
+                    show_progress=True,
+                    show_api=False,
+                ) \
+                .then(
+                    fn=self.print,
+                    inputs=[chatbot, state],
+                    outputs=[],
+                    show_api=False,
+                )
 
-            upload_button.upload(
-                fn=self.upload,
-                inputs=[chatbot, state, upload_button],
-                outputs=[chatbot, state],
-                show_progress=True,
-            ) \
-            .then(
-                fn=self.print,
-                inputs=[chatbot, state],
-                outputs=[],
-                show_api=False,
-            )
+            upload_button \
+                .upload(
+                    fn=self.upload,
+                    inputs=[chatbot, state, upload_button],
+                    outputs=[chatbot, state],
+                    show_progress=True,
+                ) \
+                .then(
+                    fn=self.print,
+                    inputs=[chatbot, state],
+                    outputs=[],
+                    show_api=False,
+                )
 
-            clear_button.click(
-                fn=lambda: ([], []),
-                inputs=[],
-                outputs=[chatbot, state],
-                show_progress=True,
-                api_name='clear',
-            ) \
-            .then(
-                fn=self.print,
-                inputs=[chatbot, state],
-                outputs=[],
-                show_api=False,
-            )
+            clear_button \
+                .click(
+                    fn=lambda: ([], []),
+                    inputs=[],
+                    outputs=[chatbot, state],
+                    show_progress=True,
+                    api_name='clear',
+                ) \
+                .then(
+                    fn=self.print,
+                    inputs=[chatbot, state],
+                    outputs=[],
+                    show_api=False,
+                )
 
             gradio.Markdown(
                 '<font size=2>Note: This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise \

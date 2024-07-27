@@ -56,8 +56,7 @@ class Client(object):
             device = torch.device('mps')
         else:
             device = torch.device('cpu')
-        # return device
-        return torch.device('cpu')
+        return device
 
     @property
     def tokenizer(self) -> QWenTokenizer:
@@ -67,8 +66,7 @@ class Client(object):
     def model(self) -> QWenLMHeadModel:
         return self._model
 
-    def generate(self, text: str, history: HistoryType = None) -> Tuple[str, HistoryType]:
-        query = self.tokenizer.from_list_format([{'text': text}])
+    def chat(self, query: str, history: HistoryType = None) -> Tuple[str, HistoryType]:
         return self.model.chat(tokenizer=self.tokenizer, query=query, history=history)
 
     def chat_stream(self, query: str, history: HistoryType = None) -> Generator[str, Any, None]:

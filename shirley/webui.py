@@ -99,7 +99,7 @@ class WebUI(object):
             full_response = self.parse(response)
 
         history.append((query, full_response))
-        image_filepath = self.client.draw_bbox_on_latest_picture(history=history, directory=self._tempdir)
+        image_filepath = self.client.draw_bbox_on_latest_picture(history=history, tempdir=self._tempdir)
         if image_filepath: chatbot.append((None, (image_filepath,)))
         else: chatbot[-1] = (chatbot[-1][0], full_response)
         state[-1] = (state[-1][0], full_response)

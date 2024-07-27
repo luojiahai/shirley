@@ -72,14 +72,14 @@ class Client(object):
     def chat_stream(self, query: str, history: HistoryType = None) -> Generator[str, Any, None]:
         return self.model.chat_stream(tokenizer=self.tokenizer, query=query, history=history)
     
-    def draw_bbox_on_latest_picture(self, history: HistoryType, directory: str) -> str | None:
+    def draw_bbox_on_latest_picture(self, history: HistoryType, tempdir: str) -> str | None:
         response = history[-1][1]
         image = self.tokenizer.draw_bbox_on_latest_picture(response=response, history=history)
         if image is not None:
-            temp_directory = Path(directory) / 'images'
-            temp_directory.mkdir(exist_ok=True, parents=True)
+            images_tempdir = Path(tempdir) / 'images'
+            images_tempdir.mkdir(exist_ok=True, parents=True)
             name = f'tmp-{uuid.uuid4()}.jpg'
-            filename = temp_directory / name
+            filename = images_tempdir / name
             image.save(str(filename))
             return str(filename)
         else:

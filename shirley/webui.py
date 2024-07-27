@@ -163,7 +163,12 @@ class WebUI(object):
                     state = gradio.State(value=[])
 
                 with gradio.Column(scale=1):
-                    fileexplorer = gradio.FileExplorer(glob='*.*', file_count='single', root_dir=self._tempdir, height='50vh')
+                    fileexplorer = gradio.FileExplorer(
+                        glob='*.*',
+                        file_count='single',
+                        root_dir=self._tempdir,
+                        height='50vh',
+                    )
 
             textbox = gradio.Textbox(lines=5, max_lines=5, label='✏️ Input (输入)')
 

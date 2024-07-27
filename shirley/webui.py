@@ -151,7 +151,7 @@ def clear() -> Tuple[Chatbot, TaskHistory]:
 
 
 def main() -> None:
-    with gradio.Blocks(title='Shirley WebUI') as webui:
+    with gradio.Blocks(title='Shirley WebUI', fill_height=True) as webui:
         gradio.Markdown('# 🦈 Shirley WebUI')
         gradio.Markdown(
             'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) to implement \
@@ -159,7 +159,7 @@ def main() -> None:
             (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
         )
 
-        chatbot = gradio.Chatbot(label='🦈 Shirley', elem_classes='control-height', height=750)
+        chatbot = gradio.Chatbot(label='🦈 Shirley')
         query = gradio.Textbox(lines=2, label='Input (输入)')
         task_history = gradio.State([])
 

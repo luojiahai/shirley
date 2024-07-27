@@ -144,7 +144,7 @@ class WebUI(object):
 
 
     def blocks(self) -> gradio.Blocks:
-        with gradio.Blocks(title='Shirley WebUI') as blocks:
+        with gradio.Blocks(title='Shirley WebUI') as webui:
             gradio.Markdown('# 🦈 Shirley WebUI')
             gradio.Markdown(
                 'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) to implement \
@@ -215,7 +215,7 @@ class WebUI(object):
                 包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
             )
 
-            return blocks
+            return webui
 
 
     def launch(self) -> None:

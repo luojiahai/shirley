@@ -1,10 +1,12 @@
 import os
+import uuid
 import torch
 import transformers
 from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
 from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
-from typing import Tuple
+from pathlib import Path
+from typing import Any, Generator, Tuple
 
 
 class Client(object):
@@ -68,3 +70,19 @@ class Client(object):
     def generate(self, text: str, history: HistoryType = None) -> Tuple[str, HistoryType]:
         query = self.tokenizer.from_list_format([{'text': text}])
         return self.model.chat(tokenizer=self.tokenizer, query=query, history=history)
+
+    def chat_stream(self, query: str, history: HistoryType = None) -> Generator[str, Any, None]:
+        return self.model.chat_stream(tokenizer=self.tokenizer, query=query, history=history)
+    
+    def draw_bbox_on_latest_picture(self, history: HistoryType, directory: str) -> str | None:
+        response = history[-1][1]
+        image = self.tokenizer.draw_bbox_on_latest_picture(response=response, history=history)
+        if image is not None:
+            temp_directory = Path(directory) / 'images'
+            temp_directory.mkdir(exist_ok=True, parents=True)
+            name = f'tmp-{uuid.uuid4()}.jpg'
+            filename = temp_directory / name
+            image.save(str(filename))
+            return str(filename)
+        else:
+            return None

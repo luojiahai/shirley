@@ -4,7 +4,6 @@ import pypdf
 import re
 import shirley
 import tempfile
-import uuid
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
 from shirley.types import Chatbot, HistoryState
@@ -66,41 +65,33 @@ def _get_context(filepath: str) -> str:
 
 def _augment(state: HistoryState) -> Tuple[str, HistoryType]:
     history = []
-    current_query = ''
+    text = ''
     for _, (raw_query, response) in enumerate(state):
         if isinstance(raw_query, (Tuple, List)):
             filepath = raw_query[0]
             context = _get_context(filepath=filepath)
-            current_query += context + '\n'
+            text += context + '\n'
         else:
-            current_query += raw_query
-            history.append((current_query, response))
-            current_query = ''
+            text += raw_query
+            history.append((text, response))
+            text = ''
     return history[-1][0], history[:-1]
 
 
 def generate(chatbot: Chatbot, state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
-    chat_query = chatbot[-1][0]
-    print('User: ' + chat_query)
+    print('User: ' + chatbot[-1][0])
 
     query, history = _augment(copy.deepcopy(state))
-    for response in CLIENT.model.chat_stream(tokenizer=CLIENT.tokenizer, query=query, history=history):
-        chatbot[-1] = (chat_query, _parse_and_remove_tags(response))
+    for response in CLIENT.chat_stream(query=query, history=history):
+        chatbot[-1] = (chatbot[-1][0], _parse_and_remove_tags(response))
         yield chatbot, state
         full_response = _parse(response)
 
     history.append((query, full_response))
-    image = CLIENT.tokenizer.draw_bbox_on_latest_picture(response=full_response, history=history)
-    if image is not None:
-        temp_directory = Path(GRADIO_TEMP_DIRECTORY) / 'images'
-        temp_directory.mkdir(exist_ok=True, parents=True)
-        name = f'tmp-{uuid.uuid4()}.jpg'
-        filename = temp_directory / name
-        image.save(str(filename))
-        chatbot.append((None, (str(filename),)))
-    else:
-        chatbot[-1] = (chat_query, full_response)
-    state[-1][1] = full_response
+    image_filepath = CLIENT.draw_bbox_on_latest_picture(history=history, directory=GRADIO_TEMP_DIRECTORY)
+    if image_filepath: chatbot.append((None, (image_filepath,)))
+    else: chatbot[-1] = (chatbot[-1][0], full_response)
+    state[-1] = (state[-1][0], full_response)
 
     print('🦈 Shirley: ' + full_response)
     yield chatbot, state
@@ -124,9 +115,9 @@ def regenerate(chatbot: Chatbot, state: HistoryState) -> Tuple[Chatbot, HistoryS
     return chatbot, state
 
 
-def submit(chatbot: Chatbot, state: HistoryState, raw_query: str) -> Tuple[Chatbot, HistoryState]:
-    chatbot = chatbot + [(_parse(raw_query), None)]
-    state = state + [(raw_query, None)]
+def submit(chatbot: Chatbot, state: HistoryState, text: str) -> Tuple[Chatbot, HistoryState]:
+    chatbot = chatbot + [(_parse(text), None)]
+    state = state + [(text, None)]
     return chatbot, state
 
 

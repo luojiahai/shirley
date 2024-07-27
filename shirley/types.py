@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
 
-Query = str | Tuple[str] | Tuple[str, str] | None
+Query = RawQuery = str | Tuple[str] | Tuple[str, str] | None
 Response = str | Tuple[str] | Tuple[str, str] | None
 
-Chatbot = List[Tuple[Query, Response]]
-TaskHistory = List[Tuple[Query, Response]]
+Chatbot = List[Tuple[Query, Response]] # [(<query>, <response>)]
+HistoryState = List[Tuple[RawQuery, Response]] # [(<raw_query>, <response>)]

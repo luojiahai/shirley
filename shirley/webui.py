@@ -1,9 +1,11 @@
-import copy
 import gradio
+import logging
 import pypdf
 import re
 import shirley
+import sys
 import tempfile
+from fastapi import FastAPI
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
 from shirley.types import Chatbot, HistoryState
@@ -11,11 +13,14 @@ from shirley.utils import getpath, isimage
 from typing import Iterator, List, Tuple
 
 
+logger = logging.getLogger(__name__)
+
+
 class WebUI(object):
 
     def __init__(self) -> None:
         self._client: shirley.Client = shirley.Client(pretrained_model_path=getpath('./models/qwen_vl_chat'))
-        self._gradio_temp_directory: str = str(Path(tempfile.gettempdir()) / 'gradio')
+        self._gradio_tempdir: str = str(Path(tempfile.gettempdir()) / 'gradio')
 
 
     @property
@@ -23,7 +28,7 @@ class WebUI(object):
         return self._client
 
 
-    def _parse(self, text: str) -> str:
+    def parse(self, text: str) -> str:
         lines = text.split('\n')
         lines = [line for line in lines if line != '']
         count = 0
@@ -51,33 +56,27 @@ class WebUI(object):
                         line = line.replace(')', '&#41;')
                         line = line.replace('$', '&#36;')
                     lines[i] = '<br>' + line
-        text = ''.join(lines)
-        return text
+        return ''.join(lines)
 
 
-    def _parse_and_remove_tags(self, text: str) -> str:
-        text = self._parse(text)
-        text = text.replace('<ref>', '').replace('</ref>', '')
-        return re.sub(r'<box>.*?(</box>|$)', '', text)
-
-
-    def _get_context(self, filepath: str) -> str:
+    def retrieve(self, filepath: str) -> str:
         if isimage(filepath):
             return f'Picture: <img>{filepath}</img>'
         elif filepath.endswith('.pdf'):
             reader = pypdf.PdfReader(stream=filepath)
             return '\n'.join([page.extract_text() for page in reader.pages])
-        # TODO: support more file types
-        return ''
+        else:
+            logger.warning(f'File type {filepath} not supported.')
+            return ''
 
 
-    def _augment(self, state: HistoryState) -> Tuple[str, HistoryType]:
+    def augment(self, state: HistoryState) -> Tuple[str, HistoryType]:
         history = []
         text = ''
         for _, (raw_query, response) in enumerate(state):
             if isinstance(raw_query, (Tuple, List)):
                 filepath = raw_query[0]
-                context = self._get_context(filepath=filepath)
+                context = self.retrieve(filepath=filepath)
                 text += context + '\n'
             else:
                 text += raw_query
@@ -86,26 +85,29 @@ class WebUI(object):
         return history[-1][0], history[:-1]
 
 
-    def _generate(self, chatbot: Chatbot, state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
-        print('User: ' + chatbot[-1][0])
+    def generate(self, chatbot: Chatbot, state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
+        logger.info(f'User: {chatbot[-1][0]}')
 
-        query, history = self._augment(copy.deepcopy(state))
+        query, history = self.augment(state)
         for response in self.client.chat_stream(query=query, history=history):
-            chatbot[-1] = (chatbot[-1][0], self._parse_and_remove_tags(response))
+            response = self.parse(response)
+            response = response.replace('<ref>', '').replace('</ref>', '')
+            response = re.sub(r'<box>.*?(</box>|$)', '', response)
+            chatbot[-1] = (chatbot[-1][0], response)
             yield chatbot, state
-            full_response = self._parse(response)
+            full_response = self.parse(response)
 
         history.append((query, full_response))
-        image_filepath = self.client.draw_bbox_on_latest_picture(history=history, directory=self._gradio_temp_directory)
+        image_filepath = self.client.draw_bbox_on_latest_picture(history=history, directory=self._gradio_tempdir)
         if image_filepath: chatbot.append((None, (image_filepath,)))
         else: chatbot[-1] = (chatbot[-1][0], full_response)
         state[-1] = (state[-1][0], full_response)
 
-        print('🦈 Shirley: ' + full_response)
+        logger.info(f'🦈 Shirley: {full_response}')
         yield chatbot, state
 
 
-    def _regenerate(self, chatbot: Chatbot, state: HistoryState) -> Tuple[Chatbot, HistoryState]:
+    def regenerate(self, chatbot: Chatbot, state: HistoryState) -> Tuple[Chatbot, HistoryState]:
         if len(chatbot) < 1 or len(state) < 1:
             return chatbot, state
 
@@ -123,28 +125,25 @@ class WebUI(object):
         return chatbot, state
 
 
-    def _submit(self, chatbot: Chatbot, state: HistoryState, text: str) -> Tuple[Chatbot, HistoryState]:
-        chatbot = chatbot + [(self._parse(text), None)]
+    def submit(self, chatbot: Chatbot, state: HistoryState, text: str) -> Tuple[Chatbot, HistoryState]:
+        chatbot = chatbot + [(self.parse(text), None)]
         state = state + [(text, None)]
         return chatbot, state
 
 
-    def _upload(self, chatbot: Chatbot, state: HistoryState, filepath: str) -> Tuple[Chatbot, HistoryState]:
+    def upload(self, chatbot: Chatbot, state: HistoryState, filepath: str) -> Tuple[Chatbot, HistoryState]:
         chatbot = chatbot + [((filepath,), None)]
         state = state + [((filepath,), None)]
         return chatbot, state
 
 
-    def _reset_input(self) -> str:
-        return ''
-
-
-    def _clear(self) -> Tuple[Chatbot, HistoryState]:
-        return [], []
+    def print(self, chatbot: Chatbot, state: HistoryState) -> None:
+        logger.info(f'chatbot: {chatbot}')
+        logger.info(f'state: {state}')
 
 
     def blocks(self) -> gradio.Blocks:
-        with gradio.Blocks(title='Shirley WebUI') as webui:
+        with gradio.Blocks(title='Shirley WebUI') as blocks:
             gradio.Markdown('# 🦈 Shirley WebUI')
             gradio.Markdown(
                 'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) to implement \
@@ -153,8 +152,8 @@ class WebUI(object):
             )
 
             chatbot = gradio.Chatbot(label='🦈 Shirley')
-            textbox = gradio.Textbox(lines=2, label='Input (输入)')
             state = gradio.State([])
+            textbox = gradio.Textbox(lines=2, label='Input (输入)')
 
             with gradio.Row():
                 submit_button = gradio.Button('🚀 Submit (发送)')
@@ -163,48 +162,74 @@ class WebUI(object):
                 clear_button = gradio.Button('🧹 Clear (清除历史)')
 
             submit_button.click(
-                fn=self._submit,
+                fn=self.submit,
                 inputs=[chatbot, state, textbox],
                 outputs=[chatbot, state],
             ) \
             .then(
-                fn=self._generate,
-                inputs=[chatbot, state],
-                outputs=[chatbot, state],
-                show_progress=True,
-            )
-
-            submit_button.click(
-                fn=self._reset_input,
-                inputs=None,
-                outputs=textbox,
-            )
-
-            clear_button.click(
-                fn=self._clear,
-                inputs=None,
-                outputs=[chatbot, state],
-                show_progress=True,
-            )
-
-            regenerate_button.click(
-                fn=self._regenerate,
+                fn=lambda: '',
+                inputs=[],
+                outputs=[textbox],
+                show_api=False,
+            ) \
+            .then(
+                fn=self.generate,
                 inputs=[chatbot, state],
                 outputs=[chatbot, state],
                 show_progress=True,
             ) \
             .then(
-                fn=self._generate,
+                fn=self.print,
+                inputs=[chatbot, state],
+                outputs=[],
+                show_api=False,
+            )
+
+            regenerate_button.click(
+                fn=self.regenerate,
                 inputs=[chatbot, state],
                 outputs=[chatbot, state],
                 show_progress=True,
+            ) \
+            .then(
+                fn=self.generate,
+                inputs=[chatbot, state],
+                outputs=[chatbot, state],
+                show_progress=True,
+                show_api=False,
+            ) \
+            .then(
+                fn=self.print,
+                inputs=[chatbot, state],
+                outputs=[],
+                show_api=False,
             )
 
             upload_button.upload(
-                fn=self._upload,
+                fn=self.upload,
                 inputs=[chatbot, state, upload_button],
                 outputs=[chatbot, state],
                 show_progress=True,
+            ) \
+            .then(
+                fn=self.print,
+                inputs=[chatbot, state],
+                outputs=[],
+                show_api=False,
+            )
+
+            clear_button.click(
+                fn=lambda: ([], []),
+                inputs=[],
+                outputs=[chatbot, state],
+                show_progress=True,
+                api_name='clear',
+            ) \
+            .then(
+                fn=self.print,
+                inputs=[chatbot, state],
+                outputs=[],
+                show_api=False,
             )
 
             gradio.Markdown(
@@ -215,12 +240,12 @@ class WebUI(object):
                 包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
             )
 
-            return webui
+            return blocks
 
 
-    def launch(self) -> None:
-        webui = self.blocks()
-        webui.queue().launch(
+    def launch(self) -> Tuple[FastAPI, str, str]:
+        blocks = self.blocks()
+        return blocks.queue().launch(
             share=False,
             inbrowser=False,
             server_port=8000,
@@ -230,6 +255,8 @@ class WebUI(object):
 
 
 def main() -> None:
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
     webui = WebUI()
     webui.launch()
 

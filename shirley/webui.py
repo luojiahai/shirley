@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 
 class WebUI(object):
 
-    def __init__(self) -> None:
-        self._client: shirley.Client = shirley.Client(pretrained_model_path=getpath('./models/qwen_vl_chat'))
-        self._gradio_tempdir: str = str(Path(tempfile.gettempdir()) / 'gradio')
+    def __init__(self, client: shirley.Client, tempdir: str) -> None:
+        self._client = client
+        self._tempdir = tempdir
 
 
     @property
@@ -99,7 +99,7 @@ class WebUI(object):
             full_response = self.parse(response)
 
         history.append((query, full_response))
-        image_filepath = self.client.draw_bbox_on_latest_picture(history=history, directory=self._gradio_tempdir)
+        image_filepath = self.client.draw_bbox_on_latest_picture(history=history, directory=self._tempdir)
         if image_filepath: chatbot.append((None, (image_filepath,)))
         else: chatbot[-1] = (chatbot[-1][0], full_response)
         state[-1] = (state[-1][0], full_response)
@@ -261,9 +261,11 @@ class WebUI(object):
 
 
 def main() -> None:
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-    webui = WebUI()
+    client = shirley.Client(pretrained_model_path=getpath('./models/qwen_vl_chat'))
+    tempdir = str(Path(tempfile.gettempdir()) / 'shirley')
+    webui = WebUI(client, tempdir)
     webui.launch()
 
 

@@ -6,9 +6,10 @@ import shirley
 import sys
 import tempfile
 from fastapi import FastAPI
+from gradio.components.multimodal_textbox import MultimodalValue
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
-from shirley.types import Chatbot, HistoryState, FileExplorer
+from shirley.types import Chatbot, HistoryState
 from shirley.utils import getpath, isimage
 from typing import Iterator, List, Tuple
 
@@ -21,6 +22,7 @@ class WebUI(object):
     def __init__(self, client: shirley.Client, tempdir: str) -> None:
         self._client = client
         self._tempdir = tempdir
+        self._generating = False
 
 
     @property
@@ -86,11 +88,13 @@ class WebUI(object):
 
 
     def generate(self, chatbot: Chatbot, state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
+        self._generating = True
         logger.debug('generate')
         logger.info(f'🙂 User: {chatbot[-1][0]}')
 
         query, history = self.augment(state)
         for response in self.client.chat_stream(query=query, history=history):
+            if not self._generating: break
             text = self.parse(response)
             text = text.replace('<ref>', '').replace('</ref>', '')
             text = re.sub(r'<box>.*?(</box>|$)', '', text)
@@ -106,6 +110,7 @@ class WebUI(object):
 
         logger.info(f'🦈 Shirley: {full_response}')
         yield chatbot, state
+        self._generating = False
 
 
     def regenerate(self, chatbot: Chatbot, state: HistoryState) -> Tuple[Chatbot, HistoryState]:
@@ -128,22 +133,45 @@ class WebUI(object):
         return chatbot, state
 
 
-    def submit(self, chatbot: Chatbot, state: HistoryState, text: str) -> Tuple[Chatbot, HistoryState]:
+    def submit(
+        self,
+        chatbot: Chatbot,
+        state: HistoryState,
+        textbox: MultimodalValue
+    ) -> Tuple[Chatbot, HistoryState, MultimodalValue]:
         logger.debug('submit')
-        chatbot = chatbot + [(self.parse(text), None)]
-        state = state + [(text, None)]
-        return chatbot, state
+        for filepath in textbox["files"]:
+            chatbot = chatbot + [((filepath,), None)]
+            state = state + [((filepath,), None)]
+        if textbox["text"] is not None:
+            chatbot = chatbot + [(self.parse(textbox["text"]), None)]
+            state = state + [(textbox["text"], None)]
+        return chatbot, state, gradio.MultimodalTextbox(value=None, interactive=False)
 
 
-    def upload(self, chatbot: Chatbot, state: HistoryState, filepath: str) -> Tuple[Chatbot, HistoryState]:
-        logger.debug('upload')
-        chatbot = chatbot + [((filepath,), None)]
-        state = state + [((filepath,), None)]
-        return chatbot, state
+    def pre_generate(self): # outputs=[stop_button, regenerate_button]
+        components = [
+            gradio.Button(interactive=True),
+            gradio.Button(interactive=False),
+        ]
+        return tuple(components)
 
 
-    def print(self, chatbot: Chatbot, state: HistoryState) -> None:
-        logger.debug('print')
+    def post_generate(self): # outputs=[textbox, stop_button, regenerate_button]
+        components = [
+            gradio.MultimodalTextbox(interactive=True),
+            gradio.Button(interactive=False),
+            gradio.Button(interactive=True)
+        ]
+        return tuple(components)
+
+
+    def stop(self):
+        self._generating = False
+
+
+    def log(self, chatbot: Chatbot, state: HistoryState) -> None:
+        logger.debug('log')
         logger.info(f'chatbot: {chatbot}')
         logger.info(f'state: {state}')
 
@@ -157,38 +185,35 @@ class WebUI(object):
                 (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
             )
             
+            chatbot = gradio.Chatbot(
+                label='🦈 Shirley',
+                height='70vh',
+                show_copy_button=True,
+                avatar_images=(None, getpath('./static/apple-touch-icon.png'))
+            )
+
+            state = gradio.State(value=[])
+
+            textbox = gradio.MultimodalTextbox(
+                show_label=False,
+                interactive=True,
+            )
+
             with gradio.Row():
-                with gradio.Column(scale=2):
-                    chatbot = gradio.Chatbot(label='🦈 Shirley', height='50vh')
-                    state = gradio.State(value=[])
-
-                with gradio.Column(scale=1):
-                    fileexplorer = gradio.FileExplorer(
-                        glob='*.*',
-                        file_count='single',
-                        root_dir=self._tempdir,
-                        height='50vh',
-                    )
-
-            textbox = gradio.Textbox(lines=5, max_lines=5, label='✏️ Input (输入)')
-
-            with gradio.Row():
-                submit_button = gradio.Button('🚀 Submit (发送)')
-                regenerate_button = gradio.Button('🤔️ Regenerate (重试)')
-                upload_button = gradio.UploadButton('📁 Upload (上传文件)', file_count='single', file_types=['file'])
+                stop_button = gradio.Button('⏹️ Stop (停止生成)', interactive=False)
+                regenerate_button = gradio.Button('🤔️ Regenerate (重新生成)', interactive=False)
                 clear_button = gradio.Button('🧹 Clear (清除历史)')
 
-            submit_button \
-                .click(
+            textbox \
+                .submit(
                     fn=self.submit,
                     inputs=[chatbot, state, textbox],
-                    outputs=[chatbot, state],
+                    outputs=[chatbot, state, textbox],
                 ) \
                 .then(
-                    fn=lambda: '',
+                    fn=self.pre_generate,
                     inputs=[],
-                    outputs=[textbox],
-                    show_api=False,
+                    outputs=[stop_button, regenerate_button],
                 ) \
                 .then(
                     fn=self.generate,
@@ -197,11 +222,18 @@ class WebUI(object):
                     show_progress=True,
                 ) \
                 .then(
-                    fn=self.print,
+                    fn=self.post_generate,
+                    inputs=[],
+                    outputs=[textbox, stop_button, regenerate_button],
+                ) \
+                .then(
+                    fn=self.log,
                     inputs=[chatbot, state],
                     outputs=[],
                     show_api=False,
                 )
+
+            stop_button.click(fn=self.stop)
 
             regenerate_button \
                 .click(
@@ -211,6 +243,11 @@ class WebUI(object):
                     show_progress=True,
                 ) \
                 .then(
+                    fn=self.pre_generate,
+                    inputs=[],
+                    outputs=[stop_button, regenerate_button],
+                ) \
+                .then(
                     fn=self.generate,
                     inputs=[chatbot, state],
                     outputs=[chatbot, state],
@@ -218,21 +255,12 @@ class WebUI(object):
                     show_api=False,
                 ) \
                 .then(
-                    fn=self.print,
-                    inputs=[chatbot, state],
-                    outputs=[],
-                    show_api=False,
-                )
-
-            upload_button \
-                .upload(
-                    fn=self.upload,
-                    inputs=[chatbot, state, upload_button],
-                    outputs=[chatbot, state],
-                    show_progress=True,
+                    fn=self.post_generate,
+                    inputs=[],
+                    outputs=[textbox, stop_button, regenerate_button],
                 ) \
                 .then(
-                    fn=self.print,
+                    fn=self.log,
                     inputs=[chatbot, state],
                     outputs=[],
                     show_api=False,
@@ -245,12 +273,6 @@ class WebUI(object):
                     outputs=[chatbot, state],
                     show_progress=True,
                     api_name='clear',
-                ) \
-                .then(
-                    fn=self.print,
-                    inputs=[chatbot, state],
-                    outputs=[],
-                    show_api=False,
                 )
 
             gradio.Markdown(

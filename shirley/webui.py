@@ -177,7 +177,7 @@ class WebUI(object):
 
 
     def blocks(self) -> gradio.Blocks:
-        with gradio.Blocks(title='Shirley WebUI', css=getpath('./static/custom.css')) as blocks:
+        with gradio.Blocks(title='Shirley WebUI', css=getpath('./shirley/css/custom.css')) as blocks:
             gradio.Markdown('# 🦈 Shirley WebUI')
             gradio.Markdown(
                 'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) to implement \

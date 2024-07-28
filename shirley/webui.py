@@ -195,6 +195,7 @@ class WebUI(object):
             state = gradio.State(value=[])
 
             textbox = gradio.MultimodalTextbox(
+                placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
                 show_label=False,
                 interactive=True,
             )

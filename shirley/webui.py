@@ -188,8 +188,8 @@ class WebUI(object):
                         (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
                     )
 
-                with gradio.Column(scale=1):
-                    toggle_dark = gradio.Button(value="Toggle Dark")
+                with gradio.Column(scale=2):
+                    toggle_dark = gradio.Button(value='🔦 Toggle Dark (切换暗黑模式)')
 
             chatbot = gradio.Chatbot(
                 label='🦈 Shirley',

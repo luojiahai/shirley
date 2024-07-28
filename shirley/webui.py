@@ -178,6 +178,7 @@ class WebUI(object):
 
     def blocks(self) -> gradio.Blocks:
         with gradio.Blocks(title='Shirley WebUI', css=getpath('./shirley/css/custom.css')) as blocks:
+
             with gradio.Row():
                 with gradio.Column(scale=10):
                     gradio.Markdown('# 🦈 Shirley WebUI')
@@ -186,7 +187,7 @@ class WebUI(object):
                         to implement chatbot functionality. \
                         (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
                     )
-                
+
                 with gradio.Column(scale=1):
                     toggle_dark = gradio.Button(value="Toggle Dark")
 
@@ -210,11 +211,10 @@ class WebUI(object):
                 regenerate_button = gradio.Button('🤔️ Regenerate (重新生成)', interactive=False)
                 clear_button = gradio.Button('🧹 Clear (清除历史)')
 
-            # TODO: fix. not working
             toggle_dark \
                 .click(
                     fn=None,
-                    js='() => document.body.classList.toggle("dark")',
+                    js='() => { document.body.classList.toggle("dark"); }',
                 )
 
             textbox \

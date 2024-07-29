@@ -86,9 +86,29 @@ class WebUI(object):
         return history[-1][0], history[:-1]
 
 
+    def submit(
+        self,
+        chatbot: Chatbot,
+        history_state: HistoryState,
+        multimodal_textbox: MultimodalTextbox
+    ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
+        logger.debug('submit')
+
+        for filepath in multimodal_textbox["files"]:
+            chatbot = chatbot + [((filepath,), None)]
+            history_state = history_state + [((filepath,), None)]
+
+        if multimodal_textbox["text"] is not None:
+            chatbot = chatbot + [(self.parse(multimodal_textbox["text"]), None)]
+            history_state = history_state + [(multimodal_textbox["text"], None)]
+
+        return chatbot, history_state, gr.MultimodalTextbox(value=None, interactive=False)
+
+
     def generate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
-        self._generating = True
         logger.debug('generate')
+
+        self._generating = True
         logger.info(f'🙂 User: {chatbot[-1][0]}')
 
         query, history = self.augment(history_state)
@@ -132,22 +152,6 @@ class WebUI(object):
         return chatbot, history_state
 
 
-    def submit(
-        self,
-        chatbot: Chatbot,
-        history_state: HistoryState,
-        multimodal_textbox: MultimodalTextbox
-    ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
-        logger.debug('submit')
-        for filepath in multimodal_textbox["files"]:
-            chatbot = chatbot + [((filepath,), None)]
-            history_state = history_state + [((filepath,), None)]
-        if multimodal_textbox["text"] is not None:
-            chatbot = chatbot + [(self.parse(multimodal_textbox["text"]), None)]
-            history_state = history_state + [(multimodal_textbox["text"], None)]
-        return chatbot, history_state, gr.MultimodalTextbox(value=None, interactive=False)
-
-
     def pregenerate(self) -> Tuple[gr.Button, gr.Button, gr.Button]:
         components = [
             gr.Button(interactive=True),
@@ -167,7 +171,7 @@ class WebUI(object):
         return tuple(components)
 
 
-    def stop(self):
+    def stop(self) -> None:
         self._generating = False
 
 

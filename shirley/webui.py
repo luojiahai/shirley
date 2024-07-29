@@ -90,19 +90,19 @@ class WebUI(object):
         self,
         chatbot: Chatbot,
         history_state: HistoryState,
-        multimodal_textbox: MultimodalTextbox
+        multimodal_textbox: MultimodalTextbox,
     ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
         logger.debug('submit')
 
-        for filepath in multimodal_textbox["files"]:
+        for filepath in multimodal_textbox['files']:
             chatbot = chatbot + [((filepath,), None)]
             history_state = history_state + [((filepath,), None)]
 
-        if multimodal_textbox["text"] is not None:
-            chatbot = chatbot + [(self.parse(multimodal_textbox["text"]), None)]
-            history_state = history_state + [(multimodal_textbox["text"], None)]
+        if multimodal_textbox['text'] is not None:
+            chatbot = chatbot + [(self.parse(multimodal_textbox['text']), None)]
+            history_state = history_state + [(multimodal_textbox['text'], None)]
 
-        return chatbot, history_state, gr.MultimodalTextbox(value=None, interactive=False)
+        return chatbot, history_state, gr.MultimodalTextbox(value=None)
 
 
     def generate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
@@ -152,23 +152,32 @@ class WebUI(object):
         return chatbot, history_state
 
 
-    def pregenerate(self) -> Tuple[gr.Button, gr.Button, gr.Button]:
+    def pregenerate(self) -> Tuple[gr.MultimodalTextbox, gr.Button, gr.Button, gr.Button, gr.Button]:
         components = [
-            gr.Button(interactive=True),
+            gr.MultimodalTextbox(interactive=False),
+            gr.Button(variant='secondary', interactive=False),
+            gr.Button(variant='stop', interactive=True),
             gr.Button(interactive=False),
             gr.Button(interactive=False),
         ]
         return tuple(components)
 
 
-    def postgenerate(self) -> Tuple[gr.MultimodalTextbox, gr.Button, gr.Button, gr.Button]:
+    def postgenerate(self) -> Tuple[gr.MultimodalTextbox, gr.Button, gr.Button, gr.Button, gr.Button]:
         components = [
             gr.MultimodalTextbox(interactive=True),
-            gr.Button(interactive=False),
+            gr.Button(variant='secondary', interactive=False),
+            gr.Button(variant='secondary', interactive=False),
             gr.Button(interactive=True),
             gr.Button(interactive=True),
         ]
         return tuple(components)
+
+
+    def change(self, multimodal_textbox: MultimodalTextbox) -> gr.Button:
+        if not multimodal_textbox['text']:
+            return gr.Button(variant='secondary', interactive=False)
+        return gr.Button(variant='primary', interactive=True)
 
 
     def stop(self) -> None:
@@ -186,8 +195,8 @@ class WebUI(object):
 
             with gr.Row():
                 with gr.Column(scale=10):
-                    gr.Markdown('# 🦈 Shirley WebUI')
-                    gr.Markdown(
+                    gr.Markdown(value='# 🦈 Shirley WebUI')
+                    gr.Markdown(value=
                         'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
                         to implement chatbot functionality. \
                         (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
@@ -209,21 +218,32 @@ class WebUI(object):
                 placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
                 show_label=False,
                 interactive=True,
+                submit_btn=False,
             )
 
             with gr.Row():
-                stop_button = gr.Button('⏹️ Stop (停止生成)', interactive=False)
-                regenerate_button = gr.Button('🤔️ Regenerate (重新生成)', interactive=False)
-                clear_button = gr.Button('🧹 Clear (清除历史)')
+                submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
+                stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
+                regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
+                clear_button = gr.Button(value='🧹 Clear (清除历史)', interactive=False)
 
             toggle_dark \
                 .click(
                     fn=None,
                     js='() => { document.body.classList.toggle("dark"); }',
+                    show_api=False,
                 )
 
             multimodal_textbox \
-                .submit(
+                .change(
+                    fn=self.change,
+                    inputs=[multimodal_textbox],
+                    outputs=[submit_button],
+                    show_api=False,
+                )
+
+            submit_button \
+                .click(
                     fn=self.submit,
                     inputs=[chatbot, history_state, multimodal_textbox],
                     outputs=[chatbot, history_state, multimodal_textbox],
@@ -231,7 +251,8 @@ class WebUI(object):
                 .then(
                     fn=self.pregenerate,
                     inputs=[],
-                    outputs=[stop_button, regenerate_button, clear_button],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, clear_button],
+                    show_api=False,
                 ) \
                 .then(
                     fn=self.generate,
@@ -242,7 +263,8 @@ class WebUI(object):
                 .then(
                     fn=self.postgenerate,
                     inputs=[],
-                    outputs=[multimodal_textbox, stop_button, regenerate_button, clear_button],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, clear_button],
+                    show_api=False,
                 ) \
                 .then(
                     fn=self.log,
@@ -251,8 +273,7 @@ class WebUI(object):
                     show_api=False,
                 )
 
-            stop_button \
-                .click(fn=self.stop)
+            stop_button.click(fn=self.stop)
 
             regenerate_button \
                 .click(
@@ -264,7 +285,8 @@ class WebUI(object):
                 .then(
                     fn=self.pregenerate,
                     inputs=[],
-                    outputs=[stop_button, regenerate_button, clear_button],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, clear_button],
+                    show_api=False,
                 ) \
                 .then(
                     fn=self.generate,
@@ -276,7 +298,8 @@ class WebUI(object):
                 .then(
                     fn=self.postgenerate,
                     inputs=[],
-                    outputs=[multimodal_textbox, stop_button, regenerate_button, clear_button],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, clear_button],
+                    show_api=False,
                 ) \
                 .then(
                     fn=self.log,
@@ -294,7 +317,7 @@ class WebUI(object):
                     api_name='clear',
                 )
 
-            gr.Markdown(
+            gr.Markdown(value=
                 '<font size=2>Note: This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise \
                 users not to knowingly generate or allow others to knowingly generate harmful content, including hate \
                 speech, violence, pornography, deception, etc. \

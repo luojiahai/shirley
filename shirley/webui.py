@@ -191,7 +191,7 @@ class WebUI(object):
 
 
     def blocks(self) -> gr.Blocks:
-        with gr.Blocks(title='Shirley WebUI', css=getpath('./shirley/css/custom.css')) as blocks:
+        with gr.Blocks(title='Shirley WebUI') as blocks:
 
             with gr.Row():
                 with gr.Column(scale=10):

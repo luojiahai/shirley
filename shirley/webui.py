@@ -86,25 +86,6 @@ class WebUI(object):
         return history[-1][0], history[:-1]
 
 
-    def submit(
-        self,
-        chatbot: Chatbot,
-        history_state: HistoryState,
-        multimodal_textbox: MultimodalTextbox,
-    ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
-        logger.debug('submit')
-
-        for filepath in multimodal_textbox['files']:
-            chatbot = chatbot + [((filepath,), None)]
-            history_state = history_state + [((filepath,), None)]
-
-        if multimodal_textbox['text'] is not None:
-            chatbot = chatbot + [(self.parse(multimodal_textbox['text']), None)]
-            history_state = history_state + [(multimodal_textbox['text'], None)]
-
-        return chatbot, history_state, None
-
-
     def generate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
         logger.debug('generate')
 
@@ -178,6 +159,25 @@ class WebUI(object):
         if not multimodal_textbox['text']:
             return gr.Button(variant='secondary', interactive=False)
         return gr.Button(variant='primary', interactive=True)
+
+
+    def submit(
+        self,
+        chatbot: Chatbot,
+        history_state: HistoryState,
+        multimodal_textbox: MultimodalTextbox,
+    ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
+        logger.debug('submit')
+
+        for filepath in multimodal_textbox['files']:
+            chatbot = chatbot + [((filepath,), None)]
+            history_state = history_state + [((filepath,), None)]
+
+        if multimodal_textbox['text'] is not None:
+            chatbot = chatbot + [(self.parse(multimodal_textbox['text']), None)]
+            history_state = history_state + [(multimodal_textbox['text'], None)]
+
+        return chatbot, history_state, None
 
 
     def stop(self) -> None:

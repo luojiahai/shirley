@@ -102,7 +102,7 @@ class WebUI(object):
             chatbot = chatbot + [(self.parse(multimodal_textbox['text']), None)]
             history_state = history_state + [(multimodal_textbox['text'], None)]
 
-        return chatbot, history_state, gr.MultimodalTextbox(value=None)
+        return chatbot, history_state, None
 
 
     def generate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
@@ -181,11 +181,27 @@ class WebUI(object):
 
 
     def stop(self) -> None:
+        logger.debug('stop')
         self._generating = False
 
 
+    def reset(self) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
+        logger.debug('reset')
+        return [], [], None
+
+
+    def postreset(self) -> Tuple[gr.MultimodalTextbox, gr.Button, gr.Button, gr.Button, gr.Button]:
+        components = [
+            gr.MultimodalTextbox(interactive=True),
+            gr.Button(variant='secondary', interactive=False),
+            gr.Button(variant='secondary', interactive=False),
+            gr.Button(interactive=False),
+            gr.Button(interactive=False),
+        ]
+        return tuple(components)
+
+
     def log(self, chatbot: Chatbot, history_state: HistoryState) -> None:
-        logger.debug('log')
         logger.info(f'chatbot: {chatbot}')
         logger.info(f'history_state: {history_state}')
 
@@ -225,7 +241,7 @@ class WebUI(object):
                 submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
                 stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
                 regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
-                clear_button = gr.Button(value='🧹 Clear (清除历史)', interactive=False)
+                reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
 
             toggle_dark \
                 .click(
@@ -251,7 +267,7 @@ class WebUI(object):
                 .then(
                     fn=self.pregenerate,
                     inputs=[],
-                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, clear_button],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
                     show_api=False,
                 ) \
                 .then(
@@ -263,7 +279,7 @@ class WebUI(object):
                 .then(
                     fn=self.postgenerate,
                     inputs=[],
-                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, clear_button],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
                     show_api=False,
                 ) \
                 .then(
@@ -285,7 +301,7 @@ class WebUI(object):
                 .then(
                     fn=self.pregenerate,
                     inputs=[],
-                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, clear_button],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
                     show_api=False,
                 ) \
                 .then(
@@ -298,7 +314,7 @@ class WebUI(object):
                 .then(
                     fn=self.postgenerate,
                     inputs=[],
-                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, clear_button],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
                     show_api=False,
                 ) \
                 .then(
@@ -308,13 +324,19 @@ class WebUI(object):
                     show_api=False,
                 )
 
-            clear_button \
+            reset_button \
                 .click(
-                    fn=lambda: ([], []),
+                    fn=self.reset,
                     inputs=[],
-                    outputs=[chatbot, history_state],
+                    outputs=[chatbot, history_state, multimodal_textbox],
                     show_progress=True,
-                    api_name='clear',
+                    api_name='reset',
+                ) \
+                .then(
+                    fn=self.postreset,
+                    inputs=[],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
+                    show_api=False,
                 )
 
             gr.Markdown(value=

@@ -6,6 +6,7 @@ import shirley
 import sys
 import tempfile
 from fastapi import FastAPI
+from gradio.events import Dependency
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
 from shirley.types import Chatbot, HistoryState, MultimodalTextbox
@@ -87,7 +88,7 @@ class WebUI(object):
 
 
     def generate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
-        logger.debug('generate')
+        logger.debug('Generate')
 
         self._generating = True
         logger.info(f'🙂 User: {chatbot[-1][0]}')
@@ -114,7 +115,7 @@ class WebUI(object):
 
 
     def regenerate(self, chatbot: Chatbot, history_state: HistoryState) -> Tuple[Chatbot, HistoryState]:
-        logger.debug('regenerate')
+        logger.debug('Regenerate')
 
         if len(chatbot) < 1 or len(history_state) < 1:
             return chatbot, history_state
@@ -156,9 +157,17 @@ class WebUI(object):
 
 
     def change(self, multimodal_textbox: MultimodalTextbox) -> gr.Button:
-        if not multimodal_textbox['text']:
+        text = multimodal_textbox['text']
+        if not text or not text.strip():
             return gr.Button(variant='secondary', interactive=False)
         return gr.Button(variant='primary', interactive=True)
+
+
+    def validate(self, multimodal_textbox: MultimodalTextbox) -> None:
+        text = multimodal_textbox['text']
+        if not text or not text.strip():
+            raise gr.Error(visible=False)
+        return
 
 
     def submit(
@@ -167,7 +176,7 @@ class WebUI(object):
         history_state: HistoryState,
         multimodal_textbox: MultimodalTextbox,
     ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
-        logger.debug('submit')
+        logger.debug('Submit')
 
         for filepath in multimodal_textbox['files']:
             chatbot = chatbot + [((filepath,), None)]
@@ -181,12 +190,12 @@ class WebUI(object):
 
 
     def stop(self) -> None:
-        logger.debug('stop')
+        logger.debug('Stop')
         self._generating = False
 
 
     def reset(self) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
-        logger.debug('reset')
+        logger.debug('Reset')
         return [], [], None
 
 
@@ -202,8 +211,8 @@ class WebUI(object):
 
 
     def log(self, chatbot: Chatbot, history_state: HistoryState) -> None:
-        logger.info(f'chatbot: {chatbot}')
-        logger.info(f'history_state: {history_state}')
+        logger.info(f'Chatbot: {chatbot}')
+        logger.info(f'HistoryState: {history_state}')
 
 
     def blocks(self) -> gr.Blocks:
@@ -258,8 +267,14 @@ class WebUI(object):
                     show_api=False,
                 )
 
-            submit_button \
-                .click(
+            multimodal_textbox \
+                .submit(
+                    fn=self.validate,
+                    inputs=[multimodal_textbox],
+                    outputs=[],
+                    show_api=False,
+                ) \
+                .success(
                     fn=self.submit,
                     inputs=[chatbot, history_state, multimodal_textbox],
                     outputs=[chatbot, history_state, multimodal_textbox],
@@ -275,6 +290,43 @@ class WebUI(object):
                     inputs=[chatbot, history_state],
                     outputs=[chatbot, history_state],
                     show_progress=True,
+                ) \
+                .then(
+                    fn=self.postgenerate,
+                    inputs=[],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
+                    show_api=False,
+                ) \
+                .then(
+                    fn=self.log,
+                    inputs=[chatbot, history_state],
+                    outputs=[],
+                    show_api=False,
+                )
+
+            submit_button \
+                .click(
+                    fn=self.validate,
+                    inputs=[multimodal_textbox],
+                    outputs=[],
+                    show_api=False,
+                ) \
+                .success(
+                    fn=self.submit,
+                    inputs=[chatbot, history_state, multimodal_textbox],
+                    outputs=[chatbot, history_state, multimodal_textbox],
+                ) \
+                .then(
+                    fn=self.pregenerate,
+                    inputs=[],
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
+                    show_api=False,
+                ) \
+                .then(
+                    fn=self.generate,
+                    inputs=[chatbot, history_state],
+                    outputs=[chatbot, history_state],
+                    show_progress=False,
                 ) \
                 .then(
                     fn=self.postgenerate,

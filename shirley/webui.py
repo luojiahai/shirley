@@ -315,6 +315,7 @@ class WebUI(object):
                     fn=self.submit,
                     inputs=[chatbot, history_state, multimodal_textbox],
                     outputs=[chatbot, history_state, multimodal_textbox],
+                    show_api=False,
                 ) \
                 .then(
                     fn=self.pregenerate,
@@ -326,7 +327,8 @@ class WebUI(object):
                     fn=self.generate,
                     inputs=[chatbot, history_state],
                     outputs=[chatbot, history_state],
-                    show_progress=False,
+                    show_progress=True,
+                    show_api=False,
                 ) \
                 .then(
                     fn=self.postgenerate,

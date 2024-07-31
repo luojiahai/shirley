@@ -6,7 +6,6 @@ import shirley
 import sys
 import tempfile
 from fastapi import FastAPI
-from gradio.events import Dependency
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
 from shirley.types import Chatbot, HistoryState, MultimodalTextbox
@@ -15,6 +14,7 @@ from typing import Iterator, List, Tuple
 
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 class WebUI(object):
@@ -216,41 +216,56 @@ class WebUI(object):
 
 
     def blocks(self) -> gr.Blocks:
-        with gr.Blocks(title='Shirley WebUI') as blocks:
-
+        with gr.Blocks(
+            theme=gr.themes.Default(),
+            title='Shirley WebUI',
+            fill_width=True,
+        ) as blocks:
             with gr.Row():
-                with gr.Column(scale=10):
+                with gr.Column(scale=1):
                     gr.Markdown(value='# 🦈 Shirley WebUI')
+                    gr.Markdown()
+                    gr.Markdown(value='### 🪺 Source (源代码)')
+                    gr.Markdown(value='https://github.com/luojiahai/shirley')
+                    gr.Markdown()
+                    gr.Markdown(value='### 🏷️ Description (描述)')
                     gr.Markdown(value=
                         'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
                         to implement chatbot functionality. \
                         (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
                     )
+                    gr.Markdown()
+                    gr.Markdown(value='### ⚠️ Note (注意事项)')
+                    gr.Markdown(value=
+                        'This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise users not \
+                        to knowingly generate or allow others to knowingly generate harmful content, including hate \
+                        speech, violence, pornography, deception, etc. \
+                        (本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，\
+                        包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
+                    )
+                    gr.Markdown()
+                    toggle_dark = gr.Button(value='🔦 Toggle Light/Dark Mode (切换浅色/深色模式)')
 
-                with gr.Column(scale=2):
-                    toggle_dark = gr.Button(value='🔦 Toggle Dark (切换深色模式)')
+                with gr.Column(scale=3):
+                    chatbot = gr.Chatbot(
+                        label='🦈 Shirley',
+                        height='80vh',
+                        show_copy_button=True,
+                        avatar_images=(None, getpath('./static/apple-touch-icon.png')),
+                    )
+                    history_state = gr.State(value=[])
+                    multimodal_textbox = gr.MultimodalTextbox(
+                        placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
+                        show_label=False,
+                        interactive=True,
+                        submit_btn=False,
+                    )
 
-            chatbot = gr.Chatbot(
-                label='🦈 Shirley',
-                height='70vh',
-                show_copy_button=True,
-                avatar_images=(None, getpath('./static/apple-touch-icon.png')),
-            )
-
-            history_state = gr.State(value=[])
-
-            multimodal_textbox = gr.MultimodalTextbox(
-                placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
-                show_label=False,
-                interactive=True,
-                submit_btn=False,
-            )
-
-            with gr.Row():
-                submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
-                stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
-                regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
-                reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
+                    with gr.Row():
+                        submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
+                        stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
+                        regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
+                        reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
 
             toggle_dark \
                 .click(
@@ -393,14 +408,6 @@ class WebUI(object):
                     show_api=False,
                 )
 
-            gr.Markdown(value=
-                '<font size=2>Note: This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise \
-                users not to knowingly generate or allow others to knowingly generate harmful content, including hate \
-                speech, violence, pornography, deception, etc. \
-                (注：本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，\
-                包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
-            )
-
             return blocks
 
 
@@ -416,8 +423,6 @@ class WebUI(object):
 
 
 def main() -> None:
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
     client = shirley.Client(pretrained_model_path=getpath('./models/qwen_vl_chat'))
     tempdir = str(Path(tempfile.gettempdir()) / 'gradio')
     webui = WebUI(client, tempdir)

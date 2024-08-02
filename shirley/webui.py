@@ -11,7 +11,7 @@ from gradio.events import Dependency
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
 from shirley.types import Chatbot, HistoryState, MultimodalTextbox
-from shirley.utils import getpath, isimage
+from shirley.utils import getpath, isimage, parse
 from typing import Iterator, List, Tuple
 
 
@@ -82,38 +82,6 @@ class WebUI(object):
 
 
     @staticmethod
-    def parse(text: str) -> str:
-        lines = text.split('\n')
-        lines = [line for line in lines if line != '']
-        count = 0
-        for i, line in enumerate(lines):
-            if '```' in line:
-                count += 1
-                items = line.split('`')
-                if count % 2 == 1:
-                    lines[i] = f'<pre><code class="language-{items[-1]}">'
-                else:
-                    lines[i] = f'<br></code></pre>'
-            else:
-                if i > 0:
-                    if count % 2 == 1:
-                        line = line.replace('`', r'\`')
-                        line = line.replace('<', '&lt;')
-                        line = line.replace('>', '&gt;')
-                        line = line.replace(' ', '&nbsp;')
-                        line = line.replace('*', '&ast;')
-                        line = line.replace('_', '&lowbar;')
-                        line = line.replace('-', '&#45;')
-                        line = line.replace('.', '&#46;')
-                        line = line.replace('!', '&#33;')
-                        line = line.replace('(', '&#40;')
-                        line = line.replace(')', '&#41;')
-                        line = line.replace('$', '&#36;')
-                    lines[i] = '<br>' + line
-        return ''.join(lines)
-
-
-    @staticmethod
     def retrieve(filepath: str) -> str:
         if isimage(filepath):
             return f'Picture: <img>{filepath}</img>'
@@ -144,12 +112,12 @@ class WebUI(object):
         query, history = history[-1][0], history[:-1]
         for response in self.client.chat_stream(query=query, history=history):
             if not self.generating: break
-            text = self.parse(response)
+            text = parse(response)
             text = text.replace('<ref>', '').replace('</ref>', '')
             text = re.sub(r'<box>.*?(</box>|$)', '', text)
             chatbot[-1] = (chatbot[-1][0], text)
             yield chatbot, history_state
-            full_response = self.parse(response)
+            full_response = parse(response)
 
         history.append((query, full_response))
         image_filepath = self.client.draw_bbox_on_latest_picture(history=history, tempdir=self.tempdir)
@@ -210,7 +178,10 @@ class WebUI(object):
 
 
     def submit(
-        self, chatbot: Chatbot, history_state: HistoryState, multimodal_textbox: MultimodalTextbox
+        self,
+        chatbot: Chatbot,
+        history_state: HistoryState,
+        multimodal_textbox: MultimodalTextbox,
     ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
         text = multimodal_textbox['text']
         if not text or not text.strip():
@@ -221,7 +192,7 @@ class WebUI(object):
             history_state = history_state + [((filepath,), None)]
 
         if multimodal_textbox['text'] is not None:
-            chatbot = chatbot + [(self.parse(multimodal_textbox['text']), None)]
+            chatbot = chatbot + [(parse(multimodal_textbox['text']), None)]
             history_state = history_state + [(multimodal_textbox['text'], None)]
 
         return chatbot, history_state, None

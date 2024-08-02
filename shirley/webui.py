@@ -7,12 +7,13 @@ import shirley
 import sys
 import tempfile
 from fastapi import FastAPI
+from gradio.components import Component
 from gradio.events import Dependency
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
 from shirley.types import Chatbot, HistoryState, MultimodalTextbox
 from shirley.utils import getpath, isimage, parse
-from typing import Iterator, List, Tuple
+from typing import Iterator, List, Sequence, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -93,7 +94,10 @@ class WebUI(object):
             return ''
 
 
-    def generate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
+    def generate(self, *args, **kwargs) -> Sequence | Iterator[Sequence]:
+        chatbot: Chatbot = args[0]
+        history_state: HistoryState = args[1]
+
         self.generating = True
         logger.info(f'🙂 User: {chatbot[-1][0]}')
 
@@ -110,6 +114,7 @@ class WebUI(object):
                 text = ''
 
         query, history = history[-1][0], history[:-1]
+        full_response = ''
         for response in self.client.chat_stream(query=query, history=history):
             if not self.generating: break
             text = parse(response)
@@ -121,8 +126,10 @@ class WebUI(object):
 
         history.append((query, full_response))
         image_filepath = self.client.draw_bbox_on_latest_picture(history=history, tempdir=self.tempdir)
-        if image_filepath: chatbot.append((None, (image_filepath,)))
-        else: chatbot[-1] = (chatbot[-1][0], full_response)
+        if image_filepath is not None:
+            chatbot.append((None, (image_filepath,)))
+        else:
+            chatbot[-1] = (chatbot[-1][0], full_response)
         history_state[-1] = (history_state[-1][0], full_response)
 
         logger.info(f'🦈 Shirley: {full_response}')
@@ -130,13 +137,16 @@ class WebUI(object):
         self.generating = False
 
 
-    def regenerate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
+    def regenerate(self, *args, **kwargs) -> Sequence | Iterator[Sequence]:
+        chatbot: Chatbot = args[0]
+        history_state: HistoryState = args[1]
+
         if len(chatbot) < 1 or len(history_state) < 1:
-            return iter([(chatbot, history_state)])
+            return chatbot, history_state
 
         state_last = history_state[-1]
         if state_last[1] is None:
-            return iter([(chatbot, history_state)])
+            return chatbot, history_state
         history_state[-1] = (state_last[0], None)
 
         chatbot_last = chatbot.pop(-1)
@@ -145,10 +155,10 @@ class WebUI(object):
         else:
             chatbot.append((chatbot_last[0], None))
 
-        yield from self.generate(chatbot=chatbot, history_state=history_state)
+        yield from self.generate(*args, **kwargs)
 
 
-    def pregenerate(self) -> Tuple[gr.MultimodalTextbox, gr.Button, gr.Button, gr.Button, gr.Button]:
+    def pregenerate(self, *args, **kwargs) -> Sequence[Component]:
         components = [
             gr.MultimodalTextbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
@@ -159,7 +169,7 @@ class WebUI(object):
         return tuple(components)
 
 
-    def postgenerate(self) -> Tuple[gr.MultimodalTextbox, gr.Button, gr.Button, gr.Button, gr.Button]:
+    def postgenerate(self, *args, **kwargs) -> Sequence[Component]:
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
@@ -170,19 +180,21 @@ class WebUI(object):
         return tuple(components)
 
 
-    def change(self, multimodal_textbox: MultimodalTextbox) -> gr.Button:
+    def change(self, *args, **kwargs) -> Component:
+        multimodal_textbox: MultimodalTextbox = args[0]
+
         text = multimodal_textbox['text']
         if not text or not text.strip():
             return gr.Button(variant='secondary', interactive=False)
+
         return gr.Button(variant='primary', interactive=True)
 
 
-    def submit(
-        self,
-        chatbot: Chatbot,
-        history_state: HistoryState,
-        multimodal_textbox: MultimodalTextbox,
-    ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
+    def submit(self, *args, **kwargs) -> Sequence:
+        chatbot: Chatbot = args[0]
+        history_state: HistoryState = args[1]
+        multimodal_textbox: MultimodalTextbox = args[2]
+
         text = multimodal_textbox['text']
         if not text or not text.strip():
             raise gr.Error(visible=False)
@@ -198,11 +210,11 @@ class WebUI(object):
         return chatbot, history_state, None
 
 
-    def stop(self) -> None:
+    def stop(self, *args, **kwargs) -> None:
         self.generating = False
 
 
-    def reset(self) -> Tuple[gr.MultimodalTextbox, gr.Button, gr.Button, gr.Button, gr.Button]:
+    def reset(self, *args, **kwargs) -> Sequence[Component]:
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
@@ -213,7 +225,10 @@ class WebUI(object):
         return tuple(components)
 
 
-    def log(self, chatbot: Chatbot, history_state: HistoryState) -> None:
+    def log(self, *args, **kwargs) -> None:
+        chatbot: Chatbot = args[0]
+        history_state: HistoryState = args[1]
+
         logger.info(f'Chatbot: {chatbot}')
         logger.info(f'HistoryState: {history_state}')
 
@@ -318,12 +333,12 @@ class WebUI(object):
 
         self.reset_button.click(
             fn=lambda: ([], [], None),
-            inputs=[],
+            inputs=None,
             outputs=[self.chatbot, self.history, self.multimodal_textbox],
             show_api=False,
         ).then(
             fn=self.reset,
-            inputs=[],
+            inputs=None,
             outputs=[
                 self.multimodal_textbox,
                 self.submit_button,
@@ -338,7 +353,7 @@ class WebUI(object):
     def __subscribe_events_generate(self, dependency: Dependency, generate_fn):
         dependency.success(
             fn=self.pregenerate,
-            inputs=[],
+            inputs=None,
             outputs=[
                 self.multimodal_textbox,
                 self.submit_button,
@@ -355,7 +370,7 @@ class WebUI(object):
             show_api=False,
         ).then(
             fn=self.postgenerate,
-            inputs=[],
+            inputs=None,
             outputs=[
                 self.multimodal_textbox,
                 self.submit_button,
@@ -367,7 +382,7 @@ class WebUI(object):
         ).then(
             fn=self.log,
             inputs=[self.chatbot, self.history],
-            outputs=[],
+            outputs=None,
             show_api=False,
         )
 

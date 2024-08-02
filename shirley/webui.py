@@ -126,8 +126,6 @@ class WebUI(object):
 
 
     def generate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
-        logger.debug('Generate')
-
         self.generating = True
         logger.info(f'🙂 User: {chatbot[-1][0]}')
 
@@ -165,8 +163,6 @@ class WebUI(object):
 
 
     def regenerate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
-        logger.debug('Regenerate')
-
         if len(chatbot) < 1 or len(history_state) < 1:
             return chatbot, history_state
 
@@ -216,8 +212,6 @@ class WebUI(object):
     def submit(
         self, chatbot: Chatbot, history_state: HistoryState, multimodal_textbox: MultimodalTextbox
     ) -> Tuple[Chatbot, HistoryState, MultimodalTextbox]:
-        logger.debug('Submit')
-
         text = multimodal_textbox['text']
         if not text or not text.strip():
             raise gr.Error(visible=False)
@@ -234,7 +228,6 @@ class WebUI(object):
 
 
     def stop(self) -> None:
-        logger.debug('Stop')
         self.generating = False
 
 

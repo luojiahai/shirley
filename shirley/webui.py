@@ -22,20 +22,16 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class WebUI(object):
 
-    def __init__(self, client: shirley.Client, tempdir: str) -> None:
+    tempdir = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
+
+    def __init__(self, client: shirley.Client) -> None:
         self._client = client
-        self._tempdir = tempdir
         self._generating = False
         self._blocks = self.__create_blocks()
-
 
     @property
     def client(self) -> shirley.Client:
         return self._client
-
-    @property
-    def tempdir(self) -> str:
-        return self._tempdir
 
     @property
     def generating(self) -> bool:
@@ -239,6 +235,7 @@ class WebUI(object):
                         placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
                         show_label=False,
                         interactive=True,
+                        submit_btn=False,
                     )
 
                     with gr.Row():
@@ -338,8 +335,7 @@ class WebUI(object):
 
 def main() -> None:
     client = shirley.Client(pretrained_model_path=getpath('./models/qwen_vl_chat'))
-    tempdir = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
-    webui = WebUI(client, tempdir)
+    webui = WebUI(client=client)
     webui.launch()
 
 

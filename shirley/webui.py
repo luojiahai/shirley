@@ -260,6 +260,7 @@ class WebUI(object):
 
                 with gr.Column(scale=3):
                     self._chatbot = gr.Chatbot(
+                        type='tuples',
                         label='🦈 Shirley',
                         height='80vh',
                         show_copy_button=True,

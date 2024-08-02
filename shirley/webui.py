@@ -13,7 +13,7 @@ from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from pathlib import Path
 from shirley.types import Chatbot, HistoryState, MultimodalTextbox
 from shirley.utils import getpath, isimage, parse
-from typing import Iterator, List, Sequence, Tuple
+from typing import Callable, Iterator, List, Sequence, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -48,38 +48,6 @@ class WebUI(object):
     @property
     def blocks(self) -> gr.Blocks:
         return self._blocks
-
-    @property
-    def dark_mode_button(self) -> gr.Button:
-        return self._dark_mode_button
-
-    @property
-    def chatbot(self) -> gr.Chatbot:
-        return self._chatbot
-
-    @property
-    def history(self) -> gr.State:
-        return self._history
-
-    @property
-    def multimodal_textbox(self) -> gr.MultimodalTextbox:
-        return self._multimodal_textbox
-
-    @property
-    def submit_button(self) -> gr.Button:
-        return self._submit_button
-
-    @property
-    def stop_button(self) -> gr.Button:
-        return self._stop_button
-
-    @property
-    def regenerate_button(self) -> gr.Button:
-        return self._regenerate_button
-
-    @property
-    def reset_button(self) -> gr.Button:
-        return self._reset_button
 
 
     @staticmethod
@@ -253,139 +221,108 @@ class WebUI(object):
                         包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
                     )
                     gr.Markdown()
-                    self._dark_mode_button = gr.Button(
+                    dark_mode_button = gr.Button(
                         value='🌙 Dark Mode (深色模式)',
                         interactive=True,
                     )
 
                 with gr.Column(scale=3):
-                    self._chatbot = gr.Chatbot(
+                    chatbot = gr.Chatbot(
                         type='tuples',
                         label='🦈 Shirley',
                         height='80vh',
                         show_copy_button=True,
                         avatar_images=(None, getpath('./static/apple-touch-icon.png')),
                     )
-                    self._history = gr.State(value=[])
-                    self._multimodal_textbox = gr.MultimodalTextbox(
+                    history = gr.State(value=[])
+                    multimodal_textbox = gr.MultimodalTextbox(
                         placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
                         show_label=False,
                         interactive=True,
                     )
 
                     with gr.Row():
-                        self._submit_button = gr.Button(
-                            value='🚀 Submit (发送)',
-                            variant='secondary',
-                            interactive=False,
-                        )
-                        self._stop_button = gr.Button(
-                            value='⏹️ Stop (停止生成)',
-                            variant='secondary',
-                            interactive=False,
-                        )
-                        self._regenerate_button = gr.Button(
-                            value='🤔️ Regenerate (重新生成)',
-                            interactive=False,
-                        )
-                        self._reset_button = gr.Button(
-                            value='🧹 Reset (重置对话)',
-                            interactive=False,
-                        )
+                        submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
+                        stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
+                        regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
+                        reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
 
-            self.__subscribe_events()
+            def subscribe_events_generate(dependency: Dependency, generate_fn: Callable = self.generate) -> None:
+                dependency.success(
+                    fn=self.pregenerate,
+                    inputs=None,
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
+                    show_api=False,
+                ).then(
+                    fn=generate_fn,
+                    inputs=[chatbot, history],
+                    outputs=[chatbot, history],
+                    show_progress=True,
+                    show_api=False,
+                ).then(
+                    fn=self.postgenerate,
+                    inputs=None,
+                    outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
+                    show_api=False,
+                ).then(
+                    fn=self.log,
+                    inputs=[chatbot, history],
+                    outputs=None,
+                    show_api=False,
+                )
+
+            # dark mode button
+            dark_mode_button.click(
+                fn=None,
+                js='() => { document.body.classList.toggle("dark"); }',
+                show_api=False,
+            )
+            
+            # multimodal textbox
+            multimodal_textbox.change(
+                fn=self.change,
+                inputs=[multimodal_textbox],
+                outputs=[submit_button],
+                show_api=False,
+            )
+            multimodal_textbox_submit = multimodal_textbox.submit(
+                fn=self.submit,
+                inputs=[chatbot, history, multimodal_textbox],
+                outputs=[chatbot, history, multimodal_textbox],
+                show_api=False,
+            )
+            subscribe_events_generate(dependency=multimodal_textbox_submit)
+
+            # submit button
+            submit_button_click = submit_button.click(
+                fn=self.submit,
+                inputs=[chatbot, history, multimodal_textbox],
+                outputs=[chatbot, history, multimodal_textbox],
+                show_api=False,
+            )
+            subscribe_events_generate(dependency=submit_button_click)
+
+            # stop button
+            stop_button.click(fn=self.stop, show_api=False)
+
+            # regenerate button
+            regenerate_button_click = regenerate_button.click(fn=lambda:None, show_api=False)
+            subscribe_events_generate(dependency=regenerate_button_click, generate_fn=self.regenerate)
+
+            # reset button
+            reset_button.click(
+                fn=lambda: ([], [], None),
+                inputs=None,
+                outputs=[chatbot, history, multimodal_textbox],
+                show_api=False,
+            ).then(
+                fn=self.reset,
+                inputs=None,
+                outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
+                show_api=False,
+            )
+
             return blocks
-
-
-    def __subscribe_events(self) -> None:
-        self.dark_mode_button.click(
-            fn=None,
-            js='() => { document.body.classList.toggle("dark"); }',
-            show_api=False,
-        )
-
-        self.multimodal_textbox.change(
-            fn=self.change,
-            inputs=[self.multimodal_textbox],
-            outputs=[self.submit_button],
-            show_api=False,
-        )
-
-        multimodal_textbox_submit = self.multimodal_textbox.submit(
-            fn=self.submit,
-            inputs=[self.chatbot, self.history, self.multimodal_textbox],
-            outputs=[self.chatbot, self.history, self.multimodal_textbox],
-            show_api=False,
-        )
-        self.__subscribe_events_generate(dependency=multimodal_textbox_submit, generate_fn=self.generate)
-
-        submit_button_click = self.submit_button.click(
-            fn=self.submit,
-            inputs=[self.chatbot, self.history, self.multimodal_textbox],
-            outputs=[self.chatbot, self.history, self.multimodal_textbox],
-            show_api=False,
-        )
-        self.__subscribe_events_generate(dependency=submit_button_click, generate_fn=self.generate)
-
-        self.stop_button.click(fn=self.stop, show_api=False)
-
-        regenerate_button_click = self.regenerate_button.click(fn=lambda:None, show_api=False)
-        self.__subscribe_events_generate(dependency=regenerate_button_click, generate_fn=self.regenerate)
-
-        self.reset_button.click(
-            fn=lambda: ([], [], None),
-            inputs=None,
-            outputs=[self.chatbot, self.history, self.multimodal_textbox],
-            show_api=False,
-        ).then(
-            fn=self.reset,
-            inputs=None,
-            outputs=[
-                self.multimodal_textbox,
-                self.submit_button,
-                self.stop_button,
-                self.regenerate_button,
-                self.reset_button,
-            ],
-            show_api=False,
-        )
-
-
-    def __subscribe_events_generate(self, dependency: Dependency, generate_fn):
-        dependency.success(
-            fn=self.pregenerate,
-            inputs=None,
-            outputs=[
-                self.multimodal_textbox,
-                self.submit_button,
-                self.stop_button,
-                self.regenerate_button,
-                self.reset_button,
-            ],
-            show_api=False,
-        ).then(
-            fn=generate_fn,
-            inputs=[self.chatbot, self.history],
-            outputs=[self.chatbot, self.history],
-            show_progress=True,
-            show_api=False,
-        ).then(
-            fn=self.postgenerate,
-            inputs=None,
-            outputs=[
-                self.multimodal_textbox,
-                self.submit_button,
-                self.stop_button,
-                self.regenerate_button,
-                self.reset_button,
-            ],
-            show_api=False,
-        ).then(
-            fn=self.log,
-            inputs=[self.chatbot, self.history],
-            outputs=None,
-            show_api=False,
-        )
 
 
     def launch(self) -> Tuple[FastAPI, str, str]:

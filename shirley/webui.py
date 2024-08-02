@@ -25,7 +25,7 @@ class WebUI(object):
         self._client = client
         self._tempdir = tempdir
         self._generating = False
-        self._blocks = self._create_gradio_blocks()
+        self._blocks = self.__create_blocks()
 
 
     @property
@@ -132,11 +132,11 @@ class WebUI(object):
 
     def regenerate(self, chatbot: Chatbot, history_state: HistoryState) -> Iterator[Tuple[Chatbot, HistoryState]]:
         if len(chatbot) < 1 or len(history_state) < 1:
-            return chatbot, history_state
+            return iter([(chatbot, history_state)])
 
         state_last = history_state[-1]
         if state_last[1] is None:
-            return chatbot, history_state
+            return iter([(chatbot, history_state)])
         history_state[-1] = (state_last[0], None)
 
         chatbot_last = chatbot.pop(-1)
@@ -218,7 +218,7 @@ class WebUI(object):
         logger.info(f'HistoryState: {history_state}')
 
 
-    def _create_gradio_blocks(self) -> gr.Blocks:
+    def __create_blocks(self) -> gr.Blocks:
         with gr.Blocks(theme=gr.themes.Default(), title='Shirley WebUI', fill_width=True) as blocks:
             with gr.Row():
                 with gr.Column(scale=1):

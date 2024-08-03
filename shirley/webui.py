@@ -27,7 +27,7 @@ class WebUI(object):
     def __init__(self, client: shirley.Client) -> None:
         self._client = client
         self._generating = False
-        self._blocks = self._create_blocks()
+        self._blocks = self._init_blocks()
 
     @property
     def client(self) -> shirley.Client:
@@ -368,52 +368,50 @@ class WebUI(object):
         self._subscribe_events_reset_button(*args, **kwargs)
 
 
-    def _create_blocks(self, *args, **kwargs) -> gr.Blocks:
-        with gr.Blocks(theme=gr.themes.Default(), title='Shirley WebUI', fill_width=True) as blocks:
-            with gr.Row():
-                with gr.Column(scale=1):
-                    gr.Markdown(value='# 🦈 Shirley WebUI')
-                    gr.Markdown()
-                    gr.Markdown(value=
-                        'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
-                        to implement chatbot functionality. \
-                        (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
-                    )
-                    gr.Markdown()
-                    gr.Markdown(value=
-                        'This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise users not \
-                        to knowingly generate or allow others to knowingly generate harmful content, including hate \
-                        speech, violence, pornography, deception, etc. \
-                        (本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，\
-                        包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
-                    )
-                    gr.Markdown()
-                    dark_mode_button = gr.Button(
-                        value='🌙 Dark Mode (深色模式)',
-                        interactive=True,
-                    )
+    def _init_blocks(self, *args, **kwargs) -> gr.Blocks:
+        with (
+            gr.Blocks(theme=gr.themes.Default(), title='Shirley WebUI', fill_width=True) as blocks,
+            gr.Row(),
+        ):
+            with gr.Column(scale=1):
+                gr.Markdown(value='# 🦈 Shirley WebUI')
+                gr.Markdown()
+                gr.Markdown(value=
+                    'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
+                    to implement chatbot functionality. \
+                    (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
+                )
+                gr.Markdown()
+                gr.Markdown(value=
+                    'This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise users not \
+                    to knowingly generate or allow others to knowingly generate harmful content, including hate \
+                    speech, violence, pornography, deception, etc. \
+                    (本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，\
+                    包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
+                )
+                gr.Markdown()
+                dark_mode_button = gr.Button(value='🌙 Dark Mode (深色模式)')
 
-                with gr.Column(scale=3):
-                    chatbot = gr.Chatbot(
-                        type='tuples',
-                        label='🦈 Shirley',
-                        height='70vh',
-                        show_copy_button=True,
-                        avatar_images=(None, getpath('./static/apple-touch-icon.png')),
-                    )
-                    history_state = gr.State(value=[])
-                    multimodal_textbox = gr.MultimodalTextbox(
-                        placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
-                        show_label=False,
-                        interactive=True,
-                        submit_btn=False,
-                    )
-
-                    with gr.Row():
-                        submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
-                        stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
-                        regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
-                        reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
+            with gr.Column(scale=3):
+                chatbot = gr.Chatbot(
+                    type='tuples',
+                    label='🦈 Shirley',
+                    height='70vh',
+                    show_copy_button=True,
+                    avatar_images=(None, getpath('./static/apple-touch-icon.png')),
+                )
+                history_state = gr.State(value=[])
+                multimodal_textbox = gr.MultimodalTextbox(
+                    placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
+                    show_label=False,
+                    interactive=True,
+                    submit_btn=False,
+                )
+                with gr.Row():
+                    submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
+                    stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
+                    regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
+                    reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
 
             self._subscribe_events(
                 dark_mode_button=dark_mode_button,

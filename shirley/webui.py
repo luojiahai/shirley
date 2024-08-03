@@ -24,7 +24,7 @@ class WebUI(object):
     def __init__(self, client: sh.Client) -> None:
         self._client = client
         self._generating = False
-        self._blocks = self._initialise_interface()
+        self._blocks = self._make_blocks()
 
 
     @property
@@ -274,7 +274,7 @@ class WebUI(object):
         )
 
 
-    def _configure_dark_mode_button(self, *args, **kwargs) -> None:
+    def _setup_dark_mode_button(self, *args, **kwargs) -> None:
         dark_mode_button: gr.Button = kwargs['dark_mode_button']
 
         dark_mode_button.click(
@@ -284,7 +284,7 @@ class WebUI(object):
         )
 
 
-    def _configure_multimodal_textbox(self, *args, **kwargs) -> None:
+    def _setup_multimodal_textbox(self, *args, **kwargs) -> None:
         chatbot: gr.Chatbot = kwargs['chatbot']
         history: gr.State = kwargs['history']
         multimodal_textbox: gr.MultimodalTextbox = kwargs['multimodal_textbox']
@@ -306,7 +306,7 @@ class WebUI(object):
         self._set_event_trigger_generate(dependency=submit, fn=self._generate, *args, **kwargs)
 
 
-    def _configure_submit_button(self, *args, **kwargs) -> None:
+    def _setup_submit_button(self, *args, **kwargs) -> None:
         chatbot: gr.Chatbot = kwargs['chatbot']
         history: gr.State = kwargs['history']
         multimodal_textbox: gr.MultimodalTextbox = kwargs['multimodal_textbox']
@@ -321,20 +321,20 @@ class WebUI(object):
         self._set_event_trigger_generate(dependency=click, fn=self._generate, *args, **kwargs)
 
 
-    def _configure_stop_button(self, *args, **kwargs) -> None:
+    def _setup_stop_button(self, *args, **kwargs) -> None:
         stop_button: gr.Button = kwargs['stop_button']
 
         stop_button.click(fn=self._stop, show_api=False)
 
 
-    def _configure_regenerate_button(self, *args, **kwargs) -> None:
+    def _setup_regenerate_button(self, *args, **kwargs) -> None:
         regenerate_button: gr.Button = kwargs['regenerate_button']
 
         click = regenerate_button.click(fn=lambda:None, show_api=False)
         self._set_event_trigger_generate(dependency=click, fn=self._regenerate, *args, **kwargs)
 
 
-    def _configure_reset_button(self, *args, **kwargs) -> None:
+    def _setup_reset_button(self, *args, **kwargs) -> None:
         chatbot: gr.Chatbot = kwargs['chatbot']
         history: gr.State = kwargs['history']
         multimodal_textbox: gr.MultimodalTextbox = kwargs['multimodal_textbox']
@@ -357,16 +357,16 @@ class WebUI(object):
         )
 
 
-    def _configure_components(self, *args, **kwargs) -> None:
-        self._configure_dark_mode_button(*args, **kwargs)
-        self._configure_multimodal_textbox(*args, **kwargs)
-        self._configure_submit_button(*args, **kwargs)
-        self._configure_stop_button(*args, **kwargs)
-        self._configure_regenerate_button(*args, **kwargs)
-        self._configure_reset_button(*args, **kwargs)
+    def _setup_components(self, *args, **kwargs) -> None:
+        self._setup_dark_mode_button(*args, **kwargs)
+        self._setup_multimodal_textbox(*args, **kwargs)
+        self._setup_submit_button(*args, **kwargs)
+        self._setup_stop_button(*args, **kwargs)
+        self._setup_regenerate_button(*args, **kwargs)
+        self._setup_reset_button(*args, **kwargs)
 
 
-    def _initialise_interface(self, *args, **kwargs) -> gr.Blocks:
+    def _make_blocks(self, *args, **kwargs) -> gr.Blocks:
         with (
             gr.Blocks(theme=gr.themes.Default(), title='Shirley WebUI', fill_width=True) as blocks,
             gr.Row(),
@@ -411,7 +411,7 @@ class WebUI(object):
                     regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
                     reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
 
-            self._configure_components(
+            self._setup_components(
                 dark_mode_button=dark_mode_button,
                 chatbot=chatbot,
                 history=history,

@@ -377,18 +377,18 @@ class WebUI(object):
             with gr.Column(scale=1):
                 gr.Markdown(value='# 🦈 Shirley WebUI')
                 gr.Markdown()
-                gr.Markdown(value=
-                    'This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
+                gr.Markdown(
+                    value='This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
                     to implement chatbot functionality. \
                     (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
                 )
                 gr.Markdown()
-                gr.Markdown(value=
-                    'This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise users not \
-                    to knowingly generate or allow others to knowingly generate harmful content, including hate \
+                gr.Markdown(
+                    value='This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise users \
+                    not to knowingly generate or allow others to knowingly generate harmful content, including hate \
                     speech, violence, pornography, deception, etc. \
-                    (本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，\
-                    包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
+                    (本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，包括但不限于仇恨言论、暴力、\
+                    色情、欺诈相关的有害信息。)'
                 )
                 gr.Markdown()
                 dark_mode_button = gr.Button(value='🌙 Dark Mode (深色模式)')

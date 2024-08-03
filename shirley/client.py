@@ -19,7 +19,12 @@ class Client(object):
 
     def __init__(self, pretrained_model_name_or_path: str) -> None:
         if not os.path.exists(pretrained_model_name_or_path):
-            raise FileNotFoundError(f'Pretrained model not found in path {pretrained_model_name_or_path}.')
+            logger.warning(f'Pre-trained model not found in path \'{pretrained_model_name_or_path}\'.')
+            logger.info(f'Using remote pre-trained model \'{pretrained_model_name_or_path}\' from 🤗 Hugging Face.')
+            local_files_only = False
+        else:
+            logger.info(f'Using local pre-trained model \'{pretrained_model_name_or_path}\'.')
+            local_files_only = True
 
         if torch.cuda.is_available():
             self._device = torch.device('cuda')
@@ -31,17 +36,19 @@ class Client(object):
 
         tokenizer = QWenTokenizer.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_name_or_path,
-            local_files_only=True,
+            local_files_only=local_files_only,
+            trust_remote_code=True,
         )
 
         model = QWenLMHeadModel.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_name_or_path,
-            local_files_only=True,
+            local_files_only=local_files_only,
+            trust_remote_code=True,
         )
 
         model.generation_config = transformers.GenerationConfig.from_pretrained(
             pretrained_model_name=pretrained_model_name_or_path,
-            local_files_only=True,
+            local_files_only=local_files_only,
             trust_remote_code=True,
         )
 

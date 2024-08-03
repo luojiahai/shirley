@@ -59,7 +59,7 @@ class WebUI(object):
                 count += 1
                 items = line.split('`')
                 if count % 2 == 1:
-                    lines[i] = f'<pre><code class="language-{items[-1]}">'
+                    lines[i] = f'<pre><code class=\'language-{items[-1]}\'>'
                 else:
                     lines[i] = f'<br></code></pre>'
             else:
@@ -279,7 +279,7 @@ class WebUI(object):
 
         dark_mode_button.click(
             fn=None,
-            js='() => { document.body.classList.toggle("dark"); }',
+            js='() => { document.body.classList.toggle(\'dark\'); }',
             show_api=False,
         )
 

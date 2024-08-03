@@ -1,23 +1,14 @@
+import fastapi
 import gradio as gr
 import logging
 import os
+import pathlib
 import pypdf
 import re
-import shirley
+import shirley as sh
 import sys
 import tempfile
-from fastapi import FastAPI
 from gradio.events import Dependency
-from pathlib import Path
-from shirley.types import (
-    BlocksOutput,
-    ChatbotTuplesInput,
-    ChatHistory,
-    ComponentsOutput,
-    HistoryInput,
-    MultimodalTextboxInput,
-)
-from shirley.utils import getpath, isimage
 from typing import Callable, List, Tuple
 
 
@@ -27,17 +18,17 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class WebUI(object):
 
-    tempdir = os.environ.get('GRADIO_TEMP_DIR') or str(Path(tempfile.gettempdir()) / 'gradio')
+    tempdir = os.environ.get('GRADIO_TEMP_DIR') or str(pathlib.Path(tempfile.gettempdir()) / 'gradio')
 
 
-    def __init__(self, client: shirley.Client) -> None:
+    def __init__(self, client: sh.Client) -> None:
         self._client = client
         self._generating = False
         self._blocks = self._initialise_interface()
 
 
     @property
-    def client(self) -> shirley.Client:
+    def client(self) -> sh.Client:
         return self._client
 
     @property
@@ -53,7 +44,7 @@ class WebUI(object):
         return self._blocks
 
 
-    def launch(self, *args, **kwargs) -> Tuple[FastAPI, str, str]:
+    def launch(self, *args, **kwargs) -> Tuple[fastapi.FastAPI, str, str]:
         self.blocks.queue(api_open=False)
         return self.blocks.launch(*args, **kwargs)
 
@@ -97,7 +88,7 @@ class WebUI(object):
 
     @staticmethod
     def _load_context(filepath: str) -> str:
-        if isimage(filepath):
+        if sh.isimage(filepath):
             return f'Picture: <img>{filepath}</img>'
         elif filepath.endswith('.pdf'):
             reader = pypdf.PdfReader(stream=filepath)
@@ -107,8 +98,8 @@ class WebUI(object):
             return ''
 
 
-    def _get_query_and_chat_history(self, history: HistoryInput) -> Tuple[str, ChatHistory]:
-        chat_history: ChatHistory = []
+    def _get_query_and_chat_history(self, history: sh.HistoryInput) -> Tuple[str, sh.ChatHistory]:
+        chat_history: sh.ChatHistory = []
         text = ''
         for _, (query, response) in enumerate(history):
             if isinstance(query, (Tuple, List)):
@@ -122,9 +113,9 @@ class WebUI(object):
         return chat_history[-1][0], chat_history[:-1]
 
 
-    def _generate(self, *args, **kwargs) -> BlocksOutput:
-        chatbot: ChatbotTuplesInput = args[0]
-        history: HistoryInput = args[1]
+    def _generate(self, *args, **kwargs) -> sh.BlocksOutput:
+        chatbot: sh.ChatbotTuplesInput = args[0]
+        history: sh.HistoryInput = args[1]
 
         self.generating = True
         logger.info(f'🙂 User: {chatbot[-1][0]}')
@@ -150,9 +141,9 @@ class WebUI(object):
         yield chatbot, history
 
 
-    def _regenerate(self, *args, **kwargs) -> BlocksOutput:
-        chatbot: ChatbotTuplesInput = args[0]
-        history: HistoryInput = args[1]
+    def _regenerate(self, *args, **kwargs) -> sh.BlocksOutput:
+        chatbot: sh.ChatbotTuplesInput = args[0]
+        history: sh.HistoryInput = args[1]
 
         if len(chatbot) < 1 or len(history) < 1:
             return chatbot, history
@@ -171,10 +162,10 @@ class WebUI(object):
         yield from self._generate(*args, **kwargs)
 
 
-    def _submit(self, *args, **kwargs) -> BlocksOutput:
-        chatbot: ChatbotTuplesInput = args[0]
-        history: HistoryInput = args[1]
-        multimodal_textbox: MultimodalTextboxInput = args[2]
+    def _submit(self, *args, **kwargs) -> sh.BlocksOutput:
+        chatbot: sh.ChatbotTuplesInput = args[0]
+        history: sh.HistoryInput = args[1]
+        multimodal_textbox: sh.MultimodalTextboxInput = args[2]
 
         text = multimodal_textbox['text']
         if not text or not text.strip():
@@ -191,8 +182,8 @@ class WebUI(object):
         return chatbot, history, None
 
 
-    def _change(self, *args, **kwargs) -> ComponentsOutput:
-        multimodal_textbox: MultimodalTextboxInput = args[0]
+    def _change(self, *args, **kwargs) -> sh.ComponentsOutput:
+        multimodal_textbox: sh.MultimodalTextboxInput = args[0]
 
         text = multimodal_textbox['text']
         if not text or not text.strip():
@@ -201,7 +192,7 @@ class WebUI(object):
         return gr.Button(variant='primary', interactive=True)
 
 
-    def _pregenerate(self, *args, **kwargs) -> ComponentsOutput:
+    def _pregenerate(self, *args, **kwargs) -> sh.ComponentsOutput:
         components = [
             gr.MultimodalTextbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
@@ -212,7 +203,7 @@ class WebUI(object):
         return tuple(components)
 
 
-    def _postgenerate(self, *args, **kwargs) -> ComponentsOutput:
+    def _postgenerate(self, *args, **kwargs) -> sh.ComponentsOutput:
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
@@ -223,11 +214,11 @@ class WebUI(object):
         return tuple(components)
 
 
-    def _stop(self, *args, **kwargs) -> ComponentsOutput:
+    def _stop(self, *args, **kwargs) -> sh.ComponentsOutput:
         self.generating = False
 
 
-    def _reset(self, *args, **kwargs) -> ComponentsOutput:
+    def _reset(self, *args, **kwargs) -> sh.ComponentsOutput:
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
@@ -238,9 +229,9 @@ class WebUI(object):
         return tuple(components)
 
 
-    def _log(self, *args, **kwargs) -> ComponentsOutput:
-        chatbot: ChatbotTuplesInput = args[0]
-        history: HistoryInput = args[1]
+    def _log(self, *args, **kwargs) -> sh.ComponentsOutput:
+        chatbot: sh.ChatbotTuplesInput = args[0]
+        history: sh.HistoryInput = args[1]
 
         logger.info(f'Chatbot: {chatbot}')
         logger.info(f'History: {history}')
@@ -405,7 +396,7 @@ class WebUI(object):
                     label='🦈 Shirley',
                     height='70vh',
                     show_copy_button=True,
-                    avatar_images=(None, getpath('./static/apple-touch-icon.png')),
+                    avatar_images=(None, sh.getpath('./static/apple-touch-icon.png')),
                 )
                 history = gr.State(value=[])
                 multimodal_textbox = gr.MultimodalTextbox(
@@ -435,14 +426,14 @@ class WebUI(object):
 
 
 def main() -> None:
-    client = shirley.Client(pretrained_model_name_or_path=getpath('./models/qwen_vl_chat'))
+    client = sh.Client(pretrained_model_name_or_path=sh.getpath('./models/qwen_vl_chat'))
     webui = WebUI(client=client)
     webui.launch(
         share=False,
         inbrowser=False,
         server_port=8000,
         server_name='127.0.0.1',
-        favicon_path=getpath('./static/favicon.ico'),
+        favicon_path=sh.getpath('./static/favicon.ico'),
     )
 
 

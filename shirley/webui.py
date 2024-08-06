@@ -14,21 +14,12 @@ class WebUI(object):
 
     def __init__(self, client: sh.Client) -> None:
         self._client = client
-        self._generating = False
         self._blocks = self._make_blocks()
 
 
     @property
     def client(self) -> sh.Client:
         return self._client
-
-    @property
-    def generating(self) -> bool:
-        return self._generating
-
-    @generating.setter
-    def generating(self, value) -> None:
-        self._generating = value
 
     @property
     def blocks(self) -> gr.Blocks:

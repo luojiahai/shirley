@@ -36,9 +36,9 @@ class WebUI(object):
             header = sh.Header()
             header.make_components()
 
-            # with gr.Tab('Chat'):
-            #     chat = sh.Chat(client=self.client)
-            #     chat.make_components()
+            with gr.Tab('Chat'):
+                chat = sh.Chat(client=self.client)
+                chat.make_components()
 
             with gr.Tab('Speech'):
                 speech = sh.Speech()
@@ -48,8 +48,7 @@ class WebUI(object):
 
 
 def main() -> None:
-    # client = sh.Client(pretrained_model_name_or_path=sh.getpath('./models/qwen_vl_chat'))
-    client = None
+    client = sh.Client(pretrained_model_name_or_path=sh.getpath('./models/qwen_vl_chat'))
     webui = WebUI(client=client)
     webui.launch(
         share=False,

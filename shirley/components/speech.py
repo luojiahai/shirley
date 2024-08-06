@@ -69,14 +69,6 @@ class Speech(sh.Component):
         return gr.Button(variant='primary', interactive=True)
 
 
-    def _preconvert(self, *args, **kwargs):
-        pass
-
-
-    def _postconvert(self, *args, **kwargs):
-        pass
-
-
     def _setup_textbox(self, *args, **kwargs) -> None:
         textbox: gr.Textbox = kwargs['textbox']
         convert_button: gr.Button = kwargs['convert_button']

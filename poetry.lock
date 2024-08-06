@@ -45,6 +45,21 @@ test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypo
 trio = ["trio (>=0.23)"]
 
 [[package]]
+name = "azure-cognitiveservices-speech"
+version = "1.38.0"
+description = "Microsoft Cognitive Services Speech SDK for Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "azure_cognitiveservices_speech-1.38.0-py3-none-macosx_10_14_x86_64.whl", hash = "sha256:18dce915ab032711f687abb3297dd19176b9cbea562b322ee6fa7365ef4a5091"},
+    {file = "azure_cognitiveservices_speech-1.38.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:9dd0800fbc4a8438c6dfd5747a658251914fe2d205a29e9b46158cadac6ab381"},
+    {file = "azure_cognitiveservices_speech-1.38.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:1c344e8a6faadb063cea451f0301e13b44d9724e1242337039bff601e81e6f86"},
+    {file = "azure_cognitiveservices_speech-1.38.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:1e002595a749471efeac3a54c80097946570b76c13049760b97a4b881d9d24af"},
+    {file = "azure_cognitiveservices_speech-1.38.0-py3-none-win32.whl", hash = "sha256:16a530e6c646eb49ea0bc05cb45a9d28b99e4b67613f6c3a6c54e26e6bf65241"},
+    {file = "azure_cognitiveservices_speech-1.38.0-py3-none-win_amd64.whl", hash = "sha256:1d38d8c056fb3f513a9ff27ab4e77fd08ca487f8788cc7a6df772c1ab2c97b54"},
+]
+
+[[package]]
 name = "certifi"
 version = "2024.7.4"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -2562,4 +2577,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.6"
-content-hash = "a8577b9f7478522e300449859c50959eead82b23b8dee1a824c421897540bc70"
+content-hash = "f8aabc3c423cd6788ba47345a2c96bdc5920a1b51836585c936b662f716288ac"

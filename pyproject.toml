@@ -15,6 +15,7 @@ pytest = "^8.3.1"
 tiktoken = "^0.7.0"
 einops = "^0.8.0"
 transformers-stream-generator = "^0.0.5"
+azure-cognitiveservices-speech = "^1.38.0"
 
 [tool.poetry.scripts]
 webui = "shirley.webui:main"

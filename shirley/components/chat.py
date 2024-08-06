@@ -95,7 +95,7 @@ class Chat(sh.Component):
         return chat_history[-1][0], chat_history[:-1]
 
 
-    def _generate(self, *args, **kwargs) -> sh.BlocksOutput:
+    def _generate(self, *args, **kwargs) -> sh.ChatBlocksOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
         history: sh.HistoryInput = args[1]
 
@@ -123,7 +123,7 @@ class Chat(sh.Component):
         yield chatbot, history
 
 
-    def _regenerate(self, *args, **kwargs) -> sh.BlocksOutput:
+    def _regenerate(self, *args, **kwargs) -> sh.ChatBlocksOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
         history: sh.HistoryInput = args[1]
 
@@ -144,7 +144,7 @@ class Chat(sh.Component):
         yield from self._generate(*args, **kwargs)
 
 
-    def _submit(self, *args, **kwargs) -> sh.BlocksOutput:
+    def _submit(self, *args, **kwargs) -> sh.ChatBlocksOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
         history: sh.HistoryInput = args[1]
         multimodal_textbox: sh.MultimodalTextboxInput = args[2]

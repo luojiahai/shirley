@@ -6,6 +6,7 @@ import pathlib
 import shirley as sh
 import sys
 import uuid
+from typing import Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,15 @@ class Speech(sh.Component):
         return self._text_to_speech(text=textbox)
 
 
+    def _submit(self, *args, **kwargs) -> Tuple[str | None, str]:
+        textbox: str | None = args[0]
+
+        if not textbox or not textbox.strip():
+            raise gr.Error(visible=False)
+
+        return None, textbox
+
+
     def _change(self, *args, **kwargs) -> sh.ComponentsOutput:
         textbox: str | None = args[0]
 
@@ -67,6 +77,22 @@ class Speech(sh.Component):
             return gr.Button(variant='secondary', interactive=False)
 
         return gr.Button(variant='primary', interactive=True)
+
+
+    def _preconvert(self, *args, **kwargs) -> sh.ComponentsOutput:
+        components = [
+            gr.Textbox(interactive=False),
+            gr.Button(variant='secondary', interactive=False),
+        ]
+        return components
+
+
+    def _postconvert(self, *args, **kwargs) -> sh.ComponentsOutput:
+        components = [
+            gr.Textbox(interactive=True),
+            gr.Button(variant='secondary', interactive=False),
+        ]
+        return components
 
 
     def _setup_textbox(self, *args, **kwargs) -> None:
@@ -83,13 +109,32 @@ class Speech(sh.Component):
 
     def _setup_convert_button(self, *args, **kwargs) -> None:
         textbox: gr.Textbox = kwargs['textbox']
+        text: gr.State = kwargs['text']
         convert_button: gr.Button = kwargs['convert_button']
         audio: gr.Audio = kwargs['audio']
 
-        convert_button.click(
-            fn=self._convert,
+        click = convert_button.click(
+            fn=self._submit,
             inputs=[textbox],
+            outputs=[textbox, text],
+            show_api=False,
+        )
+        preconvert = click.success(
+            fn=self._preconvert,
+            inputs=None,
+            outputs=[textbox, convert_button],
+            show_api=False,
+        )
+        convert = preconvert.then(
+            fn=self._convert,
+            inputs=[text],
             outputs=[audio],
+            show_api=False,
+        )
+        convert.then(
+            fn=self._postconvert,
+            inputs=None,
+            outputs=[textbox, convert_button],
             show_api=False,
         )
 
@@ -103,12 +148,14 @@ class Speech(sh.Component):
         with gr.Row():
             with gr.Column():
                 textbox = gr.Textbox(lines=10)
+                text = gr.State('')
                 convert_button = gr.Button(value='↪️ Convert (转换)', variant='secondary', interactive=False)
             with gr.Column():
                 audio = gr.Audio(interactive=False)
 
         self._setup(
             textbox=textbox,
+            text=text,
             convert_button=convert_button,
             audio=audio,
         )

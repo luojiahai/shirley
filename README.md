@@ -56,6 +56,13 @@ Update submodule:
 git submodule update --remote --merge
 ```
 
+### Set environment variables
+
+```
+export SPEECH_KEY=your-key
+export SPEECH_REGION=your-region
+```
+
 ## Usage
 
 Activate the virtual environment:

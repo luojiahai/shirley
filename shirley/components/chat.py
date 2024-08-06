@@ -1,12 +1,9 @@
 import gradio as gr
 import logging
-import os
-import pathlib
 import pypdf
 import re
 import shirley as sh
 import sys
-import tempfile
 from gradio.events import Dependency
 from typing import Callable, List, Tuple
 
@@ -17,10 +14,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(sh.Component):
 
-    tempdir = os.environ.get('GRADIO_TEMP_DIR') or str(pathlib.Path(tempfile.gettempdir()) / 'gradio')
-
-
     def __init__(self, client: sh.Client) -> None:
+        super().__init__()
         self._client = client
         self._generating = False
 

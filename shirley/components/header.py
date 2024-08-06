@@ -11,7 +11,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 class Header(sh.Component):
     
     def __init__(self) -> None:
-        pass
+        super().__init__()
 
 
     def _setup_dark_mode_button(self, *args, **kwargs) -> None:

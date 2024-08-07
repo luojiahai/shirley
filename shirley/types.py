@@ -13,6 +13,9 @@ GradioComponents = Component | Sequence[Component] | None
 
 
 # Components
+ModelDropdownInput = str
+ModelDropdownOutput = str
+
 ChatbotTuplesInput = List[List[str | Tuple | None]]
 ChatbotTuplesOutput = List[List | Tuple]
 
@@ -39,7 +42,7 @@ AudioOutput = str | pathlib.Path | bytes | Tuple[int, np.ndarray] | None
 
 
 # Chat
-ChatComponentOutput = ChatbotTuplesOutput | ChatHistoryOutput | MultimodalTextboxOutput
+ChatComponentOutput = ModelDropdownOutput | ChatbotTuplesOutput | ChatHistoryOutput | MultimodalTextboxOutput
 ChatComponentsOutput = ChatComponentOutput | Sequence[ChatComponentOutput] | Iterator[Sequence[ChatComponentOutput]] | None
 
 

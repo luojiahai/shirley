@@ -1,11 +1,12 @@
 import gradio as gr
 import logging
+import os
 import pypdf
 import re
 import shirley as sh
 import sys
 from gradio.events import Dependency
-from typing import Callable, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -14,11 +15,24 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class ChatComponent(sh.Component):
 
+    MODELS_PATH = './models'
+
+
     def __init__(self) -> None:
         super().__init__()
-        self._client = sh.Client(pretrained_model_name_or_path=sh.getpath('./models/qwen_vl_chat'))
+        self._pretrained_models = self._get_available_pretrained_models()
+        self._pretrained_model_name_or_path = None
+        self._client = None
         self._generating = False
 
+
+    @property
+    def pretrained_models(self) -> Dict:
+        return self._pretrained_models
+    
+    @property
+    def pretrained_model_name_or_path(self) -> str | None:
+        return self._pretrained_model_name_or_path
 
     @property
     def client(self) -> sh.Client:
@@ -31,6 +45,16 @@ class ChatComponent(sh.Component):
     @generating.setter
     def generating(self, value) -> None:
         self._generating = value
+
+
+    def _get_available_pretrained_models(self) -> Dict:
+        models_directory = os.path.abspath(os.path.expanduser(self.MODELS_PATH))
+        pretrained_models = os.listdir(models_directory)
+        return pretrained_models
+
+
+    def _get_pretrained_model_path(self, model_directory: str) -> str:
+        return os.path.abspath(os.path.expanduser(f'{self.MODELS_PATH}/{model_directory}'))
 
 
     def _parse(self, text: str, remove_image_tags: bool = False) -> str:
@@ -143,6 +167,12 @@ class ChatComponent(sh.Component):
             gr.Button(interactive=True),
         ]
         return tuple(components)
+    
+
+    def _validate(self, *args, **kwargs) -> None:
+        if not self.client:
+            logger.error('Model not loaded.')
+            raise gr.Error('Pre-trained model not loaded. Please load a model.')
 
 
     def _submit(self, *args, **kwargs) -> sh.ChatComponentsOutput:
@@ -199,6 +229,18 @@ class ChatComponent(sh.Component):
             gr.Button(interactive=False),
         ]
         return tuple(components)
+    
+
+    def _model_dropdown_change(self, *args, **kwargs) -> None:
+        model_dropdown: sh.ModelDropdownInput = args[0]
+
+        self._pretrained_model_name_or_path = self._get_pretrained_model_path(model_directory=model_dropdown)
+
+
+    def _load_button_click(self, *args, **kwargs) -> sh.GradioComponents:
+        self._client = sh.Client(pretrained_model_name_or_path=self.pretrained_model_name_or_path)
+
+        return gr.Dropdown(interactive=True), gr.Button(interactive=True)
 
 
     def _multimodal_textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
@@ -209,6 +251,35 @@ class ChatComponent(sh.Component):
             return gr.Button(variant='secondary', interactive=False)
 
         return gr.Button(variant='primary', interactive=True)
+    
+
+    def _setup_model_dropdown(self, *args, **kwargs):
+        model_dropdown: gr.Dropdown = kwargs['model_dropdown']
+
+        model_dropdown.change(
+            fn=self._model_dropdown_change,
+            inputs=[model_dropdown],
+            outputs=None,
+            show_api=False,
+        )
+
+
+    def _setup_load_button(self, *args, **kwargs):
+        model_dropdown: gr.Dropdown = kwargs['model_dropdown']
+        load_button: gr.Button = kwargs['load_button']
+
+        load_button_click = load_button.click(
+            fn=lambda: (gr.Dropdown(interactive=False), gr.Button(interactive=False)),
+            inputs=None,
+            outputs=[model_dropdown, load_button],
+            show_api=False,
+        )
+        load_button_click.then(
+            fn=self._load_button_click,
+            inputs=None,
+            outputs=[model_dropdown, load_button],
+            show_api=False,
+        )
 
 
     def _set_event_trigger_generate(self, dependency: Dependency, fn: Callable, *args, **kwargs) -> None:
@@ -234,7 +305,7 @@ class ChatComponent(sh.Component):
             show_progress=True,
             show_api=False,
         )
-        postgenerate = generate.then(
+        generate.then(
             fn=self._postgenerate,
             inputs=None,
             outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
@@ -255,7 +326,11 @@ class ChatComponent(sh.Component):
             show_api=False,
         )
 
-        submit = multimodal_textbox.submit(
+        validate = multimodal_textbox.submit(
+            fn=self._validate,
+            show_api=False,
+        )
+        submit = validate.success(
             fn=self._submit,
             inputs=[chatbot, history, multimodal_textbox],
             outputs=[chatbot, history, multimodal_textbox],
@@ -270,13 +345,17 @@ class ChatComponent(sh.Component):
         multimodal_textbox: gr.MultimodalTextbox = kwargs['multimodal_textbox']
         submit_button: gr.Button = kwargs['submit_button']
 
-        click = submit_button.click(
+        validate = submit_button.click(
+            fn=self._validate,
+            show_api=False,
+        )
+        submit = validate.success(
             fn=self._submit,
             inputs=[chatbot, history, multimodal_textbox],
             outputs=[chatbot, history, multimodal_textbox],
             show_api=False,
         )
-        self._set_event_trigger_generate(dependency=click, fn=self._generate, *args, **kwargs)
+        self._set_event_trigger_generate(dependency=submit, fn=self._generate, *args, **kwargs)
 
 
     def _setup_stop_button(self, *args, **kwargs) -> None:
@@ -316,6 +395,8 @@ class ChatComponent(sh.Component):
 
 
     def _setup(self, *args, **kwargs) -> None:
+        self._setup_model_dropdown(*args, **kwargs)
+        self._setup_load_button(*args, **kwargs)
         self._setup_multimodal_textbox(*args, **kwargs)
         self._setup_submit_button(*args, **kwargs)
         self._setup_stop_button(*args, **kwargs)
@@ -326,10 +407,24 @@ class ChatComponent(sh.Component):
     def make_components(self, *args, **kwargs) -> None:
         gr.Markdown(value='### 🦈 Chat')
 
+        with gr.Row():
+            self._pretrained_model_name_or_path = self._get_pretrained_model_path(
+                model_directory=self.pretrained_models[0],
+            )
+            model_dropdown = gr.Dropdown(
+                choices=self.pretrained_models,
+                value=self.pretrained_models[0],
+                multiselect=False,
+                label='📦 Pre-trained Model (模型)',
+                scale=3,
+                interactive=True,
+            )
+            load_button = gr.Button(value='📥 Load (读取)', variant='secondary', scale=1)
+
         chatbot = gr.Chatbot(
             type='tuples',
             label='🦈 Shirley',
-            height='70vh',
+            height='50vh',
             show_copy_button=True,
             avatar_images=(None, sh.getpath('./static/apple-touch-icon.png')),
         )
@@ -348,6 +443,8 @@ class ChatComponent(sh.Component):
             reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
 
         self._setup(
+            model_dropdown=model_dropdown,
+            load_button=load_button,
             chatbot=chatbot,
             history=history,
             multimodal_textbox=multimodal_textbox,

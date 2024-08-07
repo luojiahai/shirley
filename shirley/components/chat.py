@@ -80,8 +80,8 @@ class Chat(sh.Component):
             return ''
 
 
-    def _get_query_and_chat_history(self, history: sh.HistoryInput) -> Tuple[str, sh.ChatHistory]:
-        chat_history: sh.ChatHistory = []
+    def _get_query_and_chat_history(self, history: sh.ChatHistoryInput) -> Tuple[str, sh.QwenHistory]:
+        chat_history: sh.QwenHistory = []
         text = ''
         for _, (query, response) in enumerate(history):
             if isinstance(query, (Tuple, List)):
@@ -95,9 +95,9 @@ class Chat(sh.Component):
         return chat_history[-1][0], chat_history[:-1]
 
 
-    def _generate(self, *args, **kwargs) -> sh.ChatBlocksOutput:
+    def _generate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.HistoryInput = args[1]
+        history: sh.ChatHistoryInput = args[1]
 
         self.generating = True
         logger.info(f'🙂 User: {chatbot[-1][0]}')
@@ -123,9 +123,9 @@ class Chat(sh.Component):
         yield chatbot, history
 
 
-    def _regenerate(self, *args, **kwargs) -> sh.ChatBlocksOutput:
+    def _regenerate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.HistoryInput = args[1]
+        history: sh.ChatHistoryInput = args[1]
 
         if len(chatbot) < 1 or len(history) < 1:
             return chatbot, history
@@ -144,9 +144,9 @@ class Chat(sh.Component):
         yield from self._generate(*args, **kwargs)
 
 
-    def _submit(self, *args, **kwargs) -> sh.ChatBlocksOutput:
+    def _submit(self, *args, **kwargs) -> sh.ChatComponentsOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.HistoryInput = args[1]
+        history: sh.ChatHistoryInput = args[1]
         multimodal_textbox: sh.MultimodalTextboxInput = args[2]
 
         text = multimodal_textbox['text']
@@ -164,7 +164,7 @@ class Chat(sh.Component):
         return chatbot, history, None
 
 
-    def _change(self, *args, **kwargs) -> sh.ComponentsOutput:
+    def _change(self, *args, **kwargs) -> sh.GradioComponents:
         multimodal_textbox: sh.MultimodalTextboxInput = args[0]
 
         text = multimodal_textbox['text']
@@ -174,7 +174,7 @@ class Chat(sh.Component):
         return gr.Button(variant='primary', interactive=True)
 
 
-    def _pregenerate(self, *args, **kwargs) -> sh.ComponentsOutput:
+    def _pregenerate(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.MultimodalTextbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
@@ -185,7 +185,7 @@ class Chat(sh.Component):
         return tuple(components)
 
 
-    def _postgenerate(self, *args, **kwargs) -> sh.ComponentsOutput:
+    def _postgenerate(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
@@ -196,11 +196,11 @@ class Chat(sh.Component):
         return tuple(components)
 
 
-    def _stop(self, *args, **kwargs) -> sh.ComponentsOutput:
+    def _stop(self, *args, **kwargs) -> sh.GradioComponents:
         self.generating = False
 
 
-    def _reset(self, *args, **kwargs) -> sh.ComponentsOutput:
+    def _reset(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
@@ -211,9 +211,9 @@ class Chat(sh.Component):
         return tuple(components)
 
 
-    def _log(self, *args, **kwargs) -> sh.ComponentsOutput:
+    def _log(self, *args, **kwargs) -> sh.GradioComponents:
         chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.HistoryInput = args[1]
+        history: sh.ChatHistoryInput = args[1]
 
         logger.info(f'Chatbot: {chatbot}')
         logger.info(f'History: {history}')

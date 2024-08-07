@@ -55,14 +55,14 @@ class Speech(sh.Component):
             return None
 
 
-    def _convert(self, *args, **kwargs) -> pathlib.Path | None:
-        textbox: str | None = args[0]
+    def _convert(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+        textbox: sh.TextboxInput = args[0]
 
         return self._text_to_speech(text=textbox)
 
 
-    def _submit(self, *args, **kwargs) -> Tuple[str | None, str]:
-        textbox: str | None = args[0]
+    def _submit(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+        textbox: sh.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
             raise gr.Error(visible=False)
@@ -70,8 +70,8 @@ class Speech(sh.Component):
         return None, textbox
 
 
-    def _change(self, *args, **kwargs) -> sh.ComponentsOutput:
-        textbox: str | None = args[0]
+    def _change(self, *args, **kwargs) -> sh.GradioComponents:
+        textbox: sh.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
             return gr.Button(variant='secondary', interactive=False)
@@ -79,7 +79,7 @@ class Speech(sh.Component):
         return gr.Button(variant='primary', interactive=True)
 
 
-    def _preconvert(self, *args, **kwargs) -> sh.ComponentsOutput:
+    def _preconvert(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.Textbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
@@ -87,7 +87,7 @@ class Speech(sh.Component):
         return components
 
 
-    def _postconvert(self, *args, **kwargs) -> sh.ComponentsOutput:
+    def _postconvert(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.Textbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),

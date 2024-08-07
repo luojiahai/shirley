@@ -1,6 +1,8 @@
 ## 🦈 Shirley
 
-It intelligently chats, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) (通义千问).
+It is just intelligently doing some stuff. For example, 
+- Chat, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) (通义千问).
+- Speech, powered by [Azure AI Speech](https://azure.microsoft.com/en-us/products/ai-services/ai-speech).
 
 ## Requirements
 

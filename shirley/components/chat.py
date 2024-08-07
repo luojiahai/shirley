@@ -95,6 +95,17 @@ class ChatComponent(sh.Component):
         return chat_history[-1][0], chat_history[:-1]
 
 
+    def _pregenerate(self, *args, **kwargs) -> sh.GradioComponents:
+        components = [
+            gr.MultimodalTextbox(interactive=False),
+            gr.Button(variant='secondary', interactive=False),
+            gr.Button(variant='stop', interactive=True),
+            gr.Button(interactive=False),
+            gr.Button(interactive=False),
+        ]
+        return tuple(components)
+
+
     def _generate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
         history: sh.ChatHistoryInput = args[1]
@@ -123,25 +134,15 @@ class ChatComponent(sh.Component):
         yield chatbot, history
 
 
-    def _regenerate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
-        chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.ChatHistoryInput = args[1]
-
-        if len(chatbot) < 1 or len(history) < 1:
-            return chatbot, history
-
-        state_last = history[-1]
-        if state_last[1] is None:
-            return chatbot, history
-        history[-1] = (state_last[0], None)
-
-        chatbot_last = chatbot.pop(-1)
-        if chatbot_last[0] is None:
-            chatbot[-1] = (chatbot[-1][0], None)
-        else:
-            chatbot.append((chatbot_last[0], None))
-
-        yield from self._generate(*args, **kwargs)
+    def _postgenerate(self, *args, **kwargs) -> sh.GradioComponents:
+        components = [
+            gr.MultimodalTextbox(interactive=True),
+            gr.Button(variant='secondary', interactive=False),
+            gr.Button(variant='secondary', interactive=False),
+            gr.Button(interactive=True),
+            gr.Button(interactive=True),
+        ]
+        return tuple(components)
 
 
     def _submit(self, *args, **kwargs) -> sh.ChatComponentsOutput:
@@ -164,40 +165,29 @@ class ChatComponent(sh.Component):
         return chatbot, history, None
 
 
-    def _change(self, *args, **kwargs) -> sh.GradioComponents:
-        multimodal_textbox: sh.MultimodalTextboxInput = args[0]
-
-        text = multimodal_textbox['text']
-        if not text or not text.strip():
-            return gr.Button(variant='secondary', interactive=False)
-
-        return gr.Button(variant='primary', interactive=True)
-
-
-    def _pregenerate(self, *args, **kwargs) -> sh.GradioComponents:
-        components = [
-            gr.MultimodalTextbox(interactive=False),
-            gr.Button(variant='secondary', interactive=False),
-            gr.Button(variant='stop', interactive=True),
-            gr.Button(interactive=False),
-            gr.Button(interactive=False),
-        ]
-        return tuple(components)
-
-
-    def _postgenerate(self, *args, **kwargs) -> sh.GradioComponents:
-        components = [
-            gr.MultimodalTextbox(interactive=True),
-            gr.Button(variant='secondary', interactive=False),
-            gr.Button(variant='secondary', interactive=False),
-            gr.Button(interactive=True),
-            gr.Button(interactive=True),
-        ]
-        return tuple(components)
-
-
     def _stop(self, *args, **kwargs) -> sh.GradioComponents:
         self.generating = False
+
+
+    def _regenerate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
+        chatbot: sh.ChatbotTuplesInput = args[0]
+        history: sh.ChatHistoryInput = args[1]
+
+        if len(chatbot) < 1 or len(history) < 1:
+            return chatbot, history
+
+        state_last = history[-1]
+        if state_last[1] is None:
+            return chatbot, history
+        history[-1] = (state_last[0], None)
+
+        chatbot_last = chatbot.pop(-1)
+        if chatbot_last[0] is None:
+            chatbot[-1] = (chatbot[-1][0], None)
+        else:
+            chatbot.append((chatbot_last[0], None))
+
+        yield from self._generate(*args, **kwargs)
 
 
     def _reset(self, *args, **kwargs) -> sh.GradioComponents:
@@ -211,12 +201,14 @@ class ChatComponent(sh.Component):
         return tuple(components)
 
 
-    def _log(self, *args, **kwargs) -> sh.GradioComponents:
-        chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.ChatHistoryInput = args[1]
+    def _multimodal_textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
+        multimodal_textbox: sh.MultimodalTextboxInput = args[0]
 
-        logger.info(f'Chatbot: {chatbot}')
-        logger.info(f'History: {history}')
+        text = multimodal_textbox['text']
+        if not text or not text.strip():
+            return gr.Button(variant='secondary', interactive=False)
+
+        return gr.Button(variant='primary', interactive=True)
 
 
     def _set_event_trigger_generate(self, dependency: Dependency, fn: Callable, *args, **kwargs) -> None:
@@ -248,12 +240,6 @@ class ChatComponent(sh.Component):
             outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
             show_api=False,
         )
-        postgenerate.then(
-            fn=self._log,
-            inputs=[chatbot, history],
-            outputs=None,
-            show_api=False,
-        )
 
 
     def _setup_multimodal_textbox(self, *args, **kwargs) -> None:
@@ -263,7 +249,7 @@ class ChatComponent(sh.Component):
         submit_button: gr.Button = kwargs['submit_button']
 
         multimodal_textbox.change(
-            fn=self._change,
+            fn=self._multimodal_textbox_change,
             inputs=[multimodal_textbox],
             outputs=[submit_button],
             show_api=False,

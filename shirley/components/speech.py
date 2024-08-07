@@ -48,10 +48,10 @@ class SpeechComponent(sh.Component):
 
         result = speech_synthesizer.get_voices_async(locale).get()
         if result.reason == speechsdk.ResultReason.VoicesListRetrieved:
-            print('Voices successfully retrieved')
+            logger.info('Voices successfully retrieved')
             return [voice.short_name for voice in result.voices]
         elif result.reason == speechsdk.ResultReason.Canceled:
-            print("Speech synthesis canceled; error details: {}".format(result.error_details))
+            logger.error(f'Speech synthesis canceled; error details: {result.error_details}')
 
 
     def _text_to_speech(self, text: str) -> pathlib.Path | None:
@@ -75,25 +75,16 @@ class SpeechComponent(sh.Component):
         speech_synthesis_result = speech_synthesizer.speak_text_async(text).get()
 
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-            print("Speech synthesized for text [{}]".format(text))
+            logger.info(f'Speech synthesized for text [{text}]')
             return filename
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
-            print("Speech synthesis canceled: {}".format(cancellation_details.reason))
+            logger.error(f'Speech synthesis canceled: {cancellation_details.reason}')
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
-                    print("Error details: {}".format(cancellation_details.error_details))
-                    print("Did you set the speech resource key and region values?")
+                    logger.error(f'Error details: {cancellation_details.error_details}')
+                    logger.error('Did you set the speech resource key and region values?')
             return None
-
-
-    def _validate(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
-        textbox: sh.TextboxInput = args[0]
-
-        if not textbox or not textbox.strip():
-            raise gr.Error(visible=False)
-
-        self._text = textbox
 
 
     def _preconvert(self, *args, **kwargs) -> sh.GradioComponents:
@@ -114,6 +105,19 @@ class SpeechComponent(sh.Component):
             gr.Button(variant='primary', interactive=True),
         ]
         return components
+
+
+    def _submit(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+        textbox: sh.TextboxInput = args[0]
+
+        if not textbox or not textbox.strip():
+            raise gr.Error(visible=False)
+
+        self._text = textbox
+
+
+    def _reset(self, *args, **kwargs) -> sh.GradioComponents:
+        return gr.Button(interactive=False)
 
 
     def _textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
@@ -148,10 +152,6 @@ class SpeechComponent(sh.Component):
         self._voice = 'zh-CN-XiaoxiaoNeural'
 
         return None, None
-
-
-    def _reset(self, *args, **kwargs) -> sh.GradioComponents:
-        return gr.Button(interactive=False)
 
 
     def _setup_textbox(self, *args, **kwargs) -> None:
@@ -195,7 +195,7 @@ class SpeechComponent(sh.Component):
         audio: gr.Audio = kwargs['audio']
 
         click = convert_button.click(
-            fn=self._validate,
+            fn=self._submit,
             inputs=[textbox],
             outputs=None,
             show_api=False,

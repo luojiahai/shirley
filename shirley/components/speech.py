@@ -194,13 +194,13 @@ class SpeechComponent(sh.Component):
         convert_button: gr.Button = kwargs['convert_button']
         audio: gr.Audio = kwargs['audio']
 
-        click = convert_button.click(
+        submit = convert_button.click(
             fn=self._submit,
             inputs=[textbox],
             outputs=None,
             show_api=False,
         )
-        preconvert = click.success(
+        preconvert = submit.success(
             fn=self._preconvert,
             inputs=None,
             outputs=[textbox, convert_button],

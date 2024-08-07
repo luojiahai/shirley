@@ -54,7 +54,7 @@ class SpeechComponent(sh.Component):
             print("Speech synthesis canceled; error details: {}".format(result.error_details))
 
 
-    def _text_to_speech(self, text: str) -> sh.SpeechComponentsOutput:
+    def _text_to_speech(self, text: str) -> pathlib.Path | None:
         speech_config = speechsdk.SpeechConfig(subscription=self._speech_key, region=self._speech_region)
         speech_config.speech_synthesis_voice_name = self._voice
         speech_config.set_speech_synthesis_output_format(
@@ -87,10 +87,6 @@ class SpeechComponent(sh.Component):
             return None
 
 
-    def _convert(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
-        return self._text_to_speech(text=self._text)
-
-
     def _validate(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
         textbox: sh.TextboxInput = args[0]
 
@@ -98,6 +94,26 @@ class SpeechComponent(sh.Component):
             raise gr.Error(visible=False)
 
         self._text = textbox
+
+
+    def _preconvert(self, *args, **kwargs) -> sh.GradioComponents:
+        components = [
+            gr.Textbox(interactive=False),
+            gr.Button(variant='secondary', interactive=False),
+        ]
+        return components
+
+
+    def _convert(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+        return self._text_to_speech(text=self._text)
+
+
+    def _postconvert(self, *args, **kwargs) -> sh.GradioComponents:
+        components = [
+            gr.Textbox(interactive=True),
+            gr.Button(variant='primary', interactive=True),
+        ]
+        return components
 
 
     def _textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
@@ -126,20 +142,16 @@ class SpeechComponent(sh.Component):
         self._voice = voice_dropdown
 
 
-    def _preconvert(self, *args, **kwargs) -> sh.GradioComponents:
-        components = [
-            gr.Textbox(interactive=False),
-            gr.Button(variant='secondary', interactive=False),
-        ]
-        return components
+    def _reset_button_click(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+        self._text = ''
+        self._locale = 'zh-CN'
+        self._voice = 'zh-CN-XiaoxiaoNeural'
+
+        return None, None
 
 
-    def _postconvert(self, *args, **kwargs) -> sh.GradioComponents:
-        components = [
-            gr.Textbox(interactive=True),
-            gr.Button(variant='secondary', interactive=False),
-        ]
-        return components
+    def _reset(self, *args, **kwargs) -> sh.GradioComponents:
+        return gr.Button(interactive=False)
 
 
     def _setup_textbox(self, *args, **kwargs) -> None:
@@ -208,11 +220,30 @@ class SpeechComponent(sh.Component):
         )
 
 
+    def _setup_reset_button(self, *args, **kwargs):
+        textbox: gr.Textbox = kwargs['textbox']
+        convert_button: gr.Button = kwargs['convert_button']
+        reset_button: gr.Button = kwargs['reset_button']
+        audio: gr.Audio = kwargs['audio']
+
+        reset_button_click = reset_button.click(
+            fn=self._reset_button_click,
+            inputs=None,
+            outputs=[textbox, audio]
+        )
+        reset_button_click.then(
+            fn=self._reset,
+            inputs=None,
+            outputs=[convert_button]
+        )
+
+
     def _setup(self, *args, **kwargs) -> None:
         self._setup_textbox(*args, **kwargs)
         self._setup_locale_dropdown(*args, **kwargs)
         self._setup_voice_dropdown(*args, **kwargs)
         self._setup_convert_button(*args, **kwargs)
+        self._setup_reset_button(*args, **kwargs)
 
 
     def make_components(self, *args, **kwargs) -> None:
@@ -234,7 +265,9 @@ class SpeechComponent(sh.Component):
                         multiselect=False,
                         label='🎤 Voice (声音)',
                     )
-                convert_button = gr.Button(value='↪️ Convert (转换)', variant='secondary', interactive=False)
+                with gr.Row():
+                    convert_button = gr.Button(value='↪️ Convert (转换)', variant='secondary', interactive=False)
+                    reset_button = gr.Button(value='🧹 Reset (重置)', variant='secondary')
             with gr.Column():
                 audio = gr.Audio(interactive=False)
 
@@ -243,5 +276,6 @@ class SpeechComponent(sh.Component):
             locale_dropdown=locale_dropdown,
             voice_dropdown=voice_dropdown,
             convert_button=convert_button,
+            reset_button=reset_button,
             audio=audio,
         )

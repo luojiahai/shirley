@@ -33,15 +33,15 @@ class WebUI(object):
 
     def _make_blocks(self, *args, **kwargs) -> gr.Blocks:
         with gr.Blocks(theme=gr.themes.Default(), title='Shirley WebUI') as blocks:
-            header = sh.Header()
+            header = sh.HeaderComponent()
             header.make_components()
 
             with gr.Tab('Chat'):
-                chat = sh.Chat(client=self.client)
+                chat = sh.ChatComponent(client=self.client)
                 chat.make_components()
 
             with gr.Tab('Speech'):
-                speech = sh.Speech()
+                speech = sh.SpeechComponent()
                 speech.make_components()
 
             return blocks

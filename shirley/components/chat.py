@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Chat(sh.Component):
+class ChatComponent(sh.Component):
 
     def __init__(self, client: sh.Client) -> None:
         super().__init__()

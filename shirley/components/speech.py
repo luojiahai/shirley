@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Speech(sh.Component):
+class SpeechComponent(sh.Component):
 
     def __init__(self) -> None:
         super().__init__()

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Header(sh.Component):
+class HeaderComponent(sh.Component):
     
     def __init__(self) -> None:
         super().__init__()

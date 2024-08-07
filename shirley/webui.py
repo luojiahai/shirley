@@ -12,14 +12,9 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class WebUI(object):
 
-    def __init__(self, client: sh.Client) -> None:
-        self._client = client
+    def __init__(self) -> None:
         self._blocks = self._make_blocks()
 
-
-    @property
-    def client(self) -> sh.Client:
-        return self._client
 
     @property
     def blocks(self) -> gr.Blocks:
@@ -32,24 +27,21 @@ class WebUI(object):
 
 
     def _make_blocks(self, *args, **kwargs) -> gr.Blocks:
+        header = sh.HeaderComponent()
+        chat = sh.ChatComponent()
+        speech = sh.SpeechComponent()
+
         with gr.Blocks(theme=gr.themes.Default(), title='Shirley WebUI') as blocks:
-            header = sh.HeaderComponent()
             header.make_components()
-
             with gr.Tab('Chat'):
-                chat = sh.ChatComponent(client=self.client)
                 chat.make_components()
-
             with gr.Tab('Speech'):
-                speech = sh.SpeechComponent()
                 speech.make_components()
-
             return blocks
 
 
 def main() -> None:
-    client = sh.Client(pretrained_model_name_or_path=sh.getpath('./models/qwen_vl_chat'))
-    webui = WebUI(client=client)
+    webui = WebUI()
     webui.launch(
         share=False,
         inbrowser=False,

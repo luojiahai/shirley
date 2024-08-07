@@ -28,6 +28,12 @@ TextboxOutput = str | None
 SpeechTextInput = str
 SpeechTextOutput = str
 
+LocaleDropdownInput = str
+LocaleDropdownOutput = str
+
+VoiceDropdownInput = str
+VoiceDropdownOutput = str
+
 AudioInput = str | Tuple[int, np.ndarray] | None
 AudioOutput = str | pathlib.Path | bytes | Tuple[int, np.ndarray] | None
 
@@ -38,5 +44,5 @@ ChatComponentsOutput = ChatComponentOutput | Sequence[ChatComponentOutput] | Ite
 
 
 # Speech
-SpeechComponentOutput = TextboxOutput | AudioOutput
+SpeechComponentOutput = TextboxOutput | SpeechTextOutput | LocaleDropdownOutput | VoiceDropdownOutput | AudioOutput
 SpeechComponentsOutput = SpeechComponentOutput | Sequence[SpeechComponentOutput] | None

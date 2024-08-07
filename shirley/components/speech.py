@@ -6,7 +6,7 @@ import pathlib
 import shirley as sh
 import sys
 import uuid
-from typing import Tuple
+from typing import List
 
 
 logger = logging.getLogger(__name__)
@@ -17,18 +17,50 @@ class SpeechComponent(sh.Component):
 
     def __init__(self) -> None:
         super().__init__()
+        self._speech_key = os.environ.get('SPEECH_KEY')
+        self._speech_region = os.environ.get('SPEECH_REGION')
+        self._text = ''
+        self._locale = 'zh-CN'
+        self._voice = 'zh-CN-XiaoxiaoNeural'
 
-        speech_key = os.environ.get('SPEECH_KEY')
-        speech_region = os.environ.get('SPEECH_REGION')
 
-        self._speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=speech_region)
-        self._speech_config.speech_synthesis_voice_name = 'zh-CN-XiaoxiaoNeural'
-        self._speech_config.set_speech_synthesis_output_format(
+    def _get_available_locales(self) -> List[str]:
+        locales = [
+            'zh-CN',
+            'zh-CN-henan',
+            'zh-CN-liaoning',
+            'zh-CN-shaanxi',
+            'zh-CN-shandong',
+            'zh-CN-sichuan',
+            'zh-HK',
+            'zh-TW',
+            'wuu-CN',
+            'yue-CN',
+            'en-US',
+            'en-AU',
+        ]
+        return locales
+
+
+    def _get_available_voices(self, locale: str) -> List[str]:
+        speech_config = speechsdk.SpeechConfig(subscription=self._speech_key, region=self._speech_region)
+        speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
+
+        result = speech_synthesizer.get_voices_async(locale).get()
+        if result.reason == speechsdk.ResultReason.VoicesListRetrieved:
+            print('Voices successfully retrieved')
+            return [voice.short_name for voice in result.voices]
+        elif result.reason == speechsdk.ResultReason.Canceled:
+            print("Speech synthesis canceled; error details: {}".format(result.error_details))
+
+
+    def _text_to_speech(self, text: str) -> sh.SpeechComponentsOutput:
+        speech_config = speechsdk.SpeechConfig(subscription=self._speech_key, region=self._speech_region)
+        speech_config.speech_synthesis_voice_name = self._voice
+        speech_config.set_speech_synthesis_output_format(
             format_id=speechsdk.SpeechSynthesisOutputFormat.Riff24Khz16BitMonoPcm,
         )
 
-
-    def _text_to_speech(self, text: str) -> pathlib.Path | None:
         images_tempdir = pathlib.Path(self.tempdir) / 'audio'
         images_tempdir.mkdir(exist_ok=True, parents=True)
         name = f'audio-{uuid.uuid4()}.wav'
@@ -36,7 +68,7 @@ class SpeechComponent(sh.Component):
         audio_config = speechsdk.audio.AudioOutputConfig(filename=str(filename))
 
         speech_synthesizer = speechsdk.SpeechSynthesizer(
-            speech_config=self._speech_config,
+            speech_config=speech_config,
             audio_config=audio_config,
         )
 
@@ -56,27 +88,42 @@ class SpeechComponent(sh.Component):
 
 
     def _convert(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
-        textbox: sh.TextboxInput = args[0]
-
-        return self._text_to_speech(text=textbox)
+        return self._text_to_speech(text=self._text)
 
 
-    def _submit(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+    def _validate(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
         textbox: sh.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
             raise gr.Error(visible=False)
 
-        return None, textbox
+        self._text = textbox
 
 
-    def _change(self, *args, **kwargs) -> sh.GradioComponents:
+    def _textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
         textbox: sh.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
             return gr.Button(variant='secondary', interactive=False)
 
+        self._text = textbox
         return gr.Button(variant='primary', interactive=True)
+
+
+    def _locale_dropdown_change(self, *args, **kwargs) -> sh.GradioComponents:
+        locale_dropdown: sh.LocaleDropdownInput = args[0]
+
+        if not locale_dropdown or not locale_dropdown.strip():
+            return gr.Dropdown(choices=None, interactive=False)
+
+        self._locale = locale_dropdown
+        return gr.Dropdown(choices=self._get_available_voices(locale=locale_dropdown), interactive=True)
+
+
+    def _voice_dropdown_change(self, *args, **kwargs) -> sh.GradioComponents:
+        voice_dropdown: sh.LocaleDropdownInput = args[0]
+
+        self._voice = voice_dropdown
 
 
     def _preconvert(self, *args, **kwargs) -> sh.GradioComponents:
@@ -100,23 +147,45 @@ class SpeechComponent(sh.Component):
         convert_button: gr.Button = kwargs['convert_button']
 
         textbox.change(
-            fn=self._change,
+            fn=self._textbox_change,
             inputs=[textbox],
             outputs=[convert_button],
             show_api=False,
         )
 
 
+    def _setup_locale_dropdown(self, *args, **kwargs) -> None:
+        locale_dropdown: gr.Dropdown = kwargs['locale_dropdown']
+        voice_dropdown: gr.Dropdown = kwargs['voice_dropdown']
+
+        locale_dropdown.change(
+            fn=self._locale_dropdown_change,
+            inputs=[locale_dropdown],
+            outputs=[voice_dropdown],
+            show_api=False,
+        )
+
+
+    def _setup_voice_dropdown(self, *args, **kwargs) -> None:
+        voice_dropdown: gr.Dropdown = kwargs['voice_dropdown']
+
+        voice_dropdown.change(
+            fn=self._voice_dropdown_change,
+            inputs=[voice_dropdown],
+            outputs=None,
+            show_api=False,
+        )
+
+
     def _setup_convert_button(self, *args, **kwargs) -> None:
         textbox: gr.Textbox = kwargs['textbox']
-        text: gr.State = kwargs['text']
         convert_button: gr.Button = kwargs['convert_button']
         audio: gr.Audio = kwargs['audio']
 
         click = convert_button.click(
-            fn=self._submit,
+            fn=self._validate,
             inputs=[textbox],
-            outputs=[textbox, text],
+            outputs=None,
             show_api=False,
         )
         preconvert = click.success(
@@ -127,7 +196,7 @@ class SpeechComponent(sh.Component):
         )
         convert = preconvert.then(
             fn=self._convert,
-            inputs=[text],
+            inputs=None,
             outputs=[audio],
             show_api=False,
         )
@@ -141,21 +210,38 @@ class SpeechComponent(sh.Component):
 
     def _setup(self, *args, **kwargs) -> None:
         self._setup_textbox(*args, **kwargs)
+        self._setup_locale_dropdown(*args, **kwargs)
+        self._setup_voice_dropdown(*args, **kwargs)
         self._setup_convert_button(*args, **kwargs)
 
 
     def make_components(self, *args, **kwargs) -> None:
+        gr.Markdown(value='### 🦈 Text-To-Speech')
         with gr.Row():
             with gr.Column():
                 textbox = gr.Textbox(lines=10)
-                text = gr.State('')
+                with gr.Row():
+                    locale_dropdown = gr.Dropdown(
+                        choices=self._get_available_locales(),
+                        value=self._locale,
+                        multiselect=False,
+                        label='🌏 Locale (语言)',
+                    )
+                    voices = self._get_available_voices(locale=self._locale)
+                    voice_dropdown = gr.Dropdown(
+                        choices=voices,
+                        value=voices[0],
+                        multiselect=False,
+                        label='🎤 Voice (声音)',
+                    )
                 convert_button = gr.Button(value='↪️ Convert (转换)', variant='secondary', interactive=False)
             with gr.Column():
                 audio = gr.Audio(interactive=False)
 
         self._setup(
             textbox=textbox,
-            text=text,
+            locale_dropdown=locale_dropdown,
+            voice_dropdown=voice_dropdown,
             convert_button=convert_button,
             audio=audio,
         )

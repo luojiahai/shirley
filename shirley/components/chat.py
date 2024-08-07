@@ -14,9 +14,9 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class ChatComponent(sh.Component):
 
-    def __init__(self, client: sh.Client) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self._client = client
+        self._client = sh.Client(pretrained_model_name_or_path=sh.getpath('./models/qwen_vl_chat'))
         self._generating = False
 
 
@@ -338,6 +338,8 @@ class ChatComponent(sh.Component):
 
 
     def make_components(self, *args, **kwargs) -> None:
+        gr.Markdown(value='### 🦈 Chat')
+
         chatbot = gr.Chatbot(
             type='tuples',
             label='🦈 Shirley',

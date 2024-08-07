@@ -44,7 +44,7 @@ poetry install
 
 Install [PyTorch](https://pytorch.org/get-started/locally/).
 
-### Setup pretrained model
+### [Chat] Setup Hugging Face pretrained model
 
 Install submodule:
 ```
@@ -56,7 +56,7 @@ Update submodule:
 git submodule update --remote --merge
 ```
 
-### Setup Azure AI Speech
+### [Speech] Setup Azure AI Speech
 
 https://azure.microsoft.com/en-us/products/ai-services/ai-speech
 

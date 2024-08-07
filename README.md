@@ -56,8 +56,11 @@ Update submodule:
 git submodule update --remote --merge
 ```
 
-### Set environment variables
+### Setup Azure AI Speech
 
+https://azure.microsoft.com/en-us/products/ai-services/ai-speech
+
+Set environment variables:
 ```
 export SPEECH_KEY=your-key
 export SPEECH_REGION=your-region

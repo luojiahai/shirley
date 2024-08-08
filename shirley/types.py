@@ -11,38 +11,26 @@ QwenHistory = HistoryType
 
 GradioComponents = Component | Sequence[Component] | None
 
+DropdownInput = str | int | float | List[str | int | float] | List[int | None] | None
+DropdownOutput = str | int | float | List[str | int | float] | None
 
-# Components
-ModelDropdownInput = str
-ModelDropdownOutput = str
+ChatbotTuplesInput = List[List[str | Tuple[str, str] | Component | None]] | None
+ChatbotTuplesOutput = List[List[str | Tuple[str] | Tuple[str, str] | None] | Tuple] | None
 
-ChatbotTuplesInput = List[List[str | Tuple | None]]
-ChatbotTuplesOutput = List[List | Tuple]
-
-MultimodalTextboxInput = MultimodalValue
-MultimodalTextboxOutput = MultimodalValue
+MultimodalTextboxInput = MultimodalValue | None
+MultimodalTextboxOutput = MultimodalValue | None
 
 TextboxInput = str | None
 TextboxOutput = str | None
 
-SpeechTextInput = str
-SpeechTextOutput = str
-
-LocaleDropdownInput = str
-LocaleDropdownOutput = str
-
-VoiceDropdownInput = str
-VoiceDropdownOutput = str
-
 AudioInput = str | Tuple[int, np.ndarray] | None
 AudioOutput = str | pathlib.Path | bytes | Tuple[int, np.ndarray] | None
 
-
 # Chat
-ChatComponentOutput = ModelDropdownOutput | ChatbotTuplesOutput | MultimodalTextboxOutput
+ChatComponentOutput = DropdownOutput | ChatbotTuplesOutput | MultimodalTextboxOutput
 ChatComponentsOutput = ChatComponentOutput | Sequence[ChatComponentOutput] | Iterator[Sequence[ChatComponentOutput]] | None
 
 
 # Speech
-SpeechComponentOutput = TextboxOutput | SpeechTextOutput | LocaleDropdownOutput | VoiceDropdownOutput | AudioOutput
+SpeechComponentOutput = TextboxOutput | DropdownOutput | AudioOutput
 SpeechComponentsOutput = SpeechComponentOutput | Sequence[SpeechComponentOutput] | None

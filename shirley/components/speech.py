@@ -131,7 +131,7 @@ class SpeechComponent(sh.Component):
 
 
     def _locale_dropdown_change(self, *args, **kwargs) -> sh.GradioComponents:
-        locale_dropdown: sh.LocaleDropdownInput = args[0]
+        locale_dropdown: sh.DropdownInput = args[0]
 
         if not locale_dropdown or not locale_dropdown.strip():
             return gr.Dropdown(choices=None, interactive=False)
@@ -141,7 +141,7 @@ class SpeechComponent(sh.Component):
 
 
     def _voice_dropdown_change(self, *args, **kwargs) -> sh.GradioComponents:
-        voice_dropdown: sh.LocaleDropdownInput = args[0]
+        voice_dropdown: sh.DropdownInput = args[0]
 
         self._voice = voice_dropdown
 
@@ -220,7 +220,7 @@ class SpeechComponent(sh.Component):
         )
 
 
-    def _setup_reset_button(self, *args, **kwargs):
+    def _setup_reset_button(self, *args, **kwargs) -> None:
         textbox: gr.Textbox = kwargs['textbox']
         convert_button: gr.Button = kwargs['convert_button']
         reset_button: gr.Button = kwargs['reset_button']

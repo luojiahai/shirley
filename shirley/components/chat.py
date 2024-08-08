@@ -209,7 +209,7 @@ class ChatComponent(sh.Component):
     
 
     def _model_dropdown_change(self, *args, **kwargs) -> None:
-        model_dropdown: sh.ModelDropdownInput = args[0]
+        model_dropdown: sh.DropdownInput = args[0]
 
         self._pretrained_model_name_or_path = self._get_pretrained_model_path(model_directory=model_dropdown)
 

@@ -122,7 +122,7 @@ class ChatComponent(sh.Component):
             gr.Button(variant='secondary', interactive=False),
             gr.Button(variant='stop', interactive=True),
             gr.Button(interactive=False),
-            gr.Button(interactive=False),
+            gr.ClearButton(interactive=False),
         ]
         return tuple(components)
 
@@ -160,7 +160,7 @@ class ChatComponent(sh.Component):
             gr.Button(variant='secondary', interactive=False),
             gr.Button(variant='secondary', interactive=False),
             gr.Button(interactive=True),
-            gr.Button(interactive=True),
+            gr.ClearButton(interactive=True),
         ]
         return tuple(components)
 
@@ -215,15 +215,17 @@ class ChatComponent(sh.Component):
 
 
     def _reset(self, *args, **kwargs) -> sh.GradioComponents:
+        self._history = []
+
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
             gr.Button(variant='secondary', interactive=False),
             gr.Button(interactive=False),
-            gr.Button(interactive=False),
+            gr.ClearButton(interactive=False),
         ]
         return tuple(components)
-    
+
 
     def _model_dropdown_change(self, *args, **kwargs) -> None:
         model_dropdown: sh.DropdownInput = args[0]
@@ -234,6 +236,7 @@ class ChatComponent(sh.Component):
     def _load_button_click(self, *args, **kwargs) -> sh.GradioComponents:
         self._client = sh.Client(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
         gr.Info(message='Model loaded.')
+
         return gr.Dropdown(interactive=True), gr.Button(interactive=True)
 
 
@@ -243,12 +246,8 @@ class ChatComponent(sh.Component):
         text = multimodal_textbox['text']
         if not text or not text.strip():
             return gr.Button(variant='secondary', interactive=False)
+
         return gr.Button(variant='primary', interactive=True)
-
-
-    def _reset_button_click(self, *args, **kwargs) -> Tuple[sh.ChatbotTuplesOutput, sh.MultimodalTextboxOutput]:
-        self._history = []
-        return [], None
 
 
     def _setup_model_dropdown(self, *args, **kwargs) -> None:
@@ -293,7 +292,7 @@ class ChatComponent(sh.Component):
         submit_button: gr.Button = kwargs['submit_button']
         stop_button: gr.Button = kwargs['stop_button']
         regenerate_button: gr.Button = kwargs['regenerate_button']
-        reset_button: gr.Button = kwargs['reset_button']
+        reset_button: gr.ClearButton = kwargs['reset_button']
 
         success = dependency.success(fn=lambda:None, show_api=False)
         pregenerate = success.then(
@@ -378,15 +377,11 @@ class ChatComponent(sh.Component):
         submit_button: gr.Button = kwargs['submit_button']
         stop_button: gr.Button = kwargs['stop_button']
         regenerate_button: gr.Button = kwargs['regenerate_button']
-        reset_button: gr.Button = kwargs['reset_button']
+        reset_button: gr.ClearButton = kwargs['reset_button']
 
-        reset_button_click = reset_button.click(
-            fn=self._reset_button_click,
-            inputs=None,
-            outputs=[chatbot, multimodal_textbox],
-            show_api=False,
-        )
-        reset_button_click.then(
+        reset_button.add(components=[chatbot, multimodal_textbox])
+
+        reset_button.click(
             fn=self._reset,
             inputs=None,
             outputs=[multimodal_textbox, submit_button, stop_button, regenerate_button, reset_button],
@@ -445,7 +440,7 @@ class ChatComponent(sh.Component):
                     submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
                     stop_button = gr.Button(value='⏹️ Stop (停止)', variant='secondary', interactive=False)
                     regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
-                    reset_button = gr.Button(value='🧹 Reset (重置)', interactive=False)
+                    reset_button = gr.ClearButton(value='🧹 Reset (重置)', interactive=False)
 
         gr.Markdown(
             '<font size=2>Note: This is governed by the original license of Qwen-VL-Chat. We strongly advise users not \

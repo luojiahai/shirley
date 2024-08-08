@@ -20,8 +20,8 @@ class TextToSpeechComponent(sh.Component):
         self._speech_key: str | None = os.environ.get('SPEECH_KEY')
         self._speech_region: str | None = os.environ.get('SPEECH_REGION')
         self._text: str = ''
-        self._locale: str = 'zh-CN'
-        self._voice: str = 'zh-CN-XiaoxiaoNeural'
+        self._locale: str | None = None
+        self._voice: str | None = None
 
 
     def _get_available_locales(self) -> List[str]:
@@ -91,6 +91,7 @@ class TextToSpeechComponent(sh.Component):
         components = [
             gr.Textbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
+            gr.ClearButton(interactive=False),
         ]
         return components
 
@@ -103,6 +104,7 @@ class TextToSpeechComponent(sh.Component):
         components = [
             gr.Textbox(interactive=True),
             gr.Button(variant='primary', interactive=True),
+            gr.ClearButton(interactive=True),
         ]
         return components
 
@@ -117,6 +119,8 @@ class TextToSpeechComponent(sh.Component):
 
 
     def _reset(self, *args, **kwargs) -> sh.GradioComponents:
+        self._text = ''
+
         return gr.Button(interactive=False)
 
 
@@ -137,21 +141,15 @@ class TextToSpeechComponent(sh.Component):
             return gr.Dropdown(choices=None, interactive=False)
 
         self._locale = locale_dropdown
-        return gr.Dropdown(choices=self._get_available_voices(locale=locale_dropdown), interactive=True)
+        voices = self._get_available_voices(locale=locale_dropdown)
+        self._voice = voices[0]
+        return gr.Dropdown(choices=voices, value=self._voice, interactive=True)
 
 
     def _voice_dropdown_change(self, *args, **kwargs) -> None:
         voice_dropdown: sh.DropdownInput = args[0]
 
         self._voice = voice_dropdown
-
-
-    def _reset_button_click(self, *args, **kwargs) -> Tuple[sh.TextboxOutput, sh.AudioOutput]:
-        self._text = ''
-        self._locale = 'zh-CN'
-        self._voice = 'zh-CN-XiaoxiaoNeural'
-
-        return None, None
 
 
     def _setup_textbox(self, *args, **kwargs) -> None:
@@ -192,6 +190,7 @@ class TextToSpeechComponent(sh.Component):
     def _setup_convert_button(self, *args, **kwargs) -> None:
         textbox: gr.Textbox = kwargs['textbox']
         convert_button: gr.Button = kwargs['convert_button']
+        reset_button: gr.ClearButton = kwargs['reset_button']
         audio: gr.Audio = kwargs['audio']
 
         submit = convert_button.click(
@@ -203,7 +202,7 @@ class TextToSpeechComponent(sh.Component):
         preconvert = submit.success(
             fn=self._preconvert,
             inputs=None,
-            outputs=[textbox, convert_button],
+            outputs=[textbox, convert_button, reset_button],
             show_api=False,
         )
         convert = preconvert.then(
@@ -215,7 +214,7 @@ class TextToSpeechComponent(sh.Component):
         convert.then(
             fn=self._postconvert,
             inputs=None,
-            outputs=[textbox, convert_button],
+            outputs=[textbox, convert_button, reset_button],
             show_api=False,
         )
 
@@ -223,16 +222,12 @@ class TextToSpeechComponent(sh.Component):
     def _setup_reset_button(self, *args, **kwargs) -> None:
         textbox: gr.Textbox = kwargs['textbox']
         convert_button: gr.Button = kwargs['convert_button']
-        reset_button: gr.Button = kwargs['reset_button']
+        reset_button: gr.ClearButton = kwargs['reset_button']
         audio: gr.Audio = kwargs['audio']
 
-        reset_button_click = reset_button.click(
-            fn=self._reset_button_click,
-            inputs=None,
-            outputs=[textbox, audio],
-            show_api=False,
-        )
-        reset_button_click.then(
+        reset_button.add(components=[textbox, audio])
+
+        reset_button.click(
             fn=self._reset,
             inputs=None,
             outputs=[convert_button],
@@ -267,25 +262,34 @@ class TextToSpeechComponent(sh.Component):
                     show_copy_button=True,
                 )
                 with gr.Row():
+                    locales = self._get_available_locales()
+                    self._locale = locales[0]
                     locale_dropdown = gr.Dropdown(
-                        choices=self._get_available_locales(),
+                        choices=locales,
                         value=self._locale,
                         multiselect=False,
                         label='🌏 Locale (语言)',
                     )
                     voices = self._get_available_voices(locale=self._locale)
+                    self._voice = voices[0]
                     voice_dropdown = gr.Dropdown(
                         choices=voices,
-                        value=voices[0],
+                        value=self._voice,
                         multiselect=False,
                         label='🎤 Voice (声音)',
                     )
                 with gr.Row():
                     convert_button = gr.Button(value='🔄 Convert (转换)', variant='secondary', interactive=False)
-                    reset_button = gr.Button(value='🧹 Reset (重置)', variant='secondary')
+                    reset_button = gr.ClearButton(value='🧹 Reset (重置)', variant='secondary')
 
             with gr.Column():
-                audio = gr.Audio(type='filepath', label='🔊 Audio (语音)', scale=1, interactive=False)
+                audio = gr.Audio(
+                    type='filepath',
+                    label='🔊 Audio (语音)',
+                    scale=1,
+                    interactive=False,
+                    show_download_button=True,
+                )
 
         gr.Markdown(
             '<font size=2>Note: This is governed by the original license of Azure AI Speech. We strongly advise users \

@@ -404,7 +404,6 @@ class ChatComponent(sh.Component):
                         interactive=True,
                     )
                     load_button = gr.Button(value='📥 Load (读取)', variant='secondary')
-                reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
 
             with gr.Column(scale=3, variant='panel'):
                 chatbot = gr.Chatbot(
@@ -425,6 +424,7 @@ class ChatComponent(sh.Component):
                         submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
                         stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
                         regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
+                        reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
 
         gr.Markdown(
             '<font size=2>Note: This is governed by the original license of Qwen-VL-Chat. We strongly advise users not \

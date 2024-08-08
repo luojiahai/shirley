@@ -6,7 +6,7 @@ import re
 import shirley as sh
 import sys
 from gradio.events import Dependency
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Iterator, List, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -110,7 +110,7 @@ class ChatComponent(sh.Component):
         return tuple(components)
 
 
-    def _generate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
+    def _generate(self, *args, **kwargs) -> Iterator[sh.ChatbotTuplesOutput]:
         chatbot: sh.ChatbotTuplesInput = args[0]
 
         self._generating = True
@@ -154,7 +154,7 @@ class ChatComponent(sh.Component):
             raise gr.Error('Pre-trained model not loaded. Please load a model.')
 
 
-    def _submit(self, *args, **kwargs) -> sh.ChatComponentsOutput:
+    def _submit(self, *args, **kwargs) -> Tuple[sh.ChatbotTuplesOutput, sh.MultimodalTextboxOutput]:
         chatbot: sh.ChatbotTuplesInput = args[0]
         multimodal_textbox: sh.MultimodalTextboxInput = args[1]
 
@@ -177,7 +177,7 @@ class ChatComponent(sh.Component):
         self._generating = False
 
 
-    def _regenerate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
+    def _regenerate(self, *args, **kwargs) -> sh.ChatbotTuplesOutput | Iterator[sh.ChatbotTuplesOutput]:
         chatbot: sh.ChatbotTuplesInput = args[0]
 
         if len(chatbot) < 1 or len(self._history) < 1:
@@ -230,12 +230,12 @@ class ChatComponent(sh.Component):
         return gr.Button(variant='primary', interactive=True)
     
 
-    def _reset_button_click(self, *args, **kwargs) -> sh.ChatComponentsOutput:
+    def _reset_button_click(self, *args, **kwargs) -> Tuple[sh.ChatbotTuplesOutput, sh.MultimodalTextboxOutput]:
         self._history = []
         return [], None
 
 
-    def _setup_model_dropdown(self, *args, **kwargs):
+    def _setup_model_dropdown(self, *args, **kwargs) -> None:
         model_dropdown: gr.Dropdown = kwargs['model_dropdown']
 
         model_dropdown.change(
@@ -246,7 +246,7 @@ class ChatComponent(sh.Component):
         )
 
 
-    def _setup_load_button(self, *args, **kwargs):
+    def _setup_load_button(self, *args, **kwargs) -> None:
         model_dropdown: gr.Dropdown = kwargs['model_dropdown']
         load_button: gr.Button = kwargs['load_button']
 

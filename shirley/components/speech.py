@@ -6,7 +6,7 @@ import pathlib
 import shirley as sh
 import sys
 import uuid
-from typing import List
+from typing import List, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class SpeechComponent(sh.Component):
         speech_config = speechsdk.SpeechConfig(subscription=self._speech_key, region=self._speech_region)
         speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
 
-        result = speech_synthesizer.get_voices_async(locale).get()
+        result: speechsdk.SynthesisVoicesResult = speech_synthesizer.get_voices_async(locale).get()
         if result.reason == speechsdk.ResultReason.VoicesListRetrieved:
             logger.info('Voices successfully retrieved')
             return [voice.short_name for voice in result.voices]
@@ -72,7 +72,7 @@ class SpeechComponent(sh.Component):
             audio_config=audio_config,
         )
 
-        speech_synthesis_result = speech_synthesizer.speak_text_async(text).get()
+        speech_synthesis_result: speechsdk.SpeechSynthesisResult = speech_synthesizer.speak_text_async(text).get()
 
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             logger.info(f'Speech synthesized for text [{text}]')
@@ -95,7 +95,7 @@ class SpeechComponent(sh.Component):
         return components
 
 
-    def _convert(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+    def _convert(self, *args, **kwargs) -> sh.AudioOutput:
         return self._text_to_speech(text=self._text)
 
 
@@ -107,7 +107,7 @@ class SpeechComponent(sh.Component):
         return components
 
 
-    def _submit(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+    def _submit(self, *args, **kwargs) -> None:
         textbox: sh.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
@@ -146,7 +146,7 @@ class SpeechComponent(sh.Component):
         self._voice = voice_dropdown
 
 
-    def _reset_button_click(self, *args, **kwargs) -> sh.SpeechComponentsOutput:
+    def _reset_button_click(self, *args, **kwargs) -> Tuple[sh.TextboxOutput, sh.AudioOutput]:
         self._text = ''
         self._locale = 'zh-CN'
         self._voice = 'zh-CN-XiaoxiaoNeural'

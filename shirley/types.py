@@ -3,7 +3,7 @@ import pathlib
 from gradio.components import Component
 from gradio.components.multimodal_textbox import MultimodalValue
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
-from typing import Iterator, List, Sequence, Tuple
+from typing import List, Sequence, Tuple
 
 
 QwenQuery = str
@@ -25,12 +25,3 @@ TextboxOutput = str | None
 
 AudioInput = str | Tuple[int, np.ndarray] | None
 AudioOutput = str | pathlib.Path | bytes | Tuple[int, np.ndarray] | None
-
-# Chat
-ChatComponentOutput = DropdownOutput | ChatbotTuplesOutput | MultimodalTextboxOutput
-ChatComponentsOutput = ChatComponentOutput | Sequence[ChatComponentOutput] | Iterator[Sequence[ChatComponentOutput]] | None
-
-
-# Speech
-SpeechComponentOutput = TextboxOutput | DropdownOutput | AudioOutput
-SpeechComponentsOutput = SpeechComponentOutput | Sequence[SpeechComponentOutput] | None

@@ -97,5 +97,6 @@ class Client(object):
             name = f'img-{uuid.uuid4()}.jpg'
             filename = images_tempdir / name
             image.save(str(filename))
+            logger.info(f'Image file saved in {str(filename)}.')
             return str(filename)
         return None

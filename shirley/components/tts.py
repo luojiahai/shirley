@@ -76,6 +76,7 @@ class TextToSpeechComponent(sh.Component):
 
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             logger.info(f'Speech synthesized for text [{text}]')
+            logger.info(f'Audio file saved in {str(filename)}.')
             return filename
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details

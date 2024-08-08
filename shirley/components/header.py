@@ -1,6 +1,5 @@
 import gradio as gr
 import logging
-import shirley as sh
 import sys
 from .component import Component
 

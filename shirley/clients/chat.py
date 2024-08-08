@@ -7,9 +7,10 @@ import torch
 import transformers
 import uuid
 from .client import Client
+from collections import OrderedDict
 from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
 from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
-from typing import Any, Generator
+from typing import Any, Dict, Generator, List
 
 
 logger = logging.getLogger(__name__)
@@ -18,9 +19,42 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Client):
 
-    def __init__(self, pretrained_model_name_or_path: str) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
+        self._device: torch.device | None = torch.device('cpu')
+        self._device_name: str | None = None
+        self._tokenizer: QWenTokenizer | None = None
+        self._model: QWenLMHeadModel | None = None
+
+
+    def get_available_pretrained_models(self) -> List[str]:
+        models_directory = os.path.abspath(os.path.expanduser('./models'))
+        pretrained_models = os.listdir(models_directory)
+        return pretrained_models
+
+
+    def get_pretrained_model_path(self, model_directory: str) -> str:
+        return os.path.abspath(os.path.expanduser(f'./models/{model_directory}'))
+
+
+    def get_model_config(self) -> Dict:
+        model_config = self._model.config.to_dict()
+        return OrderedDict([
+            ('device', self._device),
+            ('device_name', self._device_name),
+            ('architectures', model_config['architectures']),
+            ('bf16', model_config['bf16']),
+            ('fp16', model_config['fp16']),
+            ('fp32', model_config['fp32']),
+            ('model_type', model_config['model_type']),
+            ('tokenizer_type', model_config['tokenizer_type']),
+            ('torch_dtype', model_config['torch_dtype']),
+            ('transformers_version', model_config['transformers_version']),
+        ])
+
+
+    def load_model(self, pretrained_model_name_or_path: str) -> None:
         if not os.path.exists(pretrained_model_name_or_path):
             logger.warning(f'Pre-trained model not found in path \'{pretrained_model_name_or_path}\'.')
             logger.info(f'Using remote pre-trained model \'{pretrained_model_name_or_path}\' from 🤗 Hugging Face.')
@@ -58,42 +92,25 @@ class Chat(Client):
         if model.generation_config.pad_token_id is not None:
             model.generation_config.pad_token_id = torch.tensor(
                 data=[model.generation_config.pad_token_id],
-                device=self.device,
+                device=self._device,
             )
         if model.generation_config.eos_token_id is not None:
             model.generation_config.eos_token_id = torch.tensor(
                 data=[model.generation_config.eos_token_id],
-                device=self.device,
+                device=self._device,
             )
 
         self._tokenizer = tokenizer
-        self._model = model.to(device=self.device)
-
-
-    @property
-    def device(self) -> torch.device:
-        return self._device
-    
-    @property
-    def device_name(self) -> str:
-        return self._device_name
-
-    @property
-    def tokenizer(self) -> QWenTokenizer:
-        return self._tokenizer
-
-    @property
-    def model(self) -> QWenLMHeadModel:
-        return self._model
+        self._model = model.to(device=self._device)
 
 
     def chat_stream(self, query: sh.types.QwenQuery, history: sh.types.QwenHistory = None) -> Generator[str, Any, None]:
-        return self.model.chat_stream(tokenizer=self.tokenizer, query=query, history=history)
+        return self._model.chat_stream(tokenizer=self._tokenizer, query=query, history=history)
 
 
     def draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory) -> str | None:
         response = history[-1][1]
-        image = self.tokenizer.draw_bbox_on_latest_picture(response=response, history=history)
+        image = self._tokenizer.draw_bbox_on_latest_picture(response=response, history=history)
         if image is not None:
             images_tempdir = pathlib.Path(self.tempdir) / 'images'
             images_tempdir.mkdir(exist_ok=True, parents=True)

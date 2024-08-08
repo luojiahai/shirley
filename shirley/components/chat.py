@@ -1,14 +1,12 @@
 import gradio as gr
 import logging
-import os
 import pypdf
 import re
 import shirley as sh
 import sys
 from .component import Component
-from collections import OrderedDict
 from gradio.events import Dependency
-from typing import Callable, Dict, Iterator, List, Tuple
+from typing import Callable, Iterator, List, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -17,43 +15,14 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Component):
 
-    MODELS_PATH = './models'
-
-
     def __init__(self) -> None:
         super().__init__()
 
-        self._pretrained_models: List[str] = self._get_available_pretrained_models()
+        self._client: sh.clients.Chat | None = sh.clients.Chat()
+        self._pretrained_models: List[str] = self._client.get_available_pretrained_models()
         self._pretrained_model_name_or_path: str | None = None
-        self._client: sh.clients.Chat | None = None
         self._generating: bool = False
         self._history: List[Tuple] = []
-
-
-    def _get_available_pretrained_models(self) -> List[str]:
-        models_directory = os.path.abspath(os.path.expanduser(self.MODELS_PATH))
-        pretrained_models = os.listdir(models_directory)
-        return pretrained_models
-
-
-    def _get_pretrained_model_path(self, model_directory: str) -> str:
-        return os.path.abspath(os.path.expanduser(f'{self.MODELS_PATH}/{model_directory}'))
-
-
-    def _get_model_config(self) -> Dict:
-        model_config = self._client.model.config.to_dict()
-        return OrderedDict([
-            ('device', self._client.device),
-            ('device_name', self._client.device_name),
-            ('architectures', model_config['architectures']),
-            ('bf16', model_config['bf16']),
-            ('fp16', model_config['fp16']),
-            ('fp32', model_config['fp32']),
-            ('model_type', model_config['model_type']),
-            ('tokenizer_type', model_config['tokenizer_type']),
-            ('torch_dtype', model_config['torch_dtype']),
-            ('transformers_version', model_config['transformers_version']),
-        ])
 
 
     def _parse(self, text: str, remove_image_tags: bool = False) -> str:
@@ -232,11 +201,11 @@ class Chat(Component):
     def _model_dropdown_change(self, *args, **kwargs) -> None:
         model_dropdown: sh.types.DropdownInput = args[0]
 
-        self._pretrained_model_name_or_path = self._get_pretrained_model_path(model_directory=model_dropdown)
+        self._pretrained_model_name_or_path = self._client.get_pretrained_model_path(model_directory=model_dropdown)
 
 
     def _load_button_click(self, *args, **kwargs) -> sh.types.GradioComponents:
-        self._client = sh.clients.Chat(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
+        self._client.load_model(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
         gr.Info(message='Model loaded.')
 
         return gr.Dropdown(interactive=True), gr.Button(interactive=True)
@@ -281,7 +250,7 @@ class Chat(Component):
             show_api=False,
         )
         load_button_click.then(
-            fn=lambda: self._get_model_config(),
+            fn=lambda: self._client.get_model_config(),
             inputs=None,
             outputs=[model_config],
             show_api=False,
@@ -411,7 +380,7 @@ class Chat(Component):
 
         with gr.Row(variant='panel'):
             with gr.Column(scale=1):
-                self._pretrained_model_name_or_path = self._get_pretrained_model_path(
+                self._pretrained_model_name_or_path = self._client.get_pretrained_model_path(
                     model_directory=self._pretrained_models[0],
                 )
                 model_dropdown = gr.Dropdown(

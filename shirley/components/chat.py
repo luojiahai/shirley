@@ -22,6 +22,7 @@ class Chat(Component):
 
     def __init__(self) -> None:
         super().__init__()
+
         self._pretrained_models: List[str] = self._get_available_pretrained_models()
         self._pretrained_model_name_or_path: str | None = None
         self._client: sh.clients.Chat | None = None
@@ -143,7 +144,7 @@ class Chat(Component):
             full_response = self._parse(text=response)
 
         history.append((query, full_response))
-        image_filepath = self._client.draw_bbox_on_latest_picture(history=history, tempdir=self.tempdir)
+        image_filepath = self._client.draw_bbox_on_latest_picture(history=history)
         if image_filepath is not None:
             chatbot.append((None, (image_filepath,)))
         else:

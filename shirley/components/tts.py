@@ -1,13 +1,9 @@
-import azure.cognitiveservices.speech as speechsdk
+
 import gradio as gr
 import logging
-import os
-import pathlib
 import shirley as sh
 import sys
-import uuid
 from .component import Component
-from typing import List
 
 
 logger = logging.getLogger(__name__)
@@ -18,75 +14,11 @@ class TextToSpeech(Component):
 
     def __init__(self) -> None:
         super().__init__()
-        self._speech_key: str | None = os.environ.get('SPEECH_KEY')
-        self._speech_region: str | None = os.environ.get('SPEECH_REGION')
+
+        self._client = sh.clients.TextToSpeech()
         self._text: str = ''
         self._locale: str | None = None
         self._voice: str | None = None
-
-
-    def _get_available_locales(self) -> List[str]:
-        locales = [
-            'zh-CN',
-            'zh-CN-henan',
-            'zh-CN-liaoning',
-            'zh-CN-shaanxi',
-            'zh-CN-shandong',
-            'zh-CN-sichuan',
-            'zh-HK',
-            'zh-TW',
-            'wuu-CN',
-            'yue-CN',
-            'en-US',
-            'en-AU',
-        ]
-        return locales
-
-
-    def _get_available_voices(self, locale: str) -> List[str]:
-        speech_config = speechsdk.SpeechConfig(subscription=self._speech_key, region=self._speech_region)
-        speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
-
-        result: speechsdk.SynthesisVoicesResult = speech_synthesizer.get_voices_async(locale).get()
-        if result.reason == speechsdk.ResultReason.VoicesListRetrieved:
-            logger.info('Voices successfully retrieved')
-            return [voice.short_name for voice in result.voices]
-        elif result.reason == speechsdk.ResultReason.Canceled:
-            logger.error(f'Speech synthesis canceled; error details: {result.error_details}')
-
-
-    def _text_to_speech(self, text: str) -> pathlib.Path | None:
-        speech_config = speechsdk.SpeechConfig(subscription=self._speech_key, region=self._speech_region)
-        speech_config.speech_synthesis_voice_name = self._voice
-        speech_config.set_speech_synthesis_output_format(
-            format_id=speechsdk.SpeechSynthesisOutputFormat.Riff24Khz16BitMonoPcm,
-        )
-
-        images_tempdir = pathlib.Path(self.tempdir) / 'audio'
-        images_tempdir.mkdir(exist_ok=True, parents=True)
-        name = f'audio-{uuid.uuid4()}.wav'
-        filename = images_tempdir / name
-        audio_config = speechsdk.audio.AudioOutputConfig(filename=str(filename))
-
-        speech_synthesizer = speechsdk.SpeechSynthesizer(
-            speech_config=speech_config,
-            audio_config=audio_config,
-        )
-
-        speech_synthesis_result: speechsdk.SpeechSynthesisResult = speech_synthesizer.speak_text_async(text).get()
-
-        if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-            logger.info(f'Speech synthesized for text [{text}]')
-            logger.info(f'Audio file saved in {str(filename)}.')
-            return filename
-        elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
-            cancellation_details = speech_synthesis_result.cancellation_details
-            logger.error(f'Speech synthesis canceled: {cancellation_details.reason}')
-            if cancellation_details.reason == speechsdk.CancellationReason.Error:
-                if cancellation_details.error_details:
-                    logger.error(f'Error details: {cancellation_details.error_details}')
-                    logger.error('Did you set the speech resource key and region values?')
-            return None
 
 
     def _preconvert(self, *args, **kwargs) -> sh.types.GradioComponents:
@@ -99,7 +31,7 @@ class TextToSpeech(Component):
 
 
     def _convert(self, *args, **kwargs) -> sh.types.AudioOutput:
-        return self._text_to_speech(text=self._text)
+        return self._client.text_to_speech(text=self._text, voice=self._voice)
 
 
     def _postconvert(self, *args, **kwargs) -> sh.types.GradioComponents:
@@ -143,7 +75,7 @@ class TextToSpeech(Component):
             return gr.Dropdown(choices=None, interactive=False)
 
         self._locale = locale_dropdown
-        voices = self._get_available_voices(locale=locale_dropdown)
+        voices = self._client.get_available_voices(locale=locale_dropdown)
         self._voice = voices[0]
         return gr.Dropdown(choices=voices, value=self._voice, interactive=True)
 
@@ -264,7 +196,7 @@ class TextToSpeech(Component):
                     show_copy_button=True,
                 )
                 with gr.Row():
-                    locales = self._get_available_locales()
+                    locales = self._client.get_available_locales()
                     self._locale = locales[0]
                     locale_dropdown = gr.Dropdown(
                         choices=locales,
@@ -272,7 +204,7 @@ class TextToSpeech(Component):
                         multiselect=False,
                         label='🌏 Locale (语言)',
                     )
-                    voices = self._get_available_voices(locale=self._locale)
+                    voices = self._client.get_available_voices(locale=self._locale)
                     self._voice = voices[0]
                     voice_dropdown = gr.Dropdown(
                         choices=voices,

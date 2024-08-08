@@ -19,6 +19,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 class Chat(Client):
 
     def __init__(self, pretrained_model_name_or_path: str) -> None:
+        super().__init__()
+
         if not os.path.exists(pretrained_model_name_or_path):
             logger.warning(f'Pre-trained model not found in path \'{pretrained_model_name_or_path}\'.')
             logger.info(f'Using remote pre-trained model \'{pretrained_model_name_or_path}\' from 🤗 Hugging Face.')
@@ -89,11 +91,11 @@ class Chat(Client):
         return self.model.chat_stream(tokenizer=self.tokenizer, query=query, history=history)
 
 
-    def draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory, tempdir: str) -> str | None:
+    def draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory) -> str | None:
         response = history[-1][1]
         image = self.tokenizer.draw_bbox_on_latest_picture(response=response, history=history)
         if image is not None:
-            images_tempdir = pathlib.Path(tempdir) / 'images'
+            images_tempdir = pathlib.Path(self.tempdir) / 'images'
             images_tempdir.mkdir(exist_ok=True, parents=True)
             name = f'img-{uuid.uuid4()}.jpg'
             filename = images_tempdir / name

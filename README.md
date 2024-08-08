@@ -68,21 +68,23 @@ export SPEECH_KEY=your-key
 export SPEECH_REGION=your-region
 ```
 
-## Usage
+## Running
 
 Activate the virtual environment:
 ```bash
 poetry shell
 ```
 
-### Running
-
 Run WebUI:
 ```bash
 poetry run webui
 ```
 
-Run tests:
+Run tests (not available yet):
 ```bash
 poetry run pytest
 ```
+
+## WebUI Usage
+
+TODO

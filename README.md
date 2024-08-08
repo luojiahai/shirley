@@ -60,7 +60,7 @@ git submodule update --remote --merge
 
 ### [Text-To-Speech] Setup Azure AI Speech
 
-https://azure.microsoft.com/products/ai-services/ai-speech
+Create [AI Speech](https://azure.microsoft.com/products/ai-services/ai-speech) service in Azure portal.
 
 Set environment variables:
 ```

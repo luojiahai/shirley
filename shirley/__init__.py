@@ -4,4 +4,4 @@ from shirley.client import *
 from shirley.components.component import *
 from shirley.components.header import *
 from shirley.components.chat import *
-from shirley.components.speech import *
+from shirley.components.texttospeech import *

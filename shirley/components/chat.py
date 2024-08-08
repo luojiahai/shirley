@@ -385,9 +385,9 @@ class ChatComponent(sh.Component):
     def make_components(self, *args, **kwargs) -> None:
         gr.Markdown(value='### 🦈 Chat')
         gr.Markdown(
-            value='This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
+            value='This is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
             to implement chatbot functionality. \
-            (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
+            (此基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
         )
 
         with gr.Row():
@@ -427,11 +427,11 @@ class ChatComponent(sh.Component):
                         regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
 
         gr.Markdown(
-            '<font size=2>Note: This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise \
-            users not to knowingly generate or allow others to knowingly generate harmful content, including hate \
-            speech, violence, pornography, deception, etc. \
-            (注：本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，\
-            包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
+            '<font size=2>Note: This is governed by the original license of Qwen-VL-Chat. We strongly advise users not \
+            to knowingly generate or allow others to knowingly generate harmful content, including hate speech, \
+            violence, pornography, deception, etc. \
+            (注：此受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，包括但不限于仇恨言论、暴力、\
+            色情、欺诈相关的有害信息。)'
         )
 
         self._setup(

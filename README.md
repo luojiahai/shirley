@@ -2,7 +2,7 @@
 
 It is just doing some stuff intelligently. It has the following features:
 - Chat, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) (通义千问).
-- Speech, powered by [Azure AI Speech](https://azure.microsoft.com/en-us/products/ai-services/ai-speech).
+- Speech, powered by [Azure AI Speech](https://azure.microsoft.com/products/ai-services/ai-speech).
 
 ## Requirements
 
@@ -60,7 +60,7 @@ git submodule update --remote --merge
 
 ### [Speech] Setup Azure AI Speech
 
-https://azure.microsoft.com/en-us/products/ai-services/ai-speech
+https://azure.microsoft.com/products/ai-services/ai-speech
 
 Set environment variables:
 ```

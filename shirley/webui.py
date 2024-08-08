@@ -27,14 +27,18 @@ class WebUI(object):
 
 
     def _make_blocks(self, *args, **kwargs) -> gr.Blocks:
-        header = sh.HeaderComponent()
-        chat = sh.ChatComponent()
-        tts = sh.TextToSpeechComponent()
+        header = sh.components.Header()
+        chat = sh.components.Chat()
+        tts = sh.components.TextToSpeech()
 
         with gr.Blocks(
-            theme=gr.themes.Default(),
+            theme=gr.themes.Default(
+                primary_hue=gr.themes.colors.cyan,
+                secondary_hue=gr.themes.colors.sky,
+                radius_size=gr.themes.sizes.radius_none,
+            ),
             title='Shirley WebUI',
-            css=sh.getpath('./static/css/custom.css'),
+            css=sh.utils.getpath('./static/css/custom.css'),
         ) as blocks:
             header.make_components()
             with gr.Tab('Chat'):
@@ -51,7 +55,7 @@ def main() -> None:
         inbrowser=False,
         server_port=8000,
         server_name='127.0.0.1',
-        favicon_path=sh.getpath('./static/favicon.ico'),
+        favicon_path=sh.utils.getpath('./static/favicon.ico'),
     )
 
 

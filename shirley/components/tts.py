@@ -6,14 +6,15 @@ import pathlib
 import shirley as sh
 import sys
 import uuid
-from typing import List, Tuple
+from .component import Component
+from typing import List
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class TextToSpeechComponent(sh.Component):
+class TextToSpeech(Component):
 
     def __init__(self) -> None:
         super().__init__()
@@ -88,7 +89,7 @@ class TextToSpeechComponent(sh.Component):
             return None
 
 
-    def _preconvert(self, *args, **kwargs) -> sh.GradioComponents:
+    def _preconvert(self, *args, **kwargs) -> sh.types.GradioComponents:
         components = [
             gr.Textbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
@@ -97,11 +98,11 @@ class TextToSpeechComponent(sh.Component):
         return components
 
 
-    def _convert(self, *args, **kwargs) -> sh.AudioOutput:
+    def _convert(self, *args, **kwargs) -> sh.types.AudioOutput:
         return self._text_to_speech(text=self._text)
 
 
-    def _postconvert(self, *args, **kwargs) -> sh.GradioComponents:
+    def _postconvert(self, *args, **kwargs) -> sh.types.GradioComponents:
         components = [
             gr.Textbox(interactive=True),
             gr.Button(variant='primary', interactive=True),
@@ -111,7 +112,7 @@ class TextToSpeechComponent(sh.Component):
 
 
     def _submit(self, *args, **kwargs) -> None:
-        textbox: sh.TextboxInput = args[0]
+        textbox: sh.types.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
             raise gr.Error(visible=False)
@@ -119,14 +120,14 @@ class TextToSpeechComponent(sh.Component):
         self._text = textbox
 
 
-    def _reset(self, *args, **kwargs) -> sh.GradioComponents:
+    def _reset(self, *args, **kwargs) -> sh.types.GradioComponents:
         self._text = ''
 
         return gr.Button(interactive=False)
 
 
-    def _textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
-        textbox: sh.TextboxInput = args[0]
+    def _textbox_change(self, *args, **kwargs) -> sh.types.GradioComponents:
+        textbox: sh.types.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
             return gr.Button(variant='secondary', interactive=False)
@@ -135,8 +136,8 @@ class TextToSpeechComponent(sh.Component):
         return gr.Button(variant='primary', interactive=True)
 
 
-    def _locale_dropdown_change(self, *args, **kwargs) -> sh.GradioComponents:
-        locale_dropdown: sh.DropdownInput = args[0]
+    def _locale_dropdown_change(self, *args, **kwargs) -> sh.types.GradioComponents:
+        locale_dropdown: sh.types.DropdownInput = args[0]
 
         if not locale_dropdown or not locale_dropdown.strip():
             return gr.Dropdown(choices=None, interactive=False)
@@ -148,7 +149,7 @@ class TextToSpeechComponent(sh.Component):
 
 
     def _voice_dropdown_change(self, *args, **kwargs) -> None:
-        voice_dropdown: sh.DropdownInput = args[0]
+        voice_dropdown: sh.types.DropdownInput = args[0]
 
         self._voice = voice_dropdown
 

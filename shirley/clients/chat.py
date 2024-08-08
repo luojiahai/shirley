@@ -6,16 +6,17 @@ import sys
 import torch
 import transformers
 import uuid
+from .client import Client
 from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
 from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
-from typing import Any, Generator, Tuple
+from typing import Any, Generator
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Client(object):
+class Chat(Client):
 
     def __init__(self, pretrained_model_name_or_path: str) -> None:
         if not os.path.exists(pretrained_model_name_or_path):
@@ -84,11 +85,11 @@ class Client(object):
         return self._model
 
 
-    def chat_stream(self, query: sh.QwenQuery, history: sh.QwenHistory = None) -> Generator[str, Any, None]:
+    def chat_stream(self, query: sh.types.QwenQuery, history: sh.types.QwenHistory = None) -> Generator[str, Any, None]:
         return self.model.chat_stream(tokenizer=self.tokenizer, query=query, history=history)
 
 
-    def draw_bbox_on_latest_picture(self, history: sh.QwenHistory, tempdir: str) -> str | None:
+    def draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory, tempdir: str) -> str | None:
         response = history[-1][1]
         image = self.tokenizer.draw_bbox_on_latest_picture(response=response, history=history)
         if image is not None:

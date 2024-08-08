@@ -5,6 +5,7 @@ import pypdf
 import re
 import shirley as sh
 import sys
+from .component import Component
 from collections import OrderedDict
 from gradio.events import Dependency
 from typing import Callable, Dict, Iterator, List, Tuple
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class ChatComponent(sh.Component):
+class Chat(Component):
 
     MODELS_PATH = './models'
 
@@ -23,7 +24,7 @@ class ChatComponent(sh.Component):
         super().__init__()
         self._pretrained_models: List[str] = self._get_available_pretrained_models()
         self._pretrained_model_name_or_path: str | None = None
-        self._client: sh.Client | None = None
+        self._client: sh.clients.Chat | None = None
         self._generating: bool = False
         self._history: List[Tuple] = []
 
@@ -91,7 +92,7 @@ class ChatComponent(sh.Component):
 
 
     def _load_context(self, filepath: str) -> str:
-        if sh.isimage(filepath):
+        if sh.utils.isimage(filepath):
             return f'Picture: <img>{filepath}</img>'
         elif filepath.endswith('.pdf'):
             reader = pypdf.PdfReader(stream=filepath)
@@ -101,8 +102,8 @@ class ChatComponent(sh.Component):
             return ''
 
 
-    def _get_query_and_history(self) -> Tuple[sh.QwenQuery, sh.QwenHistory]:
-        history: sh.QwenHistory = []
+    def _get_query_and_history(self) -> Tuple[sh.types.QwenQuery, sh.types.QwenHistory]:
+        history: sh.types.QwenHistory = []
         text = ''
         for _, (query, response) in enumerate(self._history):
             if isinstance(query, (Tuple, List)):
@@ -116,7 +117,7 @@ class ChatComponent(sh.Component):
         return history[-1][0], history[:-1]
 
 
-    def _pregenerate(self, *args, **kwargs) -> sh.GradioComponents:
+    def _pregenerate(self, *args, **kwargs) -> sh.types.GradioComponents:
         components = [
             gr.MultimodalTextbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
@@ -127,8 +128,8 @@ class ChatComponent(sh.Component):
         return tuple(components)
 
 
-    def _generate(self, *args, **kwargs) -> Iterator[sh.ChatbotTuplesOutput]:
-        chatbot: sh.ChatbotTuplesInput = args[0]
+    def _generate(self, *args, **kwargs) -> Iterator[sh.types.ChatbotTuplesOutput]:
+        chatbot: sh.types.ChatbotTuplesInput = args[0]
 
         self._generating = True
         logger.info(f'🙂 User: {chatbot[-1][0]}')
@@ -154,7 +155,7 @@ class ChatComponent(sh.Component):
         yield chatbot
 
 
-    def _postgenerate(self, *args, **kwargs) -> sh.GradioComponents:
+    def _postgenerate(self, *args, **kwargs) -> sh.types.GradioComponents:
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
@@ -171,9 +172,9 @@ class ChatComponent(sh.Component):
             raise gr.Error('Pre-trained model not loaded. Please load a model.')
 
 
-    def _submit(self, *args, **kwargs) -> Tuple[sh.ChatbotTuplesOutput, sh.MultimodalTextboxOutput]:
-        chatbot: sh.ChatbotTuplesInput = args[0]
-        multimodal_textbox: sh.MultimodalTextboxInput = args[1]
+    def _submit(self, *args, **kwargs) -> Tuple[sh.types.ChatbotTuplesOutput, sh.types.MultimodalTextboxOutput]:
+        chatbot: sh.types.ChatbotTuplesInput = args[0]
+        multimodal_textbox: sh.types.MultimodalTextboxInput = args[1]
 
         text = multimodal_textbox['text']
         if not text or not text.strip():
@@ -190,12 +191,12 @@ class ChatComponent(sh.Component):
         return chatbot, None
 
 
-    def _stop(self, *args, **kwargs) -> sh.GradioComponents:
+    def _stop(self, *args, **kwargs) -> sh.types.GradioComponents:
         self._generating = False
 
 
-    def _regenerate(self, *args, **kwargs) -> sh.ChatbotTuplesOutput | Iterator[sh.ChatbotTuplesOutput]:
-        chatbot: sh.ChatbotTuplesInput = args[0]
+    def _regenerate(self, *args, **kwargs) -> sh.types.ChatbotTuplesOutput | Iterator[sh.types.ChatbotTuplesOutput]:
+        chatbot: sh.types.ChatbotTuplesInput = args[0]
 
         if len(chatbot) < 1 or len(self._history) < 1:
             return chatbot
@@ -214,7 +215,7 @@ class ChatComponent(sh.Component):
         yield from self._generate(*args, **kwargs)
 
 
-    def _reset(self, *args, **kwargs) -> sh.GradioComponents:
+    def _reset(self, *args, **kwargs) -> sh.types.GradioComponents:
         self._history = []
 
         components = [
@@ -228,20 +229,20 @@ class ChatComponent(sh.Component):
 
 
     def _model_dropdown_change(self, *args, **kwargs) -> None:
-        model_dropdown: sh.DropdownInput = args[0]
+        model_dropdown: sh.types.DropdownInput = args[0]
 
         self._pretrained_model_name_or_path = self._get_pretrained_model_path(model_directory=model_dropdown)
 
 
-    def _load_button_click(self, *args, **kwargs) -> sh.GradioComponents:
-        self._client = sh.Client(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
+    def _load_button_click(self, *args, **kwargs) -> sh.types.GradioComponents:
+        self._client = sh.clients.Chat(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
         gr.Info(message='Model loaded.')
 
         return gr.Dropdown(interactive=True), gr.Button(interactive=True)
 
 
-    def _multimodal_textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
-        multimodal_textbox: sh.MultimodalTextboxInput = args[0]
+    def _multimodal_textbox_change(self, *args, **kwargs) -> sh.types.GradioComponents:
+        multimodal_textbox: sh.types.MultimodalTextboxInput = args[0]
 
         text = multimodal_textbox['text']
         if not text or not text.strip():
@@ -428,7 +429,7 @@ class ChatComponent(sh.Component):
                     label='💬 Chat (聊天)',
                     height='50vh',
                     show_copy_button=True,
-                    avatar_images=(None, sh.getpath('./static/apple-touch-icon.png')),
+                    avatar_images=(None, sh.utils.getpath('./static/apple-touch-icon.png')),
                 )
                 multimodal_textbox = gr.MultimodalTextbox(
                     placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',

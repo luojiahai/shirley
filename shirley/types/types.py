@@ -1,6 +1,6 @@
+import gradio as gr
 import numpy as np
 import pathlib
-from gradio.components import Component
 from gradio.components.multimodal_textbox import MultimodalValue
 from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from typing import List, Sequence, Tuple
@@ -9,12 +9,12 @@ from typing import List, Sequence, Tuple
 QwenQuery = str
 QwenHistory = HistoryType
 
-GradioComponents = Component | Sequence[Component] | None
+GradioComponents = gr.components.Component | Sequence[gr.components.Component] | None
 
 DropdownInput = str | int | float | List[str | int | float] | List[int | None] | None
 DropdownOutput = str | int | float | List[str | int | float] | None
 
-ChatbotTuplesInput = List[List[str | Tuple[str, str] | Component | None]] | None
+ChatbotTuplesInput = List[List[str | Tuple[str, str] | gr.components.Component | None]] | None
 ChatbotTuplesOutput = List[List[str | Tuple[str] | Tuple[str, str] | None] | Tuple] | None
 
 MultimodalTextboxInput = MultimodalValue | None

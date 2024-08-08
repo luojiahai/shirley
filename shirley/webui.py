@@ -31,7 +31,11 @@ class WebUI(object):
         chat = sh.ChatComponent()
         tts = sh.TextToSpeechComponent()
 
-        with gr.Blocks(theme=gr.themes.Default(), title='Shirley WebUI') as blocks:
+        with gr.Blocks(
+            theme=gr.themes.Default(),
+            title='Shirley WebUI',
+            css=sh.getpath('./static/css/custom.css'),
+        ) as blocks:
             header.make_components()
             with gr.Tab('Chat'):
                 chat.make_components()

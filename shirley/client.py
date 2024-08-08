@@ -28,7 +28,7 @@ class Client(object):
 
         if torch.cuda.is_available():
             self._device = torch.device('cuda')
-            logger.info(f'CUDA device: {torch.cuda.get_device_name(torch.cuda.current_device())}')
+            self._device_name = torch.cuda.get_device_name(torch.cuda.current_device())
         elif torch.backends.mps.is_available():
             self._device = torch.device('mps')
         else:
@@ -70,6 +70,10 @@ class Client(object):
     @property
     def device(self) -> torch.device:
         return self._device
+    
+    @property
+    def device_name(self) -> str:
+        return self._device_name
 
     @property
     def tokenizer(self) -> QWenTokenizer:

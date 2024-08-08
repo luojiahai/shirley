@@ -229,12 +229,14 @@ class TextToSpeechComponent(sh.Component):
         reset_button_click = reset_button.click(
             fn=self._reset_button_click,
             inputs=None,
-            outputs=[textbox, audio]
+            outputs=[textbox, audio],
+            show_api=False,
         )
         reset_button_click.then(
             fn=self._reset,
             inputs=None,
-            outputs=[convert_button]
+            outputs=[convert_button],
+            show_api=False,
         )
 
 
@@ -255,9 +257,15 @@ class TextToSpeechComponent(sh.Component):
             实现文字转语音功能。)'
         )
 
-        with gr.Row():
-            with gr.Column(variant='panel'):
-                textbox = gr.Textbox(lines=10)
+        with gr.Row(variant='panel'):
+            with gr.Column():
+                textbox = gr.Textbox(
+                    lines=16,
+                    max_lines=16,
+                    placeholder='✏️ Enter text… (输入文字…)',
+                    label='🔤 Text (文字)',
+                    show_copy_button=True,
+                )
                 with gr.Row():
                     locale_dropdown = gr.Dropdown(
                         choices=self._get_available_locales(),
@@ -273,11 +281,11 @@ class TextToSpeechComponent(sh.Component):
                         label='🎤 Voice (声音)',
                     )
                 with gr.Row():
-                    convert_button = gr.Button(value='↪️ Convert (转换)', variant='secondary', interactive=False)
+                    convert_button = gr.Button(value='🔄 Convert (转换)', variant='secondary', interactive=False)
                     reset_button = gr.Button(value='🧹 Reset (重置)', variant='secondary')
 
-            with gr.Column(variant='panel'):
-                audio = gr.Audio(interactive=False)
+            with gr.Column():
+                audio = gr.Audio(type='filepath', label='🔊 Audio (语音)', scale=1, interactive=False)
 
         gr.Markdown(
             '<font size=2>Note: This is governed by the original license of Azure AI Speech. We strongly advise users \

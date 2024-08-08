@@ -23,18 +23,22 @@ class HeaderComponent(sh.Component):
             show_api=False,
         )
 
-    
+
     def _setup(self, *args, **kwargs) -> None:
         self._setup_dark_mode_button(*args, **kwargs)
 
 
     def make_components(self, *args, **kwargs) -> None:
         with gr.Row():
-            with gr.Column(scale=10):
+            with gr.Column(scale=4):
                 gr.Markdown(value='# 🦈 Shirley WebUI')
-            with gr.Column(scale=3):
+                gr.Markdown(
+                    value='It is just doing some stuff intelligently. This WebUI is built by \
+                    [luojiahai](https://luojiahai.com).'
+                )
+            with gr.Column(scale=1):
                 dark_mode_button = gr.Button(value='🌙 Dark Mode (深色模式)')
-        
+
         self._setup(
             dark_mode_button=dark_mode_button,
         )

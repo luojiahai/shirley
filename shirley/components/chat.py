@@ -5,8 +5,9 @@ import pypdf
 import re
 import shirley as sh
 import sys
+from collections import OrderedDict
 from gradio.events import Dependency
-from typing import Callable, Iterator, List, Tuple
+from typing import Callable, Dict, Iterator, List, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,22 @@ class ChatComponent(sh.Component):
 
     def _get_pretrained_model_path(self, model_directory: str) -> str:
         return os.path.abspath(os.path.expanduser(f'{self.MODELS_PATH}/{model_directory}'))
+
+
+    def _get_model_config(self) -> Dict:
+        model_config = self._client.model.config.to_dict()
+        return OrderedDict([
+            ('device', self._client.device),
+            ('device_name', self._client.device_name),
+            ('architectures', model_config['architectures']),
+            ('bf16', model_config['bf16']),
+            ('fp16', model_config['fp16']),
+            ('fp32', model_config['fp32']),
+            ('model_type', model_config['model_type']),
+            ('tokenizer_type', model_config['tokenizer_type']),
+            ('torch_dtype', model_config['torch_dtype']),
+            ('transformers_version', model_config['transformers_version']),
+        ])
 
 
     def _parse(self, text: str, remove_image_tags: bool = False) -> str:
@@ -249,17 +266,24 @@ class ChatComponent(sh.Component):
     def _setup_load_button(self, *args, **kwargs) -> None:
         model_dropdown: gr.Dropdown = kwargs['model_dropdown']
         load_button: gr.Button = kwargs['load_button']
+        model_config: gr.JSON = kwargs['model_config']
 
-        load_button_click = load_button.click(
+        preload = load_button.click(
             fn=lambda: (gr.Dropdown(interactive=False), gr.Button(interactive=False)),
             inputs=None,
             outputs=[model_dropdown, load_button],
             show_api=False,
         )
-        load_button_click.then(
+        load_button_click = preload.then(
             fn=self._load_button_click,
             inputs=None,
             outputs=[model_dropdown, load_button],
+            show_api=False,
+        )
+        load_button_click.then(
+            fn=lambda: self._get_model_config(),
+            inputs=None,
+            outputs=[model_config],
             show_api=False,
         )
 
@@ -390,41 +414,40 @@ class ChatComponent(sh.Component):
             (此基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
         )
 
-        with gr.Row():
-            with gr.Column(scale=1, variant='panel'):
+        with gr.Row(variant='panel'):
+            with gr.Column(scale=1):
                 self._pretrained_model_name_or_path = self._get_pretrained_model_path(
                     model_directory=self._pretrained_models[0],
                 )
-                with gr.Group():
-                    model_dropdown = gr.Dropdown(
-                        choices=self._pretrained_models,
-                        value=self._pretrained_models[0],
-                        multiselect=False,
-                        label='📦 Pre-trained Model (预训练模型)',
-                        interactive=True,
-                    )
-                    load_button = gr.Button(value='📥 Load (读取)', variant='secondary')
+                model_dropdown = gr.Dropdown(
+                    choices=self._pretrained_models,
+                    value=self._pretrained_models[0],
+                    multiselect=False,
+                    label='📦 Pre-trained model (预训练模型)',
+                    interactive=True,
+                )
+                load_button = gr.Button(value='📥 Load model (加载模型)', variant='secondary')
+                model_config = gr.JSON(label='⚙️ Config (配置)', scale=1)
 
-            with gr.Column(scale=3, variant='panel'):
+            with gr.Column(scale=3):
                 chatbot = gr.Chatbot(
                     type='tuples',
-                    label='🦈 Shirley',
+                    label='💬 Chat (聊天)',
                     height='50vh',
                     show_copy_button=True,
                     avatar_images=(None, sh.getpath('./static/apple-touch-icon.png')),
                 )
-                with gr.Group():
-                    multimodal_textbox = gr.MultimodalTextbox(
-                        placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
-                        show_label=False,
-                        interactive=True,
-                        submit_btn=False,
-                    )
-                    with gr.Row():
-                        submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
-                        stop_button = gr.Button(value='⏹️ Stop (停止)', variant='secondary', interactive=False)
-                        regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
-                        reset_button = gr.Button(value='🧹 Reset (重置)', interactive=False)
+                multimodal_textbox = gr.MultimodalTextbox(
+                    placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
+                    show_label=False,
+                    interactive=True,
+                    submit_btn=False,
+                )
+                with gr.Row():
+                    submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
+                    stop_button = gr.Button(value='⏹️ Stop (停止)', variant='secondary', interactive=False)
+                    regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
+                    reset_button = gr.Button(value='🧹 Reset (重置)', interactive=False)
 
         gr.Markdown(
             '<font size=2>Note: This is governed by the original license of Qwen-VL-Chat. We strongly advise users not \
@@ -437,6 +460,7 @@ class ChatComponent(sh.Component):
         self._setup(
             model_dropdown=model_dropdown,
             load_button=load_button,
+            model_config=model_config,
             chatbot=chatbot,
             multimodal_textbox=multimodal_textbox,
             submit_button=submit_button,

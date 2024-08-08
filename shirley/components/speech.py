@@ -248,8 +248,9 @@ class SpeechComponent(sh.Component):
 
     def make_components(self, *args, **kwargs) -> None:
         gr.Markdown(value='### 🦈 Text-To-Speech')
+
         with gr.Row():
-            with gr.Column():
+            with gr.Column(variant='panel'):
                 textbox = gr.Textbox(lines=10)
                 with gr.Row():
                     locale_dropdown = gr.Dropdown(
@@ -268,7 +269,8 @@ class SpeechComponent(sh.Component):
                 with gr.Row():
                     convert_button = gr.Button(value='↪️ Convert (转换)', variant='secondary', interactive=False)
                     reset_button = gr.Button(value='🧹 Reset (重置)', variant='secondary')
-            with gr.Column():
+
+            with gr.Column(variant='panel'):
                 audio = gr.Audio(interactive=False)
 
         self._setup(

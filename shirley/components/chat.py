@@ -384,40 +384,55 @@ class ChatComponent(sh.Component):
 
     def make_components(self, *args, **kwargs) -> None:
         gr.Markdown(value='### 🦈 Chat')
-
-        with gr.Row():
-            self._pretrained_model_name_or_path = self._get_pretrained_model_path(
-                model_directory=self._pretrained_models[0],
-            )
-            model_dropdown = gr.Dropdown(
-                choices=self._pretrained_models,
-                value=self._pretrained_models[0],
-                multiselect=False,
-                label='📦 Pre-trained Model (模型)',
-                scale=3,
-                interactive=True,
-            )
-            load_button = gr.Button(value='📥 Load (读取)', variant='secondary', scale=1)
-
-        chatbot = gr.Chatbot(
-            type='tuples',
-            label='🦈 Shirley',
-            height='50vh',
-            show_copy_button=True,
-            avatar_images=(None, sh.getpath('./static/apple-touch-icon.png')),
-        )
-        multimodal_textbox = gr.MultimodalTextbox(
-            placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
-            show_label=False,
-            interactive=True,
-            submit_btn=False,
+        gr.Markdown(
+            value='This WebUI is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
+            to implement chatbot functionality. \
+            (本WebUI基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
         )
 
         with gr.Row():
-            submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
-            stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
-            regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
-            reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
+            with gr.Column(scale=1, variant='panel'):
+                self._pretrained_model_name_or_path = self._get_pretrained_model_path(
+                    model_directory=self._pretrained_models[0],
+                )
+                with gr.Group():
+                    model_dropdown = gr.Dropdown(
+                        choices=self._pretrained_models,
+                        value=self._pretrained_models[0],
+                        multiselect=False,
+                        label='📦 Pre-trained Model (预训练模型)',
+                        interactive=True,
+                    )
+                    load_button = gr.Button(value='📥 Load (读取)', variant='secondary')
+                reset_button = gr.Button(value='🧹 Reset (重置对话)', interactive=False)
+
+            with gr.Column(scale=3, variant='panel'):
+                chatbot = gr.Chatbot(
+                    type='tuples',
+                    label='🦈 Shirley',
+                    height='50vh',
+                    show_copy_button=True,
+                    avatar_images=(None, sh.getpath('./static/apple-touch-icon.png')),
+                )
+                with gr.Group():
+                    multimodal_textbox = gr.MultimodalTextbox(
+                        placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
+                        show_label=False,
+                        interactive=True,
+                        submit_btn=False,
+                    )
+                    with gr.Row():
+                        submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
+                        stop_button = gr.Button(value='⏹️ Stop (停止生成)', variant='secondary', interactive=False)
+                        regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
+
+        gr.Markdown(
+            '<font size=2>Note: This WebUI is governed by the original license of Qwen-VL-Chat. We strongly advise \
+            users not to knowingly generate or allow others to knowingly generate harmful content, including hate \
+            speech, violence, pornography, deception, etc. \
+            (注：本WebUI受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，\
+            包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)'
+        )
 
         self._setup(
             model_dropdown=model_dropdown,

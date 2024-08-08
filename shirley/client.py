@@ -84,11 +84,7 @@ class Client(object):
         return self._model
 
 
-    def chat(self, query: str, history: sh.QwenHistory = None) -> Tuple[str, sh.QwenHistory]:
-        return self.model.chat(tokenizer=self.tokenizer, query=query, history=history)
-
-
-    def chat_stream(self, query: str, history: sh.QwenHistory = None) -> Generator[str, Any, None]:
+    def chat_stream(self, query: sh.QwenQuery, history: sh.QwenHistory = None) -> Generator[str, Any, None]:
         return self.model.chat_stream(tokenizer=self.tokenizer, query=query, history=history)
 
 

@@ -17,11 +17,11 @@ class SpeechComponent(sh.Component):
 
     def __init__(self) -> None:
         super().__init__()
-        self._speech_key = os.environ.get('SPEECH_KEY')
-        self._speech_region = os.environ.get('SPEECH_REGION')
-        self._text = ''
-        self._locale = 'zh-CN'
-        self._voice = 'zh-CN-XiaoxiaoNeural'
+        self._speech_key: str | None = os.environ.get('SPEECH_KEY')
+        self._speech_region: str | None = os.environ.get('SPEECH_REGION')
+        self._text: str = ''
+        self._locale: str = 'zh-CN'
+        self._voice: str = 'zh-CN-XiaoxiaoNeural'
 
 
     def _get_available_locales(self) -> List[str]:

@@ -20,34 +20,14 @@ class ChatComponent(sh.Component):
 
     def __init__(self) -> None:
         super().__init__()
-        self._pretrained_models = self._get_available_pretrained_models()
-        self._pretrained_model_name_or_path = None
-        self._client = None
-        self._generating = False
+        self._pretrained_models: List[str] = self._get_available_pretrained_models()
+        self._pretrained_model_name_or_path: str | None = None
+        self._client: sh.Client | None = None
+        self._generating: bool = False
+        self._history: List[Tuple] = []
 
 
-    @property
-    def pretrained_models(self) -> Dict:
-        return self._pretrained_models
-    
-    @property
-    def pretrained_model_name_or_path(self) -> str | None:
-        return self._pretrained_model_name_or_path
-
-    @property
-    def client(self) -> sh.Client:
-        return self._client
-
-    @property
-    def generating(self) -> bool:
-        return self._generating
-
-    @generating.setter
-    def generating(self, value) -> None:
-        self._generating = value
-
-
-    def _get_available_pretrained_models(self) -> Dict:
+    def _get_available_pretrained_models(self) -> List[str]:
         models_directory = os.path.abspath(os.path.expanduser(self.MODELS_PATH))
         pretrained_models = os.listdir(models_directory)
         return pretrained_models
@@ -104,19 +84,19 @@ class ChatComponent(sh.Component):
             return ''
 
 
-    def _get_query_and_chat_history(self, history: sh.ChatHistoryInput) -> Tuple[str, sh.QwenHistory]:
-        chat_history: sh.QwenHistory = []
+    def _get_query_and_history(self) -> Tuple[str, sh.QwenHistory]:
+        history: sh.QwenHistory = []
         text = ''
-        for _, (query, response) in enumerate(history):
+        for _, (query, response) in enumerate(self._history):
             if isinstance(query, (Tuple, List)):
                 filepath = query[0]
                 context = self._load_context(filepath=filepath)
                 text += context + '\n'
             else:
                 text += query
-                chat_history.append((text, response))
+                history.append((text, response))
                 text = ''
-        return chat_history[-1][0], chat_history[:-1]
+        return history[-1][0], history[:-1]
 
 
     def _pregenerate(self, *args, **kwargs) -> sh.GradioComponents:
@@ -132,30 +112,29 @@ class ChatComponent(sh.Component):
 
     def _generate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.ChatHistoryInput = args[1]
 
-        self.generating = True
+        self._generating = True
         logger.info(f'🙂 User: {chatbot[-1][0]}')
 
-        query, chat_history = self._get_query_and_chat_history(history)
+        query, history = self._get_query_and_history()
         full_response = ''
-        for response in self.client.chat_stream(query=query, history=chat_history):
-            if not self.generating: break
+        for response in self._client.chat_stream(query=query, history=history):
+            if not self._generating: break
             chatbot[-1] = (chatbot[-1][0], self._parse(text=response, remove_image_tags=True))
-            yield chatbot, history
+            yield chatbot
             full_response = self._parse(text=response)
 
-        chat_history.append((query, full_response))
-        image_filepath = self.client.draw_bbox_on_latest_picture(history=chat_history, tempdir=self.tempdir)
+        history.append((query, full_response))
+        image_filepath = self._client.draw_bbox_on_latest_picture(history=history, tempdir=self.tempdir)
         if image_filepath is not None:
             chatbot.append((None, (image_filepath,)))
         else:
             chatbot[-1] = (chatbot[-1][0], full_response)
-        history[-1] = (history[-1][0], full_response)
+        self._history[-1] = (self._history[-1][0], full_response)
 
         logger.info(f'🦈 Shirley: {full_response}')
-        self.generating = False
-        yield chatbot, history
+        self._generating = False
+        yield chatbot
 
 
     def _postgenerate(self, *args, **kwargs) -> sh.GradioComponents:
@@ -167,18 +146,17 @@ class ChatComponent(sh.Component):
             gr.Button(interactive=True),
         ]
         return tuple(components)
-    
+
 
     def _validate(self, *args, **kwargs) -> None:
-        if not self.client:
+        if not self._client:
             logger.error('Model not loaded.')
             raise gr.Error('Pre-trained model not loaded. Please load a model.')
 
 
     def _submit(self, *args, **kwargs) -> sh.ChatComponentsOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.ChatHistoryInput = args[1]
-        multimodal_textbox: sh.MultimodalTextboxInput = args[2]
+        multimodal_textbox: sh.MultimodalTextboxInput = args[1]
 
         text = multimodal_textbox['text']
         if not text or not text.strip():
@@ -186,30 +164,29 @@ class ChatComponent(sh.Component):
 
         for filepath in multimodal_textbox['files']:
             chatbot = chatbot + [((filepath,), None)]
-            history = history + [((filepath,), None)]
+            self._history = self._history + [((filepath,), None)]
 
         if multimodal_textbox['text'] is not None:
             chatbot = chatbot + [(self._parse(text=multimodal_textbox['text']), None)]
-            history = history + [(multimodal_textbox['text'], None)]
+            self._history = self._history + [(multimodal_textbox['text'], None)]
 
-        return chatbot, history, None
+        return chatbot, None
 
 
     def _stop(self, *args, **kwargs) -> sh.GradioComponents:
-        self.generating = False
+        self._generating = False
 
 
     def _regenerate(self, *args, **kwargs) -> sh.ChatComponentsOutput:
         chatbot: sh.ChatbotTuplesInput = args[0]
-        history: sh.ChatHistoryInput = args[1]
 
-        if len(chatbot) < 1 or len(history) < 1:
-            return chatbot, history
+        if len(chatbot) < 1 or len(self._history) < 1:
+            return chatbot
 
-        state_last = history[-1]
-        if state_last[1] is None:
-            return chatbot, history
-        history[-1] = (state_last[0], None)
+        history_last = self._history[-1]
+        if history_last[1] is None:
+            return chatbot
+        self._history[-1] = (history_last[0], None)
 
         chatbot_last = chatbot.pop(-1)
         if chatbot_last[0] is None:
@@ -238,7 +215,7 @@ class ChatComponent(sh.Component):
 
 
     def _load_button_click(self, *args, **kwargs) -> sh.GradioComponents:
-        self._client = sh.Client(pretrained_model_name_or_path=self.pretrained_model_name_or_path)
+        self._client = sh.Client(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
 
         return gr.Dropdown(interactive=True), gr.Button(interactive=True)
 
@@ -252,6 +229,11 @@ class ChatComponent(sh.Component):
 
         return gr.Button(variant='primary', interactive=True)
     
+
+    def _reset_button_click(self, *args, **kwargs) -> sh.ChatComponentsOutput:
+        self._history = []
+        return [], None
+
 
     def _setup_model_dropdown(self, *args, **kwargs):
         model_dropdown: gr.Dropdown = kwargs['model_dropdown']
@@ -284,7 +266,6 @@ class ChatComponent(sh.Component):
 
     def _set_event_trigger_generate(self, dependency: Dependency, fn: Callable, *args, **kwargs) -> None:
         chatbot: gr.Chatbot = kwargs['chatbot']
-        history: gr.State = kwargs['history']
         multimodal_textbox: gr.MultimodalTextbox = kwargs['multimodal_textbox']
         submit_button: gr.Button = kwargs['submit_button']
         stop_button: gr.Button = kwargs['stop_button']
@@ -300,8 +281,8 @@ class ChatComponent(sh.Component):
         )
         generate = pregenerate.then(
             fn=fn,
-            inputs=[chatbot, history],
-            outputs=[chatbot, history],
+            inputs=[chatbot],
+            outputs=[chatbot],
             show_progress=True,
             show_api=False,
         )
@@ -315,7 +296,6 @@ class ChatComponent(sh.Component):
 
     def _setup_multimodal_textbox(self, *args, **kwargs) -> None:
         chatbot: gr.Chatbot = kwargs['chatbot']
-        history: gr.State = kwargs['history']
         multimodal_textbox: gr.MultimodalTextbox = kwargs['multimodal_textbox']
         submit_button: gr.Button = kwargs['submit_button']
 
@@ -332,8 +312,8 @@ class ChatComponent(sh.Component):
         )
         submit = validate.success(
             fn=self._submit,
-            inputs=[chatbot, history, multimodal_textbox],
-            outputs=[chatbot, history, multimodal_textbox],
+            inputs=[chatbot, multimodal_textbox],
+            outputs=[chatbot, multimodal_textbox],
             show_api=False,
         )
         self._set_event_trigger_generate(dependency=submit, fn=self._generate, *args, **kwargs)
@@ -341,7 +321,6 @@ class ChatComponent(sh.Component):
 
     def _setup_submit_button(self, *args, **kwargs) -> None:
         chatbot: gr.Chatbot = kwargs['chatbot']
-        history: gr.State = kwargs['history']
         multimodal_textbox: gr.MultimodalTextbox = kwargs['multimodal_textbox']
         submit_button: gr.Button = kwargs['submit_button']
 
@@ -351,8 +330,8 @@ class ChatComponent(sh.Component):
         )
         submit = validate.success(
             fn=self._submit,
-            inputs=[chatbot, history, multimodal_textbox],
-            outputs=[chatbot, history, multimodal_textbox],
+            inputs=[chatbot, multimodal_textbox],
+            outputs=[chatbot, multimodal_textbox],
             show_api=False,
         )
         self._set_event_trigger_generate(dependency=submit, fn=self._generate, *args, **kwargs)
@@ -373,7 +352,6 @@ class ChatComponent(sh.Component):
 
     def _setup_reset_button(self, *args, **kwargs) -> None:
         chatbot: gr.Chatbot = kwargs['chatbot']
-        history: gr.State = kwargs['history']
         multimodal_textbox: gr.MultimodalTextbox = kwargs['multimodal_textbox']
         submit_button: gr.Button = kwargs['submit_button']
         stop_button: gr.Button = kwargs['stop_button']
@@ -381,9 +359,9 @@ class ChatComponent(sh.Component):
         reset_button: gr.Button = kwargs['reset_button']
 
         reset_button_click = reset_button.click(
-            fn=lambda: ([], [], None),
+            fn=self._reset_button_click,
             inputs=None,
-            outputs=[chatbot, history, multimodal_textbox],
+            outputs=[chatbot, multimodal_textbox],
             show_api=False,
         )
         reset_button_click.then(
@@ -409,11 +387,11 @@ class ChatComponent(sh.Component):
 
         with gr.Row():
             self._pretrained_model_name_or_path = self._get_pretrained_model_path(
-                model_directory=self.pretrained_models[0],
+                model_directory=self._pretrained_models[0],
             )
             model_dropdown = gr.Dropdown(
-                choices=self.pretrained_models,
-                value=self.pretrained_models[0],
+                choices=self._pretrained_models,
+                value=self._pretrained_models[0],
                 multiselect=False,
                 label='📦 Pre-trained Model (模型)',
                 scale=3,
@@ -428,7 +406,6 @@ class ChatComponent(sh.Component):
             show_copy_button=True,
             avatar_images=(None, sh.getpath('./static/apple-touch-icon.png')),
         )
-        history = gr.State(value=[])
         multimodal_textbox = gr.MultimodalTextbox(
             placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
             show_label=False,
@@ -446,7 +423,6 @@ class ChatComponent(sh.Component):
             model_dropdown=model_dropdown,
             load_button=load_button,
             chatbot=chatbot,
-            history=history,
             multimodal_textbox=multimodal_textbox,
             submit_button=submit_button,
             stop_button=stop_button,

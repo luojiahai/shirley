@@ -19,9 +19,6 @@ ModelDropdownOutput = str
 ChatbotTuplesInput = List[List[str | Tuple | None]]
 ChatbotTuplesOutput = List[List | Tuple]
 
-ChatHistoryInput = List[Tuple]
-ChatHistoryOutput = List[Tuple]
-
 MultimodalTextboxInput = MultimodalValue
 MultimodalTextboxOutput = MultimodalValue
 
@@ -42,7 +39,7 @@ AudioOutput = str | pathlib.Path | bytes | Tuple[int, np.ndarray] | None
 
 
 # Chat
-ChatComponentOutput = ModelDropdownOutput | ChatbotTuplesOutput | ChatHistoryOutput | MultimodalTextboxOutput
+ChatComponentOutput = ModelDropdownOutput | ChatbotTuplesOutput | MultimodalTextboxOutput
 ChatComponentsOutput = ChatComponentOutput | Sequence[ChatComponentOutput] | Iterator[Sequence[ChatComponentOutput]] | None
 
 

@@ -101,7 +101,7 @@ class ChatComponent(sh.Component):
             return ''
 
 
-    def _get_query_and_history(self) -> Tuple[str, sh.QwenHistory]:
+    def _get_query_and_history(self) -> Tuple[sh.QwenQuery, sh.QwenHistory]:
         history: sh.QwenHistory = []
         text = ''
         for _, (query, response) in enumerate(self._history):
@@ -233,7 +233,7 @@ class ChatComponent(sh.Component):
 
     def _load_button_click(self, *args, **kwargs) -> sh.GradioComponents:
         self._client = sh.Client(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
-
+        gr.Info(message='Model loaded.')
         return gr.Dropdown(interactive=True), gr.Button(interactive=True)
 
 
@@ -243,9 +243,8 @@ class ChatComponent(sh.Component):
         text = multimodal_textbox['text']
         if not text or not text.strip():
             return gr.Button(variant='secondary', interactive=False)
-
         return gr.Button(variant='primary', interactive=True)
-    
+
 
     def _reset_button_click(self, *args, **kwargs) -> Tuple[sh.ChatbotTuplesOutput, sh.MultimodalTextboxOutput]:
         self._history = []
@@ -307,7 +306,6 @@ class ChatComponent(sh.Component):
             fn=fn,
             inputs=[chatbot],
             outputs=[chatbot],
-            show_progress=True,
             show_api=False,
         )
         generate.then(
@@ -423,7 +421,7 @@ class ChatComponent(sh.Component):
                     choices=self._pretrained_models,
                     value=self._pretrained_models[0],
                     multiselect=False,
-                    label='📦 Pre-trained model (预训练模型)',
+                    label='📦 Model (模型)',
                     interactive=True,
                 )
                 load_button = gr.Button(value='📥 Load model (加载模型)', variant='secondary')

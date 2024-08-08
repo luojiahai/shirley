@@ -2,7 +2,7 @@
 
 It is just doing some stuff intelligently. It has the following features:
 - Chat, powered by [Qwen/Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat) (通义千问).
-- Speech, powered by [Azure AI Speech](https://azure.microsoft.com/products/ai-services/ai-speech).
+- Text-To-Speech, powered by [Azure AI Speech](https://azure.microsoft.com/products/ai-services/ai-speech).
 
 ## Requirements
 
@@ -46,7 +46,7 @@ poetry install
 
 Install [PyTorch](https://pytorch.org/get-started/locally/).
 
-### [Chat] Setup Hugging Face pretrained model
+### [Chat] Setup Qwen model
 
 Install submodule:
 ```
@@ -58,7 +58,7 @@ Update submodule:
 git submodule update --remote --merge
 ```
 
-### [Speech] Setup Azure AI Speech
+### [Text-To-Speech] Setup Azure AI Speech
 
 https://azure.microsoft.com/products/ai-services/ai-speech
 

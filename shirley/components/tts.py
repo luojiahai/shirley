@@ -140,7 +140,7 @@ class TextToSpeechComponent(sh.Component):
         return gr.Dropdown(choices=self._get_available_voices(locale=locale_dropdown), interactive=True)
 
 
-    def _voice_dropdown_change(self, *args, **kwargs) -> sh.GradioComponents:
+    def _voice_dropdown_change(self, *args, **kwargs) -> None:
         voice_dropdown: sh.DropdownInput = args[0]
 
         self._voice = voice_dropdown

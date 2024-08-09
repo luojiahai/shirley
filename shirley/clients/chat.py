@@ -28,13 +28,13 @@ class Chat(Client):
         self._model: QWenLMHeadModel | None = None
 
 
-    def get_pretrained_models(self) -> List[str]:
+    def get_models(self) -> List[str]:
         models_directory = os.path.abspath(os.path.expanduser('./models'))
         pretrained_models = os.listdir(models_directory)
         return pretrained_models
 
 
-    def get_pretrained_model_path(self, model_name: str) -> str:
+    def get_model_path(self, model_name: str) -> str:
         return os.path.abspath(os.path.expanduser(f'./models/{model_name}'))
 
 

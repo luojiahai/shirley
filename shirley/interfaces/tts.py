@@ -178,26 +178,27 @@ class TextToSpeech(Interface):
 
 
     def make_components(self, *args, **kwargs) -> None:
-        with gr.Row(variant='panel'):
+        locales = self._client.get_available_locales()
+        self._locale = locales[0]
+        voices = self._client.get_available_voices(locale=self._locale)
+        self._voice = voices[0]
+
+        with gr.Row():
             with gr.Column():
                 textbox = gr.Textbox(
                     lines=16,
                     max_lines=16,
                     placeholder='✏️ Enter text… (输入文字…)',
-                    label='🔤 Text (文字)',
+                    show_label=False,
                     show_copy_button=True,
                 )
                 with gr.Row():
-                    locales = self._client.get_available_locales()
-                    self._locale = locales[0]
                     locale_dropdown = gr.Dropdown(
                         choices=locales,
                         value=self._locale,
                         multiselect=False,
                         label='🌏 Locale (语言)',
                     )
-                    voices = self._client.get_available_voices(locale=self._locale)
-                    self._voice = voices[0]
                     voice_dropdown = gr.Dropdown(
                         choices=voices,
                         value=self._voice,
@@ -211,7 +212,7 @@ class TextToSpeech(Interface):
             with gr.Column():
                 audio = gr.Audio(
                     type='filepath',
-                    label='🔊 Audio (语音)',
+                    show_label=False,
                     scale=1,
                     interactive=False,
                     show_download_button=True,

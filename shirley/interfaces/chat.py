@@ -18,8 +18,10 @@ class Chat(Interface):
         super().__init__()
 
         self._client: sh.clients.Chat | None = sh.clients.Chat()
-        self._pretrained_models: List[str] = self._client.get_pretrained_models()
-        self._pretrained_model_name_or_path: str | None = None
+        self._pretrained_models: List[str] = self._client.get_models()
+        self._pretrained_model_name_or_path: str = self._client.get_model_path(
+            model_name=self._pretrained_models[0],
+        )
         self._generating: bool = False
         self._history: List[Tuple] = []
 
@@ -65,7 +67,7 @@ class Chat(Interface):
         chatbot: sh.types.ChatbotTuplesInput = args[0]
 
         self._generating = True
-        logger.info(f'🙂 User: {chatbot[-1][0]}')
+        logger.info(f'😀 User: {chatbot[-1][0]}')
 
         query, history = self._get_query_and_history()
         full_response = ''
@@ -164,7 +166,7 @@ class Chat(Interface):
     def _model_dropdown_change(self, *args, **kwargs) -> None:
         model_dropdown: sh.types.DropdownInput = args[0]
 
-        self._pretrained_model_name_or_path = self._client.get_pretrained_model_path(model_name=model_dropdown)
+        self._pretrained_model_name_or_path = self._client.get_model_path(model_name=model_dropdown)
 
 
     def _load_button_click(self, *args, **kwargs) -> sh.types.GradioComponents:
@@ -334,20 +336,18 @@ class Chat(Interface):
 
 
     def make_components(self, *args, **kwargs) -> None:
-        with gr.Row(variant='panel'):
+        with gr.Row():
             with gr.Column(scale=1):
-                self._pretrained_model_name_or_path = self._client.get_pretrained_model_path(
-                    model_name=self._pretrained_models[0],
-                )
-                model_dropdown = gr.Dropdown(
-                    choices=self._pretrained_models,
-                    value=self._pretrained_models[0],
-                    multiselect=False,
-                    label='📦 Model (模型)',
-                    interactive=True,
-                )
-                load_button = gr.Button(value='📥 Load model (加载模型)', variant='secondary')
-                model_config = gr.JSON(label='⚙️ Config (配置)', scale=1)
+                with gr.Group():
+                    model_dropdown = gr.Dropdown(
+                        choices=self._pretrained_models,
+                        value=self._pretrained_models[0],
+                        multiselect=False,
+                        label='🤗 Model (模型)',
+                        interactive=True,
+                    )
+                    load_button = gr.Button(value='📥 Load (加载)', variant='secondary')
+                model_config = gr.JSON(show_label=False, scale=1)
 
             with gr.Column(scale=3):
                 chatbot = gr.Chatbot(
@@ -355,7 +355,10 @@ class Chat(Interface):
                     show_label=False,
                     height='50vh',
                     show_copy_button=True,
-                    avatar_images=(None, sh.utils.getpath('./static/apple-touch-icon.png')),
+                    avatar_images=(
+                        sh.utils.getpath('./static/images/grinning-face.png'),
+                        sh.utils.getpath('./static/images/shark.png'),
+                    ),
                 )
                 multimodal_textbox = gr.MultimodalTextbox(
                     placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
@@ -366,7 +369,7 @@ class Chat(Interface):
                 with gr.Row():
                     submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
                     stop_button = gr.Button(value='⏹️ Stop (停止)', variant='secondary', interactive=False)
-                    regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
+                    regenerate_button = gr.Button(value='🔁 Regenerate (重新生成)', interactive=False)
                     reset_button = gr.ClearButton(value='🧹 Reset (重置)', interactive=False)
 
         self._setup(

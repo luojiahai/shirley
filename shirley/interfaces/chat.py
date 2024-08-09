@@ -352,7 +352,7 @@ class Chat(Interface):
             with gr.Column(scale=3):
                 chatbot = gr.Chatbot(
                     type='tuples',
-                    label='💬 Chat (聊天)',
+                    show_label=False,
                     height='50vh',
                     show_copy_button=True,
                     avatar_images=(None, sh.utils.getpath('./static/apple-touch-icon.png')),

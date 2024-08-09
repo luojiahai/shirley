@@ -42,9 +42,9 @@ class WebUI(object):
             css=sh.utils.getpath('./static/css/custom.css'),
         ) as blocks:
             header.make_components()
-            with gr.Tab('Chat'):
+            with gr.Tab('✨ Chat (聊天/唠嗑)'):
                 chat.make_components()
-            with gr.Tab('Text-To-Speech'):
+            with gr.Tab('💬 Text-To-Speech (文字转语音)'):
                 tts.make_components()
             footer.make_components()
             return blocks

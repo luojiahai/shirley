@@ -9,7 +9,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 class Header(Interface):
-    
+
     def __init__(self) -> None:
         super().__init__()
 

@@ -12,10 +12,10 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class TextToSpeech(Interface):
 
-    def __init__(self) -> None:
+    def __init__(self, local: bool = False) -> None:
         super().__init__()
 
-        self._client = sh.clients.TextToSpeech()
+        self._client = sh.clients.TextToSpeech(local=local)
         self._text: str = ''
         self._locale: str | None = None
         self._voice: str | None = None
@@ -76,7 +76,7 @@ class TextToSpeech(Interface):
 
         self._locale = locale_dropdown
         voices = self._client.get_available_voices(locale=locale_dropdown)
-        self._voice = voices[0]
+        self._voice = None if not voices else voices[0]
         return gr.Dropdown(choices=voices, value=self._voice, interactive=True)
 
 
@@ -181,7 +181,7 @@ class TextToSpeech(Interface):
         locales = self._client.get_available_locales()
         self._locale = locales[0]
         voices = self._client.get_available_voices(locale=self._locale)
-        self._voice = voices[0]
+        self._voice = None if not voices else voices[0]
 
         with gr.Row():
             with gr.Column():
@@ -197,12 +197,14 @@ class TextToSpeech(Interface):
                         choices=locales,
                         value=self._locale,
                         multiselect=False,
+                        allow_custom_value=False,
                         label='🌏 Locale (语言)',
                     )
                     voice_dropdown = gr.Dropdown(
                         choices=voices,
                         value=self._voice,
                         multiselect=False,
+                        allow_custom_value=False,
                         label='🎤 Voice (声音)',
                     )
                 with gr.Row():

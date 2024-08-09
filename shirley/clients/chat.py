@@ -19,8 +19,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Client):
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, local: bool) -> None:
+        super().__init__(local=local)
 
         self._device: torch.device | None = torch.device('cpu')
         self._device_name: str | None = None
@@ -29,13 +29,22 @@ class Chat(Client):
 
 
     def get_models(self) -> List[str]:
-        models_directory = os.path.abspath(os.path.expanduser('./models'))
-        pretrained_models = os.listdir(models_directory)
-        return pretrained_models
+        if self.local:
+            models_directory = os.path.abspath(os.path.expanduser('./models'))
+            pretrained_models = [
+                filename for filename in os.listdir(models_directory)
+                if os.path.isdir(os.path.join(models_directory, filename))
+            ]
+            return pretrained_models
+        else:
+            return ['Qwen/Qwen-VL-Chat']
 
 
-    def get_model_path(self, model_name: str) -> str:
-        return os.path.abspath(os.path.expanduser(f'./models/{model_name}'))
+    def get_model_name_or_path(self, model_name: str) -> str:
+        if self.local:
+            return os.path.abspath(os.path.expanduser(f'./models/{model_name}'))
+        else:
+            return model_name
 
 
     def get_model_config(self) -> Dict:

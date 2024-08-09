@@ -14,12 +14,12 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Interface):
 
-    def __init__(self) -> None:
+    def __init__(self, local: bool = True) -> None:
         super().__init__()
 
-        self._client: sh.clients.Chat | None = sh.clients.Chat()
+        self._client: sh.clients.Chat = sh.clients.Chat(local=local)
         self._pretrained_models: List[str] = self._client.get_models()
-        self._pretrained_model_name_or_path: str = self._client.get_model_path(
+        self._pretrained_model_name_or_path: str = self._client.get_model_name_or_path(
             model_name=self._pretrained_models[0],
         )
         self._generating: bool = False
@@ -102,9 +102,9 @@ class Chat(Interface):
 
 
     def _validate(self, *args, **kwargs) -> None:
-        if not self._client:
+        if not self._client._model:
             logger.error('Model not loaded.')
-            raise gr.Error('Pre-trained model not loaded. Please load a model.')
+            raise gr.Error('Model not loaded. Please load a model.')
 
 
     def _submit(self, *args, **kwargs) -> Tuple[sh.types.ChatbotTuplesOutput, sh.types.MultimodalTextboxOutput]:
@@ -166,7 +166,7 @@ class Chat(Interface):
     def _model_dropdown_change(self, *args, **kwargs) -> None:
         model_dropdown: sh.types.DropdownInput = args[0]
 
-        self._pretrained_model_name_or_path = self._client.get_model_path(model_name=model_dropdown)
+        self._pretrained_model_name_or_path = self._client.get_model_name_or_path(model_name=model_dropdown)
 
 
     def _load_button_click(self, *args, **kwargs) -> sh.types.GradioComponents:
@@ -343,15 +343,14 @@ class Chat(Interface):
                         choices=self._pretrained_models,
                         value=self._pretrained_models[0],
                         multiselect=False,
+                        allow_custom_value=False,
                         label='🤗 Model (模型)',
-                        interactive=True,
                     )
                     load_button = gr.Button(value='📥 Load (加载)', variant='secondary')
                 model_config = gr.JSON(show_label=False, scale=1)
 
             with gr.Column(scale=3):
                 chatbot = gr.Chatbot(
-                    type='tuples',
                     show_label=False,
                     height='50vh',
                     show_copy_button=True,

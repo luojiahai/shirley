@@ -29,8 +29,8 @@ class WebUI(object):
 
     def _make_blocks(self, *args, **kwargs) -> gr.Blocks:
         header = sh.interfaces.Header()
-        chat = sh.interfaces.Chat()
-        tts = sh.interfaces.TextToSpeech()
+        chat = sh.interfaces.Chat(local=True)
+        tts = sh.interfaces.TextToSpeech(local=False)
         footer = sh.interfaces.Footer()
 
         with gr.Blocks(
@@ -52,14 +52,10 @@ class WebUI(object):
 
 
 def main() -> None:
-    username = os.environ.get('SH_USERNAME')
-    password = os.environ.get('SH_PASSWORD')
-
     webui = WebUI()
     webui.launch(
         inbrowser=False,
         share=False,
-        auth=(username, password),
         server_name='127.0.0.1',
         server_port=8000,
         favicon_path=sh.utils.getpath('./static/favicon.ico'),

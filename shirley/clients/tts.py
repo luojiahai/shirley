@@ -14,8 +14,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class TextToSpeech(Client):
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, local: bool) -> None:
+        super().__init__(local=local)
 
         self._speech_key: str | None = os.environ.get('SPEECH_KEY')
         self._speech_region: str | None = os.environ.get('SPEECH_REGION')
@@ -39,7 +39,10 @@ class TextToSpeech(Client):
         return locales
 
 
-    def get_available_voices(self, locale: str) -> List[str]:
+    def get_available_voices(self, locale: str) -> List[str] | None:
+        if not self._speech_key or not self._speech_region:
+            return None
+
         speech_config = speechsdk.SpeechConfig(subscription=self._speech_key, region=self._speech_region)
         speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
 
@@ -52,6 +55,9 @@ class TextToSpeech(Client):
 
 
     def text_to_speech(self, text: str, voice: str) -> pathlib.Path | None:
+        if not self._speech_key or not self._speech_region:
+            return None
+
         speech_config = speechsdk.SpeechConfig(subscription=self._speech_key, region=self._speech_region)
         speech_config.speech_synthesis_voice_name = voice
         speech_config.set_speech_synthesis_output_format(

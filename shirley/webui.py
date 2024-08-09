@@ -1,6 +1,7 @@
 import fastapi
 import gradio as gr
 import logging
+import os
 import shirley as sh
 import sys
 from typing import Tuple
@@ -22,7 +23,7 @@ class WebUI(object):
 
 
     def launch(self, *args, **kwargs) -> Tuple[fastapi.FastAPI, str, str]:
-        self.blocks.queue(api_open=False)
+        self.blocks.queue()
         return self.blocks.launch(*args, **kwargs)
 
 
@@ -51,13 +52,18 @@ class WebUI(object):
 
 
 def main() -> None:
+    username = os.environ.get('SH_USERNAME')
+    password = os.environ.get('SH_PASSWORD')
+
     webui = WebUI()
     webui.launch(
-        share=False,
         inbrowser=False,
-        server_port=8000,
+        share=False,
+        auth=(username, password),
         server_name='127.0.0.1',
+        server_port=8000,
         favicon_path=sh.utils.getpath('./static/favicon.ico'),
+        show_api=False,
     )
 
 

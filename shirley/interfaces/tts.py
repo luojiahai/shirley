@@ -47,7 +47,7 @@ class TextToSpeech(Interface):
         textbox: sh.types.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
-            raise gr.Error(visible=False)
+            raise gr.Error('Text not valid.')
 
         self._text = textbox
 

@@ -113,7 +113,7 @@ class Chat(Interface):
 
         text = multimodal_textbox['text']
         if not text or not text.strip():
-            raise gr.Error(visible=False)
+            raise gr.Error('Text not valid.')
 
         for filepath in multimodal_textbox['files']:
             chatbot = chatbot + [((filepath,), None)]

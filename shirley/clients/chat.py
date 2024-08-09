@@ -8,8 +8,6 @@ import transformers
 import uuid
 from .client import Client
 from collections import OrderedDict
-from models.qwen_vl_chat.modeling_qwen import QWenLMHeadModel
-from models.qwen_vl_chat.tokenization_qwen import QWenTokenizer
 from typing import Any, Dict, Generator, List
 
 
@@ -24,8 +22,13 @@ class Chat(Client):
 
         self._device: torch.device | None = torch.device('cpu')
         self._device_name: str | None = None
-        self._tokenizer: QWenTokenizer | None = None
-        self._model: QWenLMHeadModel | None = None
+        self._tokenizer: transformers.PreTrainedTokenizer | None = None
+        self._model: transformers.PreTrainedModel | None = None
+
+
+    @property
+    def model(self) -> transformers.PreTrainedModel | None:
+        return self._model
 
 
     def get_models(self) -> List[str]:
@@ -75,18 +78,18 @@ class Chat(Client):
         if torch.cuda.is_available():
             self._device = torch.device('cuda')
             self._device_name = torch.cuda.get_device_name(torch.cuda.current_device())
-        elif torch.backends.mps.is_available():
-            self._device = torch.device('mps')
+        # elif torch.backends.mps.is_available():
+        #     self._device = torch.device('mps')
         else:
             self._device = torch.device('cpu')
 
-        tokenizer = QWenTokenizer.from_pretrained(
+        tokenizer: transformers.PreTrainedTokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_name_or_path,
             local_files_only=local_files_only,
             trust_remote_code=True,
         )
 
-        model = QWenLMHeadModel.from_pretrained(
+        model: transformers.PreTrainedModel = transformers.AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_name_or_path,
             local_files_only=local_files_only,
             trust_remote_code=True,

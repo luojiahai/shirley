@@ -102,7 +102,7 @@ class Chat(Interface):
 
 
     def _validate(self, *args, **kwargs) -> None:
-        if not self._client._model:
+        if not self._client.model:
             logger.error('Model not loaded.')
             raise gr.Error('Model not loaded. Please load a model.')
 
@@ -363,7 +363,6 @@ class Chat(Interface):
                     placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',
                     show_label=False,
                     interactive=True,
-                    submit_btn=False,
                 )
                 with gr.Row():
                     submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)

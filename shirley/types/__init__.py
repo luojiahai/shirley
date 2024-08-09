@@ -2,12 +2,11 @@ import gradio as gr
 import numpy as np
 import pathlib
 from gradio.components.multimodal_textbox import MultimodalValue
-from models.qwen_vl_chat.qwen_generation_utils import HistoryType
 from typing import List, Sequence, Tuple
 
 
 QwenQuery = str
-QwenHistory = HistoryType
+QwenHistory = List[Tuple[str, str]]
 
 GradioComponents = gr.components.Component | Sequence[gr.components.Component] | None
 

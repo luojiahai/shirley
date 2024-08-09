@@ -27,9 +27,9 @@ class WebUI(object):
 
 
     def _make_blocks(self, *args, **kwargs) -> gr.Blocks:
-        header = sh.components.Header()
-        chat = sh.components.Chat()
-        tts = sh.components.TextToSpeech()
+        header = sh.interfaces.Header()
+        chat = sh.interfaces.Chat()
+        tts = sh.interfaces.TextToSpeech()
 
         with gr.Blocks(
             theme=gr.themes.Default(

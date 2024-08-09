@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class Component(ABC):
+class Interface(ABC):
 
     def __init__(self) -> None:
         pass

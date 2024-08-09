@@ -4,7 +4,7 @@ import pypdf
 import re
 import shirley as sh
 import sys
-from .component import Component
+from .interface import Interface
 from gradio.events import Dependency
 from typing import Callable, Iterator, List, Tuple
 
@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Chat(Component):
+class Chat(Interface):
 
     def __init__(self) -> None:
         super().__init__()
 
         self._client: sh.clients.Chat | None = sh.clients.Chat()
-        self._pretrained_models: List[str] = self._client.get_available_pretrained_models()
+        self._pretrained_models: List[str] = self._client.get_pretrained_models()
         self._pretrained_model_name_or_path: str | None = None
         self._generating: bool = False
         self._history: List[Tuple] = []
@@ -201,7 +201,7 @@ class Chat(Component):
     def _model_dropdown_change(self, *args, **kwargs) -> None:
         model_dropdown: sh.types.DropdownInput = args[0]
 
-        self._pretrained_model_name_or_path = self._client.get_pretrained_model_path(model_directory=model_dropdown)
+        self._pretrained_model_name_or_path = self._client.get_pretrained_model_path(model_name=model_dropdown)
 
 
     def _load_button_click(self, *args, **kwargs) -> sh.types.GradioComponents:
@@ -381,7 +381,7 @@ class Chat(Component):
         with gr.Row(variant='panel'):
             with gr.Column(scale=1):
                 self._pretrained_model_name_or_path = self._client.get_pretrained_model_path(
-                    model_directory=self._pretrained_models[0],
+                    model_name=self._pretrained_models[0],
                 )
                 model_dropdown = gr.Dropdown(
                     choices=self._pretrained_models,

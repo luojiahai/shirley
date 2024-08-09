@@ -1,14 +1,14 @@
 import gradio as gr
 import logging
 import sys
-from .component import Component
+from .interface import Interface
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Header(Component):
+class Header(Interface):
     
     def __init__(self) -> None:
         super().__init__()

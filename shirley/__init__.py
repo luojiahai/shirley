@@ -1,4 +1,4 @@
 from shirley import types
 from shirley import utils
 from shirley import clients
-from shirley import components
+from shirley import interfaces

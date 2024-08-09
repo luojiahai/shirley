@@ -1,7 +1,6 @@
 import gradio as gr
 import logging
 import pypdf
-import re
 import shirley as sh
 import sys
 from .interface import Interface
@@ -23,42 +22,6 @@ class Chat(Interface):
         self._pretrained_model_name_or_path: str | None = None
         self._generating: bool = False
         self._history: List[Tuple] = []
-
-
-    def _parse(self, text: str, remove_image_tags: bool = False) -> str:
-        lines = text.split('\n')
-        lines = [line for line in lines if line != '']
-        count = 0
-        for i, line in enumerate(lines):
-            if '```' in line:
-                count += 1
-                items = line.split('`')
-                if count % 2 == 1:
-                    lines[i] = f'<pre><code class=\'language-{items[-1]}\'>'
-                else:
-                    lines[i] = f'<br></code></pre>'
-            else:
-                if i > 0:
-                    if count % 2 == 1:
-                        line = line.replace('`', r'\`')
-                        line = line.replace('<', '&lt;')
-                        line = line.replace('>', '&gt;')
-                        line = line.replace(' ', '&nbsp;')
-                        line = line.replace('*', '&ast;')
-                        line = line.replace('_', '&lowbar;')
-                        line = line.replace('-', '&#45;')
-                        line = line.replace('.', '&#46;')
-                        line = line.replace('!', '&#33;')
-                        line = line.replace('(', '&#40;')
-                        line = line.replace(')', '&#41;')
-                        line = line.replace('$', '&#36;')
-                    lines[i] = '<br>' + line
-
-        text = ''.join(lines)
-        if remove_image_tags:
-            text = text.replace('<ref>', '').replace('</ref>', '')
-            text = re.sub(r'<box>.*?(</box>|$)', '', text)
-        return text
 
 
     def _load_context(self, filepath: str) -> str:
@@ -108,9 +71,9 @@ class Chat(Interface):
         full_response = ''
         for response in self._client.chat_stream(query=query, history=history):
             if not self._generating: break
-            chatbot[-1] = (chatbot[-1][0], self._parse(text=response, remove_image_tags=True))
+            chatbot[-1] = (chatbot[-1][0], sh.utils.parse(text=response, remove_image_tags=True))
             yield chatbot
-            full_response = self._parse(text=response)
+            full_response = sh.utils.parse(text=response)
 
         history.append((query, full_response))
         image_filepath = self._client.draw_bbox_on_latest_picture(history=history)
@@ -155,7 +118,7 @@ class Chat(Interface):
             self._history = self._history + [((filepath,), None)]
 
         if multimodal_textbox['text'] is not None:
-            chatbot = chatbot + [(self._parse(text=multimodal_textbox['text']), None)]
+            chatbot = chatbot + [(sh.utils.parse(text=multimodal_textbox['text']), None)]
             self._history = self._history + [(multimodal_textbox['text'], None)]
 
         return chatbot, None
@@ -412,14 +375,6 @@ class Chat(Interface):
                     stop_button = gr.Button(value='⏹️ Stop (停止)', variant='secondary', interactive=False)
                     regenerate_button = gr.Button(value='🤔️ Regenerate (重新生成)', interactive=False)
                     reset_button = gr.ClearButton(value='🧹 Reset (重置)', interactive=False)
-
-        gr.Markdown(
-            '<font size=2>Note: This is governed by the original license of Qwen-VL-Chat. We strongly advise users not \
-            to knowingly generate or allow others to knowingly generate harmful content, including hate speech, \
-            violence, pornography, deception, etc. \
-            (注：此受通义千问的许可协议限制。我们强烈建议，用户不应传播及不应允许他人传播以下内容，包括但不限于仇恨言论、暴力、\
-            色情、欺诈相关的有害信息。)'
-        )
 
         self._setup(
             model_dropdown=model_dropdown,

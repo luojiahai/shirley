@@ -30,6 +30,7 @@ class WebUI(object):
         header = sh.interfaces.Header()
         chat = sh.interfaces.Chat()
         tts = sh.interfaces.TextToSpeech()
+        footer = sh.interfaces.Footer()
 
         with gr.Blocks(
             theme=gr.themes.Default(
@@ -45,6 +46,7 @@ class WebUI(object):
                 chat.make_components()
             with gr.Tab('Text-To-Speech'):
                 tts.make_components()
+            footer.make_components()
             return blocks
 
 

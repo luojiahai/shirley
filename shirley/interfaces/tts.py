@@ -178,14 +178,6 @@ class TextToSpeech(Interface):
 
 
     def make_components(self, *args, **kwargs) -> None:
-        gr.Markdown(value='### 🦈 Text-To-Speech')
-        gr.Markdown(
-            value='This is based on [Azure AI Speech](https://azure.microsoft.com/products/ai-services/ai-speech) \
-            to implement text-to-speech functionality. \
-            (此基于[Azure AI Speech](https://azure.microsoft.com/products/ai-services/ai-speech)打造，\
-            实现文字转语音功能。)'
-        )
-
         with gr.Row(variant='panel'):
             with gr.Column():
                 textbox = gr.Textbox(

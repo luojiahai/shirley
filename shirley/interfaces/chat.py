@@ -334,13 +334,6 @@ class Chat(Interface):
 
 
     def make_components(self, *args, **kwargs) -> None:
-        gr.Markdown(value='### 🦈 Chat')
-        gr.Markdown(
-            value='This is based on [Qwen-VL-Chat](https://modelscope.cn/models/qwen/Qwen-VL-Chat/) \
-            to implement chatbot functionality. \
-            (此基于[通义千问](https://modelscope.cn/models/qwen/Qwen-VL-Chat/)打造，实现聊天机器人功能。)'
-        )
-
         with gr.Row(variant='panel'):
             with gr.Column(scale=1):
                 self._pretrained_model_name_or_path = self._client.get_pretrained_model_path(

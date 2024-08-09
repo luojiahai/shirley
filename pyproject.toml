@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "shirley"
 version = "0.1.0"
-description = "It intelligently chats."
+description = "It is just doing some stuff intelligently."
 authors = ["luojiahai <ljiahai@hotmail.com>"]
 readme = "README.md"
 

@@ -6,8 +6,6 @@ Read our [Code of Conduct](./CODE_OF_CONDUCT.md) to keep our community approacha
 
 In this guide you will get an overview of the contribution workflow from opening an issue, creating a PR, reviewing, and merging the PR.
 
-Use the table of contents icon <img alt="Table of contents icon" src="/contributing/images/table-of-contents.png" width="25" height="25" /> on the top left corner of this document to get to a specific section of this guide quickly.
-
 ## New contributor guide
 
 To get an overview of the project, read the [README](./README.md) file. Here are some resources to help you get started with open source contributions:
@@ -19,7 +17,7 @@ To get an overview of the project, read the [README](./README.md) file. Here are
 
 ## Getting started
 
-To navigate our codebase with confidence, see [the introduction to working in the repository](/contributing/README.md) :confetti_ball:.
+To navigate our codebase with confidence :confetti_ball:.
 
 ### Issues
 
@@ -41,7 +39,7 @@ Scan through our [existing issues](https://github.com/luojiahai/shirley/issues) 
 - Using the command line:
   - [Fork the repo](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo#fork-an-example-repository) so that you can make your changes without affecting the original project until you're ready to merge them.
 
-1. Install. For more information, see [the development guide](../contributing/development.md).
+1. Install.
 
 2. Create a working branch and start with your changes!
 

@@ -15,7 +15,7 @@ class TextToSpeech(Interface):
     def __init__(self, local: bool = False, *args, **kwargs) -> None:
         super().__init__()
 
-        self._client = sh.clients.TextToSpeech(local=local)
+        self._client = sh.clients.TextToSpeech(local=local, *args, **kwargs)
         self._text: str = ''
         self._locale: str | None = None
         self._voice: str | None = None

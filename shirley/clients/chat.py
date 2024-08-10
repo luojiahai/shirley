@@ -17,27 +17,19 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Client):
 
-    def __init__(self, local: bool) -> None:
+    def __init__(self, local: bool, *args, **kwargs) -> None:
         super().__init__(local=local)
 
         self._device: torch.device | None = torch.device('cpu')
         self._device_name: str | None = None
         self._tokenizer: transformers.PreTrainedTokenizer | None = None
         self._model: transformers.PreTrainedModel | None = None
-        self._generate_fn: Callable | None = None
+        self._generate_fn: Callable | None = kwargs.get('generate_fn', None)
 
 
     @property
     def model(self) -> transformers.PreTrainedModel | None:
         return self._model
-
-    @property
-    def generate_fn(self) -> Callable | None:
-        return self._generate_fn
-
-    @generate_fn.setter
-    def generate_fn(self, value: Callable | None) -> None:
-        self._generate_fn = value
 
 
     def get_models(self) -> List[str]:
@@ -126,8 +118,13 @@ class Chat(Client):
 
 
     def chat_stream(self, query: sh.types.QwenQuery, history: sh.types.QwenHistory = None) -> Generator[str, Any, None]:
-        if self.generate_fn:
-            return self.generate_fn(fn=self._model.chat_stream, tokenizer=self._tokenizer, query=query, history=history)
+        if self._generate_fn:
+            return self._generate_fn(
+                fn=self._model.chat_stream,
+                tokenizer=self._tokenizer,
+                query=query,
+                history=history,
+            )
         else:
             return self._model.chat_stream(tokenizer=self._tokenizer, query=query, history=history)
 

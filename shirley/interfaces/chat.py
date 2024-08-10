@@ -17,7 +17,7 @@ class Chat(Interface):
     def __init__(self, local: bool = True, *args, **kwargs) -> None:
         super().__init__()
 
-        self._client: sh.clients.Chat = sh.clients.Chat(local=local)
+        self._client: sh.clients.Chat = sh.clients.Chat(local=local, *args, **kwargs)
         self._pretrained_models: List[str] = self._client.get_models()
         self._pretrained_model_name_or_path: str = self._client.get_model_name_or_path(
             model_name=self._pretrained_models[0],
@@ -26,11 +26,6 @@ class Chat(Interface):
         self._history: List[Tuple] = []
 
         self._make_components(*args, **kwargs)
-
-
-    @property
-    def client(self) -> sh.clients.Chat:
-        return self._client
 
 
     def _load_context(self, filepath: str) -> str:

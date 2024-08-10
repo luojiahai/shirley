@@ -14,7 +14,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class TextToSpeech(Client):
 
-    def __init__(self, local: bool) -> None:
+    def __init__(self, local: bool, *args, **kwargs) -> None:
         super().__init__(local=local)
 
         self._speech_key: str | None = os.environ.get('SPEECH_KEY')

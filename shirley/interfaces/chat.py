@@ -14,16 +14,21 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Interface):
 
-    def __init__(self, local: bool = True, hfspace: bool = False) -> None:
+    def __init__(self, local: bool = True) -> None:
         super().__init__()
 
-        self._client: sh.clients.Chat = sh.clients.Chat(local=local, hfspace=hfspace)
+        self._client: sh.clients.Chat = sh.clients.Chat(local=local)
         self._pretrained_models: List[str] = self._client.get_models()
         self._pretrained_model_name_or_path: str = self._client.get_model_name_or_path(
             model_name=self._pretrained_models[0],
         )
         self._generating: bool = False
         self._history: List[Tuple] = []
+
+
+    @property
+    def client(self) -> sh.clients.Chat:
+        return self._client
 
 
     def _load_context(self, filepath: str) -> str:

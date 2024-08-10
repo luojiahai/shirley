@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shirley"
-version = "0.1.6"
+version = "0.1.7"
 description = "It is just doing some stuff intelligently."
 authors = ["luojiahai <luo@jiahai.co>"]
 readme = "README_PYPI.md"
@@ -16,7 +16,6 @@ tiktoken = "^0.7.0"
 einops = "^0.8.0"
 transformers-stream-generator = "^0.0.5"
 azure-cognitiveservices-speech = "^1.38.0"
-spaces = "^0.29.3"
 
 [tool.poetry.scripts]
 webui = "shirley.webui:main"

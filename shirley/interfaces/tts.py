@@ -21,6 +21,11 @@ class TextToSpeech(Interface):
         self._voice: str | None = None
 
 
+    @property
+    def client(self) -> sh.clients.Chat:
+        return self._client
+
+
     def _preconvert(self, *args, **kwargs) -> sh.types.GradioComponents:
         components = [
             gr.Textbox(interactive=False),

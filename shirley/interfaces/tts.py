@@ -221,7 +221,7 @@ class TextToSpeech(Interface):
             with gr.Column():
                 audio = gr.Audio(
                     type='filepath',
-                    show_label=False,
+                    label='🔊 Audio (语音)',
                     scale=1,
                     interactive=False,
                     show_download_button=True,

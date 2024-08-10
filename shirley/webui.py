@@ -18,9 +18,9 @@ def main() -> None:
         css=sh.utils.getpath('./static/css/custom.css'),
     ) as blocks:
         sh.interfaces.Header()
-        with gr.Tab('✨ Chat (聊天/唠嗑)'):
+        with gr.Tab('📝 Chat (聊天/唠嗑)'):
             sh.interfaces.Chat(avatar_images=avatar_images)
-        with gr.Tab('💬 Text-To-Speech (文字转语音)'):
+        with gr.Tab('🗣️ Text-To-Speech (文字转语音)'):
             sh.interfaces.TextToSpeech()
         sh.interfaces.Footer()
 

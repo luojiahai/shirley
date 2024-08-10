@@ -32,6 +32,11 @@ class WebUI(object):
         tts = sh.interfaces.TextToSpeech()
         footer = sh.interfaces.Footer()
 
+        avatar_images=(
+            sh.utils.getpath('./static/images/grinning-face.png'),
+            sh.utils.getpath('./static/images/shark.png'),
+        )
+
         with gr.Blocks(
             theme=gr.themes.Default(
                 primary_hue=gr.themes.colors.cyan,
@@ -43,7 +48,7 @@ class WebUI(object):
         ) as blocks:
             header.make_components()
             with gr.Tab('✨ Chat (聊天/唠嗑)'):
-                chat.make_components()
+                chat.make_components(avatar_images=avatar_images)
             with gr.Tab('💬 Text-To-Speech (文字转语音)'):
                 tts.make_components()
             footer.make_components()

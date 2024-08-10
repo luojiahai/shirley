@@ -341,6 +341,8 @@ class Chat(Interface):
 
 
     def make_components(self, *args, **kwargs) -> None:
+        avatar_images: Tuple | None = kwargs.get('avatar_images', None)
+
         with gr.Row():
             with gr.Column(scale=1):
                 with gr.Group():
@@ -359,10 +361,7 @@ class Chat(Interface):
                     show_label=False,
                     height='50vh',
                     show_copy_button=True,
-                    avatar_images=(
-                        sh.utils.getpath('./static/images/grinning-face.png'),
-                        sh.utils.getpath('./static/images/shark.png'),
-                    ),
+                    avatar_images=avatar_images,
                 )
                 multimodal_textbox = gr.MultimodalTextbox(
                     placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',

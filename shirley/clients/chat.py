@@ -54,7 +54,10 @@ class Chat(Client):
             return model_name
 
 
-    def get_model_config(self) -> Dict:
+    def get_model_config(self) -> Dict | None:
+        if not self._model:
+            return None
+
         model_config = self._model.config.to_dict()
         return OrderedDict([
             ('device', self._device),

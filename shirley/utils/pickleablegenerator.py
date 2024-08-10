@@ -1,6 +1,9 @@
+from typing import Callable
+
+
 class PickleableGenerator:
 
-    def __init__(self, fn, *args, **kwargs):
+    def __init__(self, fn: Callable, *args, **kwargs):
         self.fn = fn
         self.args = args
         self.kwargs = kwargs

@@ -18,7 +18,7 @@ class Chat(Interface):
         super().__init__()
 
         self._client: sh.clients.Chat = sh.clients.Chat(local=local, *args, **kwargs)
-        self._chat_stream_fn: Callable = kwargs.get('chat_stream', None)
+        self._chat_stream_fn: Callable = kwargs.get('chat_stream_fn', None)
         self._pretrained_models: List[str] = self._client.get_models()
         self._pretrained_model_name_or_path: str = self._client.get_model_name_or_path(
             model_name=self._pretrained_models[0],
@@ -37,12 +37,11 @@ class Chat(Interface):
         if self._chat_stream_fn:
             return self._chat_stream_fn(
                 fn=self._client.chat_stream,
-                tokenizer=self._client.tokenizer,
                 query=query,
                 history=history,
             )
         else:
-            self._client.chat_stream(query=query, history=history)
+            return self._client.chat_stream(query=query, history=history)
 
 
     def _draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory) -> str | None:
@@ -372,7 +371,7 @@ class Chat(Interface):
                         label='🤗 Model (模型)',
                     )
                     load_button = gr.Button(value='📥 Load (加载)', variant='secondary')
-                model_config = gr.JSON(show_label=False, scale=1)
+                model_config = gr.JSON(value=self._client.get_model_config(), show_label=False, scale=1)
 
             with gr.Column(scale=3):
                 chatbot = gr.Chatbot(

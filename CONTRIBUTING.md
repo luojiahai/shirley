@@ -21,8 +21,6 @@ To get an overview of the project, read the [README](./README.md) file. Here are
 
 To navigate our codebase with confidence, see [the introduction to working in the repository](/contributing/README.md) :confetti_ball:.
 
-Check to see what [types of contributions](/contributing/types-of-contributions.md) we accept before making changes. Some of them don't even require writing a single line of code :sparkles:.
-
 ### Issues
 
 #### Create a new issue

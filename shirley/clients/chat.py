@@ -6,7 +6,7 @@ import sys
 import torch
 import transformers
 import uuid
-from .client import Client
+from .client import Client, ClientOptions
 from collections import OrderedDict
 from typing import Any, Dict, Generator, List
 
@@ -17,8 +17,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Client):
 
-    def __init__(self, local: bool, *args, **kwargs) -> None:
-        super().__init__(local=local)
+    def __init__(self, options: ClientOptions) -> None:
+        super().__init__(options=options)
 
         self._pretrained_model_name_or_path: str | None = None
         self._device: torch.device | None = torch.device('cpu')

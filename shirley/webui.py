@@ -19,7 +19,11 @@ def main() -> None:
     ) as blocks:
         sh.interfaces.Header()
         with gr.Tab('📝 Chat (聊天/唠嗑)'):
-            sh.interfaces.Chat(avatar_images=avatar_images)
+            sh.interfaces.Chat(
+                options=sh.interfaces.chat.ChatOptions(
+                    chatbot=sh.interfaces.chat.ChatbotOptions(avatar_images=avatar_images),
+                ),
+            )
         with gr.Tab('🗣️ Text-To-Speech (文字转语音)'):
             sh.interfaces.TextToSpeech()
         sh.interfaces.Footer()

@@ -4,21 +4,34 @@ import pypdf
 import shirley as sh
 import sys
 from .interface import Interface
+from dataclasses import dataclass
 from gradio.events import Dependency
-from typing import Any, Callable, Generator, Iterator, List, Tuple
+from shirley.clients.client import ClientOptions
+from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
+@dataclass
+class ChatbotOptions:
+    avatar_images: Optional[Tuple] = None
+
+@dataclass
+class ChatOptions:
+    client: Optional[ClientOptions] = ClientOptions(local=True)
+    chatbot: Optional[ChatbotOptions] = ChatbotOptions()
+    chat_stream_fn: Optional[Callable] = None
+
+
 class Chat(Interface):
 
-    def __init__(self, local: bool = True, *args, **kwargs) -> None:
+    def __init__(self, options: ChatOptions = ChatOptions()) -> None:
         super().__init__()
 
-        self._client: sh.clients.Chat = sh.clients.Chat(local=local, *args, **kwargs)
-        self._chat_stream_fn: Callable = kwargs.get('chat_stream_fn', None)
+        self._client: sh.clients.Chat = sh.clients.Chat(options=options.client)
+        self._chat_stream_fn: Callable | None = options.chat_stream_fn
         self._pretrained_models: List[str] = self._client.get_models()
         self._pretrained_model_name_or_path: str = self._client.get_model_name_or_path(
             model_name=self._pretrained_models[0],
@@ -26,7 +39,7 @@ class Chat(Interface):
         self._generating: bool = False
         self._history: List[Tuple] = []
 
-        self._make_components(*args, **kwargs)
+        self._make_components(options)
 
 
     def _chat_stream(
@@ -358,9 +371,7 @@ class Chat(Interface):
         self._setup_reset_button(*args, **kwargs)
 
 
-    def _make_components(self, *args, **kwargs) -> None:
-        avatar_images: Tuple | None = kwargs.get('avatar_images', None)
-
+    def _make_components(self, options: ChatOptions) -> None:
         with gr.Row():
             with gr.Column(scale=1):
                 with gr.Group():
@@ -379,7 +390,7 @@ class Chat(Interface):
                     label='🤔 Qwen (通义千问)',
                     height='50vh',
                     show_copy_button=True,
-                    avatar_images=avatar_images,
+                    avatar_images=options.chatbot.avatar_images,
                 )
                 multimodal_textbox = gr.MultimodalTextbox(
                     placeholder='✏️ Enter text or upload file… (输入文字或者上传文件…)',

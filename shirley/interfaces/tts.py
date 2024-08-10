@@ -1,26 +1,34 @@
-
 import gradio as gr
 import logging
 import shirley as sh
 import sys
+
+from shirley.clients.client import ClientOptions
 from .interface import Interface
+from dataclasses import dataclass
+from typing import Optional
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
+@dataclass
+class TextToSpeechOptions:
+    client: Optional[ClientOptions] = ClientOptions(local=False)
+
+
 class TextToSpeech(Interface):
 
-    def __init__(self, local: bool = False, *args, **kwargs) -> None:
+    def __init__(self, options: TextToSpeechOptions = TextToSpeechOptions()) -> None:
         super().__init__()
 
-        self._client = sh.clients.TextToSpeech(local=local, *args, **kwargs)
+        self._client = sh.clients.TextToSpeech(options=options.client)
         self._text: str = ''
         self._locale: str | None = None
         self._voice: str | None = None
 
-        self._make_components(*args, **kwargs)
+        self._make_components(options)
 
 
     @property
@@ -184,7 +192,7 @@ class TextToSpeech(Interface):
         self._setup_reset_button(*args, **kwargs)
 
 
-    def _make_components(self, *args, **kwargs) -> None:
+    def _make_components(self, options: TextToSpeechOptions) -> None:
         locales = self._client.get_available_locales()
         self._locale = locales[0]
         voices = self._client.get_available_voices(locale=self._locale)

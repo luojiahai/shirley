@@ -4,7 +4,7 @@ import os
 import pathlib
 import sys
 import uuid
-from .client import Client
+from .client import Client, ClientOptions
 from typing import List
 
 
@@ -14,8 +14,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class TextToSpeech(Client):
 
-    def __init__(self, local: bool, *args, **kwargs) -> None:
-        super().__init__(local=local)
+    def __init__(self, options: ClientOptions) -> None:
+        super().__init__(options=options)
 
         self._speech_key: str | None = os.environ.get('SPEECH_KEY')
         self._speech_region: str | None = os.environ.get('SPEECH_REGION')

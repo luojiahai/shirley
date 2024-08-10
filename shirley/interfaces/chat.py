@@ -192,7 +192,8 @@ class Chat(Interface):
 
 
     def _load_button_click(self, *args, **kwargs) -> sh.types.GradioComponents:
-        self._client.load_model(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
+        if not self._client.model or self._pretrained_model_name_or_path != self._client.pretrained_model_name_or_path:
+            self._client.load_model(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
         gr.Info(message='Model loaded.')
 
         return gr.Dropdown(interactive=True), gr.Button(interactive=True)
@@ -371,7 +372,7 @@ class Chat(Interface):
                         label='🤗 Model (模型)',
                     )
                     load_button = gr.Button(value='📥 Load (加载)', variant='secondary')
-                model_config = gr.JSON(value=self._client.get_model_config(), label='⚙️ Config (配置)', scale=1)
+                model_config = gr.JSON(label='⚙️ Config (配置)', scale=1)
 
             with gr.Column(scale=3):
                 chatbot = gr.Chatbot(

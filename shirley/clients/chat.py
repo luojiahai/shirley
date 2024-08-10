@@ -20,6 +20,7 @@ class Chat(Client):
     def __init__(self, local: bool, *args, **kwargs) -> None:
         super().__init__(local=local)
 
+        self._pretrained_model_name_or_path: str | None = None
         self._device: torch.device | None = torch.device('cpu')
         self._device_name: str | None = None
         self._tokenizer: transformers.PreTrainedTokenizer | None = None
@@ -27,8 +28,8 @@ class Chat(Client):
 
 
     @property
-    def tokenizer(self) -> transformers.PreTrainedTokenizer | None:
-        return self._tokenizer
+    def pretrained_model_name_or_path(self) -> str | None:
+        return self._pretrained_model_name_or_path
 
     @property
     def model(self) -> transformers.PreTrainedModel | None:
@@ -81,6 +82,8 @@ class Chat(Client):
         else:
             logger.info(f'Using local pre-trained model \'{pretrained_model_name_or_path}\'.')
             local_files_only = True
+
+        self._pretrained_model_name_or_path = pretrained_model_name_or_path
 
         if torch.cuda.is_available():
             self._device = torch.device('cuda')

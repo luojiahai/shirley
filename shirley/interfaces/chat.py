@@ -5,7 +5,7 @@ import shirley as sh
 import sys
 from .interface import Interface
 from gradio.events import Dependency
-from typing import Callable, Iterator, List, Tuple
+from typing import Any, Callable, Generator, Iterator, List, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -18,8 +18,7 @@ class Chat(Interface):
         super().__init__()
 
         self._client: sh.clients.Chat = sh.clients.Chat(local=local, *args, **kwargs)
-        self._chat_stream: Callable = kwargs.get('chat_stream', self._client.chat_stream)
-        self._draw_bbox_on_latest_picture = self._client.draw_bbox_on_latest_picture
+        self._chat_stream_fn: Callable = kwargs.get('chat_stream', None)
         self._pretrained_models: List[str] = self._client.get_models()
         self._pretrained_model_name_or_path: str = self._client.get_model_name_or_path(
             model_name=self._pretrained_models[0],
@@ -28,6 +27,26 @@ class Chat(Interface):
         self._history: List[Tuple] = []
 
         self._make_components(*args, **kwargs)
+
+
+    def _chat_stream(
+        self,
+        query: sh.types.QwenQuery,
+        history: sh.types.QwenHistory = None,
+    ) -> Generator[str, Any, None]:
+        if self._chat_stream_fn:
+            return self._chat_stream_fn(
+                fn=self._client.chat_stream,
+                tokenzier=self._client.tokenizer,
+                query=query,
+                history=history,
+            )
+        else:
+            self._client.chat_stream(query=query, history=history)
+
+
+    def _draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory) -> str | None:
+        return self._client.draw_bbox_on_latest_picture(history=history)
 
 
     def _load_context(self, filepath: str) -> str:

@@ -27,6 +27,10 @@ class Chat(Client):
 
 
     @property
+    def tokenizer(self) -> transformers.PreTrainedTokenizer | None:
+        return self._tokenizer
+
+    @property
     def model(self) -> transformers.PreTrainedModel | None:
         return self._model
 

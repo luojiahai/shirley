@@ -3,7 +3,7 @@ name = "shirley"
 version = "0.1.8"
 description = "It is just doing some stuff intelligently."
 authors = ["luojiahai <luo@jiahai.co>"]
-readme = "README_PYPI.md"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"

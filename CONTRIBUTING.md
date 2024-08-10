@@ -1,4 +1,4 @@
-# Welcome to Shirley contributing guide <!-- omit in toc -->
+# Contributing <!-- omit in toc -->
 
 Thank you for investing your time in contributing to our project! Any contribution you make will be reflected on [Shirley](https://github.com/luojiahai/shirley) :sparkles:.
 

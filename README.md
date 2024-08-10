@@ -2,6 +2,7 @@
 
 [![shirley](https://img.shields.io/badge/Shirley-06b6d4?style=flat-square)](.)
 [![build](https://img.shields.io/github/actions/workflow/status/luojiahai/shirley/python-publish.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white)](https://github.com/luojiahai/shirley/actions/workflows/python-publish.yml)
+[![license](https://img.shields.io/github/license/luojiahai/shirley.svg?style=flat-square&logo=github&logoColor=white)](./LICENSE)
 [![python](https://img.shields.io/pypi/pyversions/shirley?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![pypi](https://img.shields.io/pypi/v/shirley?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/shirley/)
 

@@ -19,8 +19,8 @@ pip install shirley
 ## Quick tour
 
 ```python
-import shirley as sh
 import gradio as gr
+import shirley as sh
 
 with gr.Blocks() as blocks:
     sh.interfaces.Header()

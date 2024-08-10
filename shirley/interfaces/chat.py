@@ -37,7 +37,7 @@ class Chat(Interface):
         if self._chat_stream_fn:
             return self._chat_stream_fn(
                 fn=self._client.chat_stream,
-                tokenzier=self._client.tokenizer,
+                tokenizer=self._client.tokenizer,
                 query=query,
                 history=history,
             )

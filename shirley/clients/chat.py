@@ -18,7 +18,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Client):
 
-    def __init__(self, local: bool, hfspace: bool = False) -> None:
+    def __init__(self, local: bool, hfspace: bool) -> None:
         super().__init__(local=local)
 
         self._hfspace = hfspace

@@ -28,8 +28,8 @@ class WebUI(object):
 
     def _make_blocks(self, *args, **kwargs) -> gr.Blocks:
         header = sh.interfaces.Header()
-        chat = sh.interfaces.Chat(local=True)
-        tts = sh.interfaces.TextToSpeech(local=False)
+        chat = sh.interfaces.Chat()
+        tts = sh.interfaces.TextToSpeech()
         footer = sh.interfaces.Footer()
 
         with gr.Blocks(

@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "shirley"
-version = "0.1.12"
+version = "0.1.13"
 description = "It is just doing some stuff intelligently."
 authors = ["luojiahai <luo@jiahai.co>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.10,<3.11"
 transformers = "4.36.0"
 numpy = "1.26.4"
 gradio = "^4.39.0"

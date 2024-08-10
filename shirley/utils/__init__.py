@@ -1,3 +1,5 @@
+from shirley.utils.pickleablegenerator import PickleableGenerator
+
 import os
 import re
 from PIL import Image

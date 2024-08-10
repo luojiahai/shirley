@@ -2,6 +2,7 @@ import logging
 import os
 import pathlib
 import shirley as sh
+import spaces
 import sys
 import torch
 import transformers
@@ -17,8 +18,10 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Client):
 
-    def __init__(self, local: bool) -> None:
+    def __init__(self, local: bool, hfspace: bool = False) -> None:
         super().__init__(local=local)
+
+        self._hfspace = hfspace
 
         self._device: torch.device | None = torch.device('cpu')
         self._device_name: str | None = None
@@ -117,7 +120,12 @@ class Chat(Client):
 
 
     def chat_stream(self, query: sh.types.QwenQuery, history: sh.types.QwenHistory = None) -> Generator[str, Any, None]:
-        return self._model.chat_stream(tokenizer=self._tokenizer, query=query, history=history)
+        if self._hfspace:
+            @spaces.GPU
+            def fn(): return sh.utils.PickleableGenerator(self._model.chat_stream, self._tokenizer, query, history)
+        else:
+            def fn(): return self._model.chat_stream(tokenizer=self._tokenizer, query=query, history=history)
+        return fn()
 
 
     def draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory) -> str | None:

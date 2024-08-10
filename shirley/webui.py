@@ -1,7 +1,6 @@
 import fastapi
 import gradio as gr
 import logging
-import os
 import shirley as sh
 import sys
 from typing import Tuple

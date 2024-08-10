@@ -8,7 +8,7 @@ import transformers
 import uuid
 from .client import Client
 from collections import OrderedDict
-from typing import Any, Callable, Dict, Generator, List
+from typing import Any, Dict, Generator, List
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,6 @@ class Chat(Client):
         self._device_name: str | None = None
         self._tokenizer: transformers.PreTrainedTokenizer | None = None
         self._model: transformers.PreTrainedModel | None = None
-        self._generate_fn: Callable | None = kwargs.get('generate_fn', None)
 
 
     @property
@@ -118,15 +117,7 @@ class Chat(Client):
 
 
     def chat_stream(self, query: sh.types.QwenQuery, history: sh.types.QwenHistory = None) -> Generator[str, Any, None]:
-        if self._generate_fn:
-            return self._generate_fn(
-                fn=self._model.chat_stream,
-                tokenizer=self._tokenizer,
-                query=query,
-                history=history,
-            )
-        else:
-            return self._model.chat_stream(tokenizer=self._tokenizer, query=query, history=history)
+        return self._model.chat_stream(tokenizer=self._tokenizer, query=query, history=history)
 
 
     def draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory) -> str | None:

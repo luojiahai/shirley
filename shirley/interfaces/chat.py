@@ -18,6 +18,8 @@ class Chat(Interface):
         super().__init__()
 
         self._client: sh.clients.Chat = sh.clients.Chat(local=local, *args, **kwargs)
+        self._chat_stream: Callable = kwargs.get('chat_stream', self._client.chat_stream)
+        self._draw_bbox_on_latest_picture = self._client.draw_bbox_on_latest_picture
         self._pretrained_models: List[str] = self._client.get_models()
         self._pretrained_model_name_or_path: str = self._client.get_model_name_or_path(
             model_name=self._pretrained_models[0],
@@ -73,14 +75,14 @@ class Chat(Interface):
 
         query, history = self._get_query_and_history()
         full_response = ''
-        for response in self._client.chat_stream(query=query, history=history):
+        for response in self._chat_stream(query=query, history=history):
             if not self._generating: break
             chatbot[-1] = (chatbot[-1][0], sh.utils.parse(text=response, remove_image_tags=True))
             yield chatbot
             full_response = sh.utils.parse(text=response)
 
         history.append((query, full_response))
-        image_filepath = self._client.draw_bbox_on_latest_picture(history=history)
+        image_filepath = self._draw_bbox_on_latest_picture(history=history)
         if image_filepath is not None:
             chatbot.append((None, (image_filepath,)))
         else:

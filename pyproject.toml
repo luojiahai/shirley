@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "shirley"
-version = "0.1.4"
+version = "0.1.5"
 description = "It is just doing some stuff intelligently."
 authors = ["luojiahai <luo@jiahai.co>"]
-readme = "README.md"
+readme = "README_PYPI.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -25,14 +25,3 @@ webui = "shirley.webui:main"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[project]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-
-[project.urls]
-Homepage = "https://github.com/luojiahai/shirley"
-Issues = "https://github.com/luojiahai/shirley/issues"

@@ -53,8 +53,6 @@ class WebUI(object):
 def main() -> None:
     webui = WebUI()
     webui.launch(
-        inbrowser=False,
-        share=False,
         server_name='127.0.0.1',
         server_port=8000,
         favicon_path=sh.utils.getpath('./static/favicon.ico'),

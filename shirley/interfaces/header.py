@@ -31,13 +31,17 @@ class Header(Interface):
 
 
     def _make_components(self, *args, **kwargs) -> None:
+        title: str = kwargs.get(key='title', default='🦈 Shirley WebUI')
+        description: str = kwargs.get(
+            key='description',
+            default='It is just doing some stuff intelligently. This WebUI is built by \
+                [luojiahai](https://luojiahai.com).',
+        )
+
         with gr.Row():
             with gr.Column(scale=4):
-                gr.Markdown(value='# 🦈 Shirley WebUI')
-                gr.Markdown(
-                    value='It is just doing some stuff intelligently. This WebUI is built by \
-                    [luojiahai](https://luojiahai.com).'
-                )
+                gr.Markdown(value=f'# {title}')
+                gr.Markdown(value=f'# {description}')
             with gr.Column(scale=1):
                 dark_mode_button = gr.Button(value='🌙 Dark Mode (深色模式)')
 

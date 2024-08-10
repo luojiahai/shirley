@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shirley"
-version = "0.1.1"
+version = "0.1.2"
 description = "It is just doing some stuff intelligently."
 authors = ["luojiahai <luo@jiahai.co>"]
 readme = "README.md"
@@ -26,7 +26,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
-requires-python = "=3.10.6"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

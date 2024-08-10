@@ -10,8 +10,10 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Header(Interface):
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__()
+
+        self._make_components(*args, **kwargs)
 
 
     def _setup_dark_mode_button(self, *args, **kwargs) -> None:
@@ -28,7 +30,7 @@ class Header(Interface):
         self._setup_dark_mode_button(*args, **kwargs)
 
 
-    def make_components(self, *args, **kwargs) -> None:
+    def _make_components(self, *args, **kwargs) -> None:
         with gr.Row():
             with gr.Column(scale=4):
                 gr.Markdown(value='# 🦈 Shirley WebUI')

@@ -14,7 +14,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Interface):
 
-    def __init__(self, local: bool = True) -> None:
+    def __init__(self, local: bool = True, *args, **kwargs) -> None:
         super().__init__()
 
         self._client: sh.clients.Chat = sh.clients.Chat(local=local)
@@ -24,6 +24,8 @@ class Chat(Interface):
         )
         self._generating: bool = False
         self._history: List[Tuple] = []
+
+        self._make_components(*args, **kwargs)
 
 
     @property
@@ -340,7 +342,7 @@ class Chat(Interface):
         self._setup_reset_button(*args, **kwargs)
 
 
-    def make_components(self, *args, **kwargs) -> None:
+    def _make_components(self, *args, **kwargs) -> None:
         avatar_images: Tuple | None = kwargs.get('avatar_images', None)
 
         with gr.Row():

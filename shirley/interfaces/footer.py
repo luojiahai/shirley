@@ -10,9 +10,11 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Footer(Interface):
     
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__()
 
+        self._make_components(*args, **kwargs)
 
-    def make_components(self, *args, **kwargs) -> None:
+
+    def _make_components(self, *args, **kwargs) -> None:
         pass

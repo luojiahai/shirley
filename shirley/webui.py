@@ -27,11 +27,6 @@ class WebUI(object):
 
 
     def _make_blocks(self, *args, **kwargs) -> gr.Blocks:
-        header = sh.interfaces.Header()
-        chat = sh.interfaces.Chat()
-        tts = sh.interfaces.TextToSpeech()
-        footer = sh.interfaces.Footer()
-
         avatar_images=(
             sh.utils.getpath('./static/images/grinning-face.png'),
             sh.utils.getpath('./static/images/shark.png'),
@@ -46,12 +41,12 @@ class WebUI(object):
             title='Shirley WebUI',
             css=sh.utils.getpath('./static/css/custom.css'),
         ) as blocks:
-            header.make_components()
+            sh.interfaces.Header()
             with gr.Tab('✨ Chat (聊天/唠嗑)'):
-                chat.make_components(avatar_images=avatar_images)
+                sh.interfaces.Chat(avatar_images=avatar_images)
             with gr.Tab('💬 Text-To-Speech (文字转语音)'):
-                tts.make_components()
-            footer.make_components()
+                sh.interfaces.TextToSpeech()
+            sh.interfaces.Footer()
             return blocks
 
 

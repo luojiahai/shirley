@@ -18,12 +18,14 @@ pip install shirley
 
 ### [Chat] Download Qwen-VL-Chat model
 
-Add Qwen/Qwen-VL-Chat as a git submodule:
+Add Qwen/Qwen-VL-Chat (from Hugging Face) as a git submodule:
 ```
 git submodule add https://huggingface.co/Qwen/Qwen-VL-Chat.git models/qwen_vl_chat
 git submodule update --init --recursive models/qwen_vl_chat
 git submodule update --remote --merge models/qwen_vl_chat
 ```
+
+Note: You can skip this if you want to use remote model.
 
 ### [Text-To-Speech] Setup Azure AI Speech
 

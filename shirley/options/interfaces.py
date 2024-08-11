@@ -1,4 +1,4 @@
-from .client import ClientOptions
+from .client import ChatClientOptions, TextToSpeechClientOptions
 from .components import ChatbotOptions
 from dataclasses import dataclass
 from typing import Callable, Optional
@@ -23,11 +23,11 @@ class FooterInterfaceOptions(InterfaceOptions):
 
 @dataclass
 class ChatInterfaceOptions(InterfaceOptions):
-    client: Optional[ClientOptions] = ClientOptions(local=True)
+    client: Optional[ChatClientOptions] = ChatClientOptions(local=True)
     chatbot: Optional[ChatbotOptions] = ChatbotOptions()
     chat_stream_fn: Optional[Callable] = None
 
 
 @dataclass
 class TextToSpeechInterfaceOptions(InterfaceOptions):
-    client: Optional[ClientOptions] = ClientOptions(local=False)
+    client: Optional[TextToSpeechClientOptions] = TextToSpeechClientOptions()

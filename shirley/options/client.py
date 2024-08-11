@@ -3,12 +3,12 @@ from dataclasses import dataclass
 
 @dataclass
 class ClientOptions:
-    local: bool
+    pass
 
 
 @dataclass
 class ChatClientOptions(ClientOptions):
-    pass
+    local: bool
 
 
 @dataclass

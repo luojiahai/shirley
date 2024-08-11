@@ -21,6 +21,7 @@ class Chat(Client):
     def __init__(self, options: ChatClientOptions = ChatClientOptions(local=True)) -> None:
         super().__init__(options=options)
 
+        self._local = options.local
         self._pretrained_model_name_or_path: str | None = None
         self._device: torch.device | None = torch.device('cpu')
         self._device_name: str | None = None
@@ -38,7 +39,7 @@ class Chat(Client):
 
 
     def get_models(self) -> List[str]:
-        if self.local:
+        if self._local:
             models_directory = os.path.abspath(os.path.expanduser('./models'))
             pretrained_models = [
                 filename for filename in os.listdir(models_directory)
@@ -50,7 +51,7 @@ class Chat(Client):
 
 
     def get_model_name_or_path(self, model_name: str) -> str:
-        if self.local:
+        if self._local:
             return os.path.abspath(os.path.expanduser(f'./models/{model_name}'))
         else:
             return model_name

@@ -16,9 +16,9 @@ It is just doing some stuff intelligently. It has the following features:
 pip install shirley
 ```
 
-### [Chat] Download `Qwen-VL-Chat` model
+### [Chat] Download Qwen-VL-Chat model
 
-Add `Qwen/Qwen-VL-Chat` as a `git` submodule:
+Add Qwen/Qwen-VL-Chat as a git submodule:
 ```
 git submodule add https://huggingface.co/Qwen/Qwen-VL-Chat.git models/qwen_vl_chat
 git submodule update --init --recursive models/qwen_vl_chat

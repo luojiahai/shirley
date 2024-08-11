@@ -16,6 +16,8 @@ It is just doing some stuff intelligently. It has the following features:
 pip install shirley
 ```
 
+Or, copy `shirley` directory to your working directory.
+
 ### [Chat] Setup Qwen-VL-Chat model (local)
 
 Add Qwen/Qwen-VL-Chat as a git submodule:

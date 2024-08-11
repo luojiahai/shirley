@@ -4,31 +4,19 @@ import pypdf
 import shirley as sh
 import sys
 from .interface import Interface
-from dataclasses import dataclass
 from gradio.events import Dependency
-from shirley.clients.client import ClientOptions
-from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple
+from shirley.options import ChatInterfaceOptions
+from typing import Any, Callable, Generator, Iterator, List, Tuple
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-@dataclass
-class ChatbotOptions:
-    avatar_images: Optional[Tuple] = None
-
-@dataclass
-class ChatOptions:
-    client: Optional[ClientOptions] = ClientOptions(local=True)
-    chatbot: Optional[ChatbotOptions] = ChatbotOptions()
-    chat_stream_fn: Optional[Callable] = None
-
-
 class Chat(Interface):
 
-    def __init__(self, options: ChatOptions = ChatOptions()) -> None:
-        super().__init__()
+    def __init__(self, options: ChatInterfaceOptions = ChatInterfaceOptions()) -> None:
+        super().__init__(options=options)
 
         self._client: sh.clients.Chat = sh.clients.Chat(options=options.client)
         self._chat_stream_fn: Callable | None = options.chat_stream_fn
@@ -371,7 +359,7 @@ class Chat(Interface):
         self._setup_reset_button(*args, **kwargs)
 
 
-    def _make_components(self, options: ChatOptions) -> None:
+    def _make_components(self, options: ChatInterfaceOptions) -> None:
         with gr.Row():
             with gr.Column(scale=1):
                 with gr.Group():

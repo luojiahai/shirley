@@ -1,5 +1,6 @@
 import gradio as gr
 import shirley as sh
+from shirley.options import ChatInterfaceOptions, ChatbotOptions
 
 
 def main() -> None:
@@ -20,8 +21,8 @@ def main() -> None:
         sh.interfaces.Header()
         with gr.Tab('📝 Chat (聊天/唠嗑)'):
             sh.interfaces.Chat(
-                options=sh.interfaces.chat.ChatOptions(
-                    chatbot=sh.interfaces.chat.ChatbotOptions(avatar_images=avatar_images),
+                options=ChatInterfaceOptions(
+                    chatbot=ChatbotOptions(avatar_images=avatar_images),
                 ),
             )
         with gr.Tab('🗣️ Text-To-Speech (文字转语音)'):

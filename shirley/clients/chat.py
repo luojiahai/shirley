@@ -6,8 +6,9 @@ import sys
 import torch
 import transformers
 import uuid
-from .client import Client, ClientOptions
+from .client import Client
 from collections import OrderedDict
+from shirley.options import ChatClientOptions
 from typing import Any, Dict, Generator, List
 
 
@@ -17,7 +18,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Client):
 
-    def __init__(self, options: ClientOptions) -> None:
+    def __init__(self, options: ChatClientOptions = ChatClientOptions()) -> None:
         super().__init__(options=options)
 
         self._pretrained_model_name_or_path: str | None = None

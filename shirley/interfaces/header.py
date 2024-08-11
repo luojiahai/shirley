@@ -2,6 +2,7 @@ import gradio as gr
 import logging
 import sys
 from .interface import Interface
+from shirley.options import HeaderInterfaceOptions
 
 
 logger = logging.getLogger(__name__)
@@ -10,10 +11,10 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Header(Interface):
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__()
+    def __init__(self, options: HeaderInterfaceOptions = HeaderInterfaceOptions()) -> None:
+        super().__init__(options=options)
 
-        self._make_components(*args, **kwargs)
+        self._make_components(options=options)
 
 
     def _setup_dark_mode_button(self, *args, **kwargs) -> None:
@@ -30,17 +31,11 @@ class Header(Interface):
         self._setup_dark_mode_button(*args, **kwargs)
 
 
-    def _make_components(self, *args, **kwargs) -> None:
-        title: str = kwargs.get('title', '🦈 Shirley WebUI')
-        description: str = kwargs.get(
-            'description',
-            'It is just doing some stuff intelligently. This WebUI is built by [luojiahai](https://luojiahai.com).',
-        )
-
+    def _make_components(self, options: HeaderInterfaceOptions) -> None:
         with gr.Row():
             with gr.Column(scale=4):
-                gr.Markdown(value=f'# {title}')
-                gr.Markdown(value=f'{description}')
+                gr.Markdown(value=f'# {options.title}')
+                gr.Markdown(value=f'{options.description}')
             with gr.Column(scale=1):
                 dark_mode_button = gr.Button(value='🌙 Dark Mode (深色模式)')
 

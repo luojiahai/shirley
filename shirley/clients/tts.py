@@ -4,7 +4,8 @@ import os
 import pathlib
 import sys
 import uuid
-from .client import Client, ClientOptions
+from .client import Client
+from shirley.options import TextToSpeechClientOptions
 from typing import List
 
 
@@ -14,7 +15,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class TextToSpeech(Client):
 
-    def __init__(self, options: ClientOptions) -> None:
+    def __init__(self, options: TextToSpeechClientOptions = TextToSpeechClientOptions()) -> None:
         super().__init__(options=options)
 
         self._speech_key: str | None = os.environ.get('SPEECH_KEY')

@@ -12,7 +12,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 class Footer(Interface):
     
     def __init__(self, options: FooterInterfaceOptions = FooterInterfaceOptions()) -> None:
-        super().__init__(options)
+        super().__init__(options=options)
 
         self._make_components(options=options)
 

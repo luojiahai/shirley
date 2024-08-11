@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class ClientOptions:
-    local: Optional[bool] = True
+    local: bool
 
 
 @dataclass

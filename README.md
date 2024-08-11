@@ -19,6 +19,8 @@ pip install shirley
 ## Quick tour
 
 ```python
+# webui.py
+
 import gradio as gr
 import shirley as sh
 
@@ -33,13 +35,16 @@ with gr.Blocks() as blocks:
 blocks.queue().launch()
 ```
 
-## Run a WebUI
+Note: I made a working [example](https://github.com/luojiahai/shirley/blob/main/webui.py). You can use that.
+
+### Running
 
 ```bash
-poetry shell
-poetry install
-poetry run webui
+pip install -r requirements.txt
+python webui.py
 ```
+
+Note: I recommend using [`poetry`](https://python-poetry.org/) to manage dependencies and run Python. See [DEVELOPMENT.md](./DEVELOPMENT.md) for more details.
 
 ## Development
 

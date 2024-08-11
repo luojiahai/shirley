@@ -16,12 +16,13 @@ It is just doing some stuff intelligently. It has the following features:
 pip install shirley
 ```
 
-### [Chat] Setup Qwen-VL-Chat locally
+### [Chat] Download `Qwen-VL-Chat` model
 
-Install and update the submodule:
+Add `Qwen/Qwen-VL-Chat` as a `git` submodule:
 ```
-git submodule update --init --recursive ./models/qwen_vl_chat
-git submodule update --remote --merge ./models/qwen_vl_chat
+git submodule add https://huggingface.co/Qwen/Qwen-VL-Chat.git models/qwen_vl_chat
+git submodule update --init --recursive models/qwen_vl_chat
+git submodule update --remote --merge models/qwen_vl_chat
 ```
 
 ### [Text-To-Speech] Setup Azure AI Speech
@@ -40,7 +41,7 @@ setx SPEECH_KEY your-key
 setx SPEECH_REGION your-region
 ```
 
-## Quick tour
+## Quicktour
 
 ```python
 # webui.py

@@ -60,7 +60,19 @@ with gr.Blocks() as blocks:
 blocks.queue().launch()
 ```
 
-Note: I made a working [example](https://github.com/luojiahai/shirley/blob/main/webui.py). You can use that.
+Chat interface uses local model by default. If you want to use remote one, add options:
+
+```python
+...
+sh.interfaces.Chat(
+    options=ChatInterfaceOptions(
+        client=ChatClientOptions(local=False),
+    ),
+)
+...
+```
+
+Note: I made an example [webui.py](https://github.com/luojiahai/shirley/blob/main/webui.py). You can use that to start with.
 
 ### Running
 

@@ -16,6 +16,30 @@ It is just doing some stuff intelligently. It has the following features:
 pip install shirley
 ```
 
+### [Chat] Setup Qwen-VL-Chat locally
+
+Install and update the submodule:
+```
+git submodule update --init --recursive ./models/qwen_vl_chat
+git submodule update --remote --merge ./models/qwen_vl_chat
+```
+
+### [Text-To-Speech] Setup Azure AI Speech
+
+Create [AI Speech](https://azure.microsoft.com/products/ai-services/ai-speech) service in Azure portal.
+
+Set environment variables:
+```
+export SPEECH_KEY=your-key
+export SPEECH_REGION=your-region
+```
+
+Set environment variables on Windows:
+```
+setx SPEECH_KEY your-key
+setx SPEECH_REGION your-region
+```
+
 ## Quick tour
 
 ```python

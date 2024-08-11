@@ -42,16 +42,12 @@ poetry install
 
 Install [PyTorch](https://pytorch.org/get-started/locally/).
 
-### [Chat] Setup Qwen model
+### [Chat] Setup Qwen-VL-Chat
 
-Install submodule:
+Install and update the submodule:
 ```
-git submodule update --init --recursive
-```
-
-Update submodule:
-```
-git submodule update --remote --merge
+git submodule update --init --recursive ./models/qwen_vl_chat
+git submodule update --remote --merge ./models/qwen_vl_chat
 ```
 
 ### [Text-To-Speech] Setup Azure AI Speech
@@ -62,6 +58,12 @@ Set environment variables:
 ```
 export SPEECH_KEY=your-key
 export SPEECH_REGION=your-region
+```
+
+Set environment variables on Windows:
+```
+setx SPEECH_KEY your-key
+setx SPEECH_REGION your-region
 ```
 
 ## Running

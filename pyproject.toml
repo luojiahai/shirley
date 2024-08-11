@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shirley"
-version = "0.1.18"
+version = "0.1.19"
 description = "It is just doing some stuff intelligently."
 authors = ["luojiahai <luo@jiahai.co>"]
 readme = "README.md"

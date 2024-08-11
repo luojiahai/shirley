@@ -16,14 +16,16 @@ It is just doing some stuff intelligently. It has the following features:
 pip install shirley
 ```
 
-### [Chat] Download Qwen-VL-Chat model
+### [Chat] Setup Qwen-VL-Chat model (local)
 
-Add Qwen/Qwen-VL-Chat (from Hugging Face) as a git submodule:
+Add Qwen/Qwen-VL-Chat as a git submodule:
 ```
 git submodule add https://huggingface.co/Qwen/Qwen-VL-Chat.git models/qwen_vl_chat
 git submodule update --init --recursive models/qwen_vl_chat
 git submodule update --remote --merge models/qwen_vl_chat
 ```
+
+This downloads the model repository from Hugging Face and saves it in `models/qwen_vl_chat`.
 
 Note: You can skip this if you want to use remote model.
 

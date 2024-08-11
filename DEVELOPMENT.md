@@ -42,7 +42,7 @@ poetry install
 
 Install [PyTorch](https://pytorch.org/get-started/locally/).
 
-### [Chat] Setup Qwen-VL-Chat model
+### [Chat] Setup Qwen-VL-Chat model (local)
 
 Install and update the submodule:
 ```

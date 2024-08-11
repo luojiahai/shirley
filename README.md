@@ -33,6 +33,14 @@ with gr.Blocks() as blocks:
 blocks.queue().launch()
 ```
 
+## Run a WebUI
+
+```bash
+poetry shell
+poetry install
+poetry run webui
+```
+
 ## Development
 
 See [DEVELOPMENT.md](./DEVELOPMENT.md).

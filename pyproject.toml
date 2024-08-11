@@ -18,7 +18,7 @@ transformers-stream-generator = "^0.0.5"
 azure-cognitiveservices-speech = "^1.38.0"
 
 [tool.poetry.scripts]
-webui = "shirley.webui:main"
+webui = "webui:main"
 
 
 [build-system]

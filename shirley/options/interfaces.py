@@ -23,7 +23,7 @@ class FooterInterfaceOptions(InterfaceOptions):
 
 @dataclass
 class ChatInterfaceOptions(InterfaceOptions):
-    client: Optional[ChatClientOptions] = ChatClientOptions(local=True)
+    client: Optional[ChatClientOptions] = ChatClientOptions()
     chatbot: Optional[ChatbotOptions] = ChatbotOptions()
     chat_stream_fn: Optional[Callable] = None
 

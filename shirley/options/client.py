@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -8,7 +9,7 @@ class ClientOptions:
 
 @dataclass
 class ChatClientOptions(ClientOptions):
-    local: bool
+    local: Optional[bool] = True
 
 
 @dataclass

@@ -18,7 +18,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class Chat(Client):
 
-    def __init__(self, options: ChatClientOptions = ChatClientOptions(local=True)) -> None:
+    def __init__(self, options: ChatClientOptions = ChatClientOptions()) -> None:
         super().__init__(options=options)
 
         self._local = options.local

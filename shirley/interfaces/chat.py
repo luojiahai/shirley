@@ -375,7 +375,7 @@ class Chat(Interface):
 
             with gr.Column(scale=3):
                 chatbot = gr.Chatbot(
-                    label='🤔 Qwen (通义千问)',
+                    label='🤖 Qwen (通义千问)',
                     height='50vh',
                     show_copy_button=True,
                     avatar_images=options.chatbot.avatar_images,
@@ -388,7 +388,7 @@ class Chat(Interface):
                 with gr.Row():
                     submit_button = gr.Button(value='🚀 Submit (发送)', variant='secondary', interactive=False)
                     stop_button = gr.Button(value='🙈 Stop (停止)', variant='secondary', interactive=False)
-                    regenerate_button = gr.Button(value='♻️ Regenerate (重新生成)', interactive=False)
+                    regenerate_button = gr.Button(value='🤔 Regenerate (重新生成)', interactive=False)
                     reset_button = gr.ClearButton(value='🧹 Reset (重置)', interactive=False)
 
         self._setup(

@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Footer(Interface):
+class FooterInterface(Interface):
     
     def __init__(self, options: FooterInterfaceOptions = FooterInterfaceOptions()) -> None:
         super().__init__(options=options)

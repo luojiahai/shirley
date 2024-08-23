@@ -56,12 +56,12 @@ import gradio as gr
 import shirley as sh
 
 with gr.Blocks() as blocks:
-    sh.interfaces.Header()
+    sh.HeaderInterface()
     with gr.Tab('Chat'):
-        sh.interfaces.Chat()
+        sh.ChatInterface()
     with gr.Tab('Text-To-Speech'):
-        sh.interfaces.TextToSpeech()
-    sh.interfaces.Footer()
+        sh.TextToSpeechInterface()
+    sh.FooterInterface()
 
 blocks.queue().launch()
 ```
@@ -70,7 +70,7 @@ Chat interface uses local model by default. If you want to use remote one, add o
 
 ```python
 ...
-sh.interfaces.Chat(
+sh.ChatInterface(
     options=ChatInterfaceOptions(
         client=ChatClientOptions(local=False),
     ),

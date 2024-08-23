@@ -1,2 +1,2 @@
-from shirley.clients.chat import Chat
-from shirley.clients.tts import TextToSpeech
+from shirley.clients.chat import ChatClient
+from shirley.clients.tts import TextToSpeechClient

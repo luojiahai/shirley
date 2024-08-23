@@ -1,6 +1,5 @@
 import gradio as gr
 import shirley as sh
-from shirley.options import ChatInterfaceOptions, ChatbotOptions
 
 
 def main() -> None:
@@ -18,16 +17,16 @@ def main() -> None:
         title='Shirley WebUI',
         css=sh.utils.getpath('./static/css/custom.css'),
     ) as blocks:
-        sh.interfaces.Header()
+        sh.HeaderInterface()
         with gr.Tab(label='📝 Chat (聊天/唠嗑)'):
-            sh.interfaces.Chat(
-                options=ChatInterfaceOptions(
-                    chatbot=ChatbotOptions(avatar_images=avatar_images),
+            sh.ChatInterface(
+                options=sh.ChatInterfaceOptions(
+                    chatbot=sh.ChatbotOptions(avatar_images=avatar_images),
                 ),
             )
         with gr.Tab(label='🗣️ Text-To-Speech (文字转语音)'):
-            sh.interfaces.TextToSpeech()
-        sh.interfaces.Footer()
+            sh.TextToSpeechInterface()
+        sh.FooterInterface()
 
     blocks.queue().launch(
         server_name='127.0.0.1',

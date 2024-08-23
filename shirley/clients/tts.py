@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class TextToSpeech(Client):
+class TextToSpeechClient(Client):
 
     def __init__(self, options: TextToSpeechClientOptions = TextToSpeechClientOptions()) -> None:
         super().__init__(options=options)

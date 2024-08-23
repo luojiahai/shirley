@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Chat(Interface):
+class ChatInterface(Interface):
 
     def __init__(self, options: ChatInterfaceOptions = ChatInterfaceOptions()) -> None:
         super().__init__(options=options)
 
-        self._client: sh.clients.Chat = sh.clients.Chat(options=options.client)
+        self._client: sh.ChatClient = sh.ChatClient(options=options.client)
         self._chat_stream_fn: Callable | None = options.chat_stream_fn
         self._pretrained_models: List[str] = self._client.get_models()
         self._pretrained_model_name_or_path: str = self._client.get_model_name_or_path(
@@ -32,8 +32,8 @@ class Chat(Interface):
 
     def _chat_stream(
         self,
-        query: sh.types.QwenQuery,
-        history: sh.types.QwenHistory = None,
+        query: sh.QwenQuery,
+        history: sh.QwenHistory = None,
     ) -> Generator[str, Any, None]:
         if self._chat_stream_fn:
             return self._chat_stream_fn(
@@ -45,7 +45,7 @@ class Chat(Interface):
             return self._client.chat_stream(query=query, history=history)
 
 
-    def _draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory) -> str | None:
+    def _draw_bbox_on_latest_picture(self, history: sh.QwenHistory) -> str | None:
         return self._client.draw_bbox_on_latest_picture(history=history)
 
 
@@ -60,8 +60,8 @@ class Chat(Interface):
             return ''
 
 
-    def _get_query_and_history(self) -> Tuple[sh.types.QwenQuery, sh.types.QwenHistory]:
-        history: sh.types.QwenHistory = []
+    def _get_query_and_history(self) -> Tuple[sh.QwenQuery, sh.QwenHistory]:
+        history: sh.QwenHistory = []
         text = ''
         for _, (query, response) in enumerate(self._history):
             if isinstance(query, (Tuple, List)):
@@ -75,7 +75,7 @@ class Chat(Interface):
         return history[-1][0], history[:-1]
 
 
-    def _pregenerate(self, *args, **kwargs) -> sh.types.GradioComponents:
+    def _pregenerate(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.MultimodalTextbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
@@ -86,8 +86,8 @@ class Chat(Interface):
         return tuple(components)
 
 
-    def _generate(self, *args, **kwargs) -> Iterator[sh.types.ChatbotTuplesOutput]:
-        chatbot: sh.types.ChatbotTuplesInput = args[0]
+    def _generate(self, *args, **kwargs) -> Iterator[sh.ChatbotTuplesOutput]:
+        chatbot: sh.ChatbotTuplesInput = args[0]
 
         self._generating = True
         logger.info(f'😀 User: {chatbot[-1][0]}')
@@ -113,7 +113,7 @@ class Chat(Interface):
         yield chatbot
 
 
-    def _postgenerate(self, *args, **kwargs) -> sh.types.GradioComponents:
+    def _postgenerate(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.MultimodalTextbox(interactive=True),
             gr.Button(variant='secondary', interactive=False),
@@ -130,9 +130,9 @@ class Chat(Interface):
             raise gr.Error('Model not loaded. Please load a model.')
 
 
-    def _submit(self, *args, **kwargs) -> Tuple[sh.types.ChatbotTuplesOutput, sh.types.MultimodalTextboxOutput]:
-        chatbot: sh.types.ChatbotTuplesInput = args[0]
-        multimodal_textbox: sh.types.MultimodalTextboxInput = args[1]
+    def _submit(self, *args, **kwargs) -> Tuple[sh.ChatbotTuplesOutput, sh.MultimodalTextboxOutput]:
+        chatbot: sh.ChatbotTuplesInput = args[0]
+        multimodal_textbox: sh.MultimodalTextboxInput = args[1]
 
         text = multimodal_textbox['text']
         if not text or not text.strip():
@@ -149,12 +149,12 @@ class Chat(Interface):
         return chatbot, None
 
 
-    def _stop(self, *args, **kwargs) -> sh.types.GradioComponents:
+    def _stop(self, *args, **kwargs) -> sh.GradioComponents:
         self._generating = False
 
 
-    def _regenerate(self, *args, **kwargs) -> sh.types.ChatbotTuplesOutput | Iterator[sh.types.ChatbotTuplesOutput]:
-        chatbot: sh.types.ChatbotTuplesInput = args[0]
+    def _regenerate(self, *args, **kwargs) -> sh.ChatbotTuplesOutput | Iterator[sh.ChatbotTuplesOutput]:
+        chatbot: sh.ChatbotTuplesInput = args[0]
 
         if len(chatbot) < 1 or len(self._history) < 1:
             return chatbot
@@ -173,7 +173,7 @@ class Chat(Interface):
         yield from self._generate(*args, **kwargs)
 
 
-    def _reset(self, *args, **kwargs) -> sh.types.GradioComponents:
+    def _reset(self, *args, **kwargs) -> sh.GradioComponents:
         self._history = []
 
         components = [
@@ -187,12 +187,12 @@ class Chat(Interface):
 
 
     def _model_dropdown_change(self, *args, **kwargs) -> None:
-        model_dropdown: sh.types.DropdownInput = args[0]
+        model_dropdown: sh.DropdownInput = args[0]
 
         self._pretrained_model_name_or_path = self._client.get_model_name_or_path(model_name=model_dropdown)
 
 
-    def _load_button_click(self, *args, **kwargs) -> sh.types.GradioComponents:
+    def _load_button_click(self, *args, **kwargs) -> sh.GradioComponents:
         if not self._client.model or self._pretrained_model_name_or_path != self._client.pretrained_model_name_or_path:
             self._client.load_model(pretrained_model_name_or_path=self._pretrained_model_name_or_path)
         gr.Info(message='Model loaded.')
@@ -200,8 +200,8 @@ class Chat(Interface):
         return gr.Dropdown(interactive=True), gr.Button(interactive=True)
 
 
-    def _multimodal_textbox_change(self, *args, **kwargs) -> sh.types.GradioComponents:
-        multimodal_textbox: sh.types.MultimodalTextboxInput = args[0]
+    def _multimodal_textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
+        multimodal_textbox: sh.MultimodalTextboxInput = args[0]
 
         text = multimodal_textbox['text']
         if not text or not text.strip():

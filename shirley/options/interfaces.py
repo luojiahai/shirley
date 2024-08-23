@@ -1,4 +1,4 @@
-from .client import ChatClientOptions, TextToSpeechClientOptions
+from .clients import ChatClientOptions, TextToSpeechClientOptions
 from .components import ChatbotOptions
 from dataclasses import dataclass
 from typing import Callable, Optional

@@ -1,4 +1,4 @@
-from shirley.options.client import ClientOptions, ChatClientOptions, TextToSpeechClientOptions
+from shirley.options.clients import ClientOptions, ChatClientOptions, TextToSpeechClientOptions
 from shirley.options.interfaces import (
     InterfaceOptions,
     HeaderInterfaceOptions,

@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class TextToSpeech(Interface):
+class TextToSpeechInterface(Interface):
 
     def __init__(self, options: TextToSpeechInterfaceOptions = TextToSpeechInterfaceOptions()) -> None:
         super().__init__(options=options)
 
-        self._client = sh.clients.TextToSpeech(options=options.client)
+        self._client = sh.TextToSpeechClient(options=options.client)
         self._text: str = ''
         self._locale: str | None = None
         self._voice: str | None = None
@@ -24,11 +24,11 @@ class TextToSpeech(Interface):
 
 
     @property
-    def client(self) -> sh.clients.Chat:
+    def client(self) -> sh.ChatClient:
         return self._client
 
 
-    def _preconvert(self, *args, **kwargs) -> sh.types.GradioComponents:
+    def _preconvert(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.Textbox(interactive=False),
             gr.Button(variant='secondary', interactive=False),
@@ -37,11 +37,11 @@ class TextToSpeech(Interface):
         return components
 
 
-    def _convert(self, *args, **kwargs) -> sh.types.AudioOutput:
+    def _convert(self, *args, **kwargs) -> sh.AudioOutput:
         return self._client.text_to_speech(text=self._text, voice=self._voice)
 
 
-    def _postconvert(self, *args, **kwargs) -> sh.types.GradioComponents:
+    def _postconvert(self, *args, **kwargs) -> sh.GradioComponents:
         components = [
             gr.Textbox(interactive=True),
             gr.Button(variant='primary', interactive=True),
@@ -51,7 +51,7 @@ class TextToSpeech(Interface):
 
 
     def _submit(self, *args, **kwargs) -> None:
-        textbox: sh.types.TextboxInput = args[0]
+        textbox: sh.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
             raise gr.Error('Text not valid.')
@@ -59,14 +59,14 @@ class TextToSpeech(Interface):
         self._text = textbox
 
 
-    def _reset(self, *args, **kwargs) -> sh.types.GradioComponents:
+    def _reset(self, *args, **kwargs) -> sh.GradioComponents:
         self._text = ''
 
         return gr.Button(interactive=False)
 
 
-    def _textbox_change(self, *args, **kwargs) -> sh.types.GradioComponents:
-        textbox: sh.types.TextboxInput = args[0]
+    def _textbox_change(self, *args, **kwargs) -> sh.GradioComponents:
+        textbox: sh.TextboxInput = args[0]
 
         if not textbox or not textbox.strip():
             return gr.Button(variant='secondary', interactive=False)
@@ -75,8 +75,8 @@ class TextToSpeech(Interface):
         return gr.Button(variant='primary', interactive=True)
 
 
-    def _locale_dropdown_change(self, *args, **kwargs) -> sh.types.GradioComponents:
-        locale_dropdown: sh.types.DropdownInput = args[0]
+    def _locale_dropdown_change(self, *args, **kwargs) -> sh.GradioComponents:
+        locale_dropdown: sh.DropdownInput = args[0]
 
         if not locale_dropdown or not locale_dropdown.strip():
             return gr.Dropdown(choices=None, interactive=False)
@@ -88,7 +88,7 @@ class TextToSpeech(Interface):
 
 
     def _voice_dropdown_change(self, *args, **kwargs) -> None:
-        voice_dropdown: sh.types.DropdownInput = args[0]
+        voice_dropdown: sh.DropdownInput = args[0]
 
         self._voice = voice_dropdown
 

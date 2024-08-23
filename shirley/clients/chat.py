@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Chat(Client):
+class ChatClient(Client):
 
     def __init__(self, options: ChatClientOptions = ChatClientOptions()) -> None:
         super().__init__(options=options)
@@ -128,11 +128,11 @@ class Chat(Client):
         self._model = model.to(device=self._device)
 
 
-    def chat_stream(self, query: sh.types.QwenQuery, history: sh.types.QwenHistory = None) -> Generator[str, Any, None]:
+    def chat_stream(self, query: sh.QwenQuery, history: sh.QwenHistory = None) -> Generator[str, Any, None]:
         return self._model.chat_stream(tokenizer=self._tokenizer, query=query, history=history)
 
 
-    def draw_bbox_on_latest_picture(self, history: sh.types.QwenHistory) -> str | None:
+    def draw_bbox_on_latest_picture(self, history: sh.QwenHistory) -> str | None:
         response = history[-1][1]
         image = self._tokenizer.draw_bbox_on_latest_picture(response=response, history=history)
         if image is not None:

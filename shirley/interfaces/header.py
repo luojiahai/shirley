@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
-class Header(Interface):
+class HeaderInterface(Interface):
 
     def __init__(self, options: HeaderInterfaceOptions = HeaderInterfaceOptions()) -> None:
         super().__init__(options=options)

@@ -71,8 +71,8 @@ Chat interface uses local model by default. If you want to use remote one, add o
 ```python
 ...
 sh.ChatInterface(
-    options=ChatInterfaceOptions(
-        client=ChatClientOptions(local=False),
+    options=sh.ChatInterfaceOptions(
+        client=sh.ChatClientOptions(local=False),
     ),
 )
 ...
